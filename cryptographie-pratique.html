@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.2">
+<title>Cryptographie pratique</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400">
+<style>
+/* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
+/* Remove the comments around the @import statement below when using this as a custom stylesheet */
+/*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400";*/
+article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}
+audio,canvas,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+[hidden],template{display:none}
+script{display:none!important}
+html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}
+body{margin:0}
+a{background:transparent}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+abbr[title]{border-bottom:1px dotted}
+b,strong{font-weight:bold}
+dfn{font-style:italic}
+hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type="button"],input[type="reset"],input[type="submit"]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type="checkbox"],input[type="radio"]{box-sizing:border-box;padding:0}
+input[type="search"]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}
+input[type="search"]::-webkit-search-cancel-button,input[type="search"]::-webkit-search-decoration{-webkit-appearance:none}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,*:before,*:after{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;font-weight:400;font-style:normal;line-height:1;position:relative;cursor:auto}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+#map_canvas img,#map_canvas embed,#map_canvas object,.map_canvas img,.map_canvas embed,.map_canvas object{max-width:none!important}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+.antialiased,body{-webkit-font-smoothing:antialiased}
+img{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+p.lead,.paragraph.lead>p,#preamble>.sectionbody>.paragraph:first-of-type p{font-size:1.21875em;line-height:1.6}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0;direction:ltr}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:none}
+p{font-family:inherit;font-weight:400;font-size:1em;line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #ddddd8;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em;height:0}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{font-size:1em;line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol,ul.no-bullet,ol.no-bullet{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0;font-size:1em}
+ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
+ul.square{list-style-type:square}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ul.no-bullet{list-style:none}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+abbr,acronym{text-transform:uppercase;font-size:90%;color:rgba(0,0,0,.8);border-bottom:1px dotted #ddd;cursor:help}
+abbr{text-transform:none}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote cite{display:block;font-size:.9375em;color:rgba(0,0,0,.6)}
+blockquote cite:before{content:"\2014 \0020"}
+blockquote cite a,blockquote cite a:visited{color:rgba(0,0,0,.6)}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media only screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}table{background:#fff;margin-bottom:1.25em;border:solid 1px #dedede}
+table thead,table tfoot{background:#f7f8f7;font-weight:bold}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt,table tr:nth-of-type(even){background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{display:table-cell;line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.clearfix:before,.clearfix:after,.float-group:before,.float-group:after{content:" ";display:table}
+.clearfix:after,.float-group:after{clear:both}
+*:not(pre)>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background-color:#f7f7f8;-webkit-border-radius:4px;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
+pre,pre>code{line-height:1.45;color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;text-rendering:optimizeSpeed}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{display:inline-block;color:rgba(0,0,0,.8);font-size:.75em;line-height:1.4;background-color:#f7f7f7;border:1px solid #ccc;-webkit-border-radius:3px;border-radius:3px;-webkit-box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em white inset;box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em #fff inset;margin:-.15em .15em 0 .15em;padding:.2em .6em .2em .5em;vertical-align:middle;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menu{color:rgba(0,0,0,.8)}
+b.button:before,b.button:after{position:relative;top:-1px;font-weight:400}
+b.button:before{content:"[";padding:0 3px 0 2px}
+b.button:after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin-left:auto;margin-right:auto;margin-top:0;margin-bottom:0;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header:before,#header:after,#content:before,#content:after,#footnotes:before,#footnotes:after,#footer:before,#footer:after{content:" ";display:table}
+#header:after,#content:after,#footnotes:after,#footer:after{clear:both}
+#content{margin-top:1.25em}
+#content:before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #ddddd8}
+#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #ddddd8;padding-bottom:8px}
+#header .details{border-bottom:1px solid #ddddd8;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:-ms-flexbox;display:-webkit-flex;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span:before{content:"\00a0\2013\00a0"}
+#header .details br+span.author:before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark:before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber:after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #ddddd8;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #efefed;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media only screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+#toc.toc2{margin-top:0!important;background-color:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #efefed;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #efefed;left:auto;right:0}}@media only screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}#content #toc{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:100%;background-color:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:rgba(255,255,255,.8);line-height:1.44}
+.sect1{padding-bottom:.625em}
+@media only screen and (min-width:768px){.sect1{padding-bottom:1.25em}}.sect1+.sect1{border-top:1px solid #efefed}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor:before,h2>a.anchor:before,h3>a.anchor:before,#toctitle>a.anchor:before,.sidebarblock>.content>.title>a.anchor:before,h4>a.anchor:before,h5>a.anchor:before,h6>a.anchor:before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock>caption.title{white-space:nowrap;overflow:visible;max-width:0}
+.paragraph.lead>p,#preamble>.sectionbody>.paragraph:first-of-type p{color:rgba(0,0,0,.85)}
+table.tableblock #preamble>.sectionbody>.paragraph:first-of-type p{font-size:inherit}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #ddddd8;color:rgba(0,0,0,.6)}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border-style:solid;border-width:1px;border-color:#e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;-webkit-border-radius:4px;border-radius:4px}
+.exampleblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child{margin-bottom:0}
+.sidebarblock{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
+.sidebarblock>:first-child{margin-top:0}
+.sidebarblock>:last-child{margin-bottom:0}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock pre:not(.highlight),.listingblock pre[class="highlight"],.listingblock pre[class^="highlight "],.listingblock pre.CodeRay,.listingblock pre.prettyprint{background:#f7f7f8}
+.sidebarblock .literalblock pre,.sidebarblock .listingblock pre:not(.highlight),.sidebarblock .listingblock pre[class="highlight"],.sidebarblock .listingblock pre[class^="highlight "],.sidebarblock .listingblock pre.CodeRay,.sidebarblock .listingblock pre.prettyprint{background:#f2f1f1}
+.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{-webkit-border-radius:4px;border-radius:4px;word-wrap:break-word;padding:1em;font-size:.8125em}
+.literalblock pre.nowrap,.literalblock pre[class].nowrap,.listingblock pre.nowrap,.listingblock pre[class].nowrap{overflow-x:auto;white-space:pre;word-wrap:normal}
+@media only screen and (min-width:768px){.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{font-size:.90625em}}@media only screen and (min-width:1280px){.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{font-size:1em}}.literalblock.output pre{color:#f7f7f8;background-color:rgba(0,0,0,.9)}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;-webkit-border-radius:4px;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]:before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:#999}
+.listingblock:hover code[data-lang]:before{display:block}
+.listingblock.terminal pre .command:before{content:attr(data-prompt);padding-right:.5em;color:#999}
+.listingblock.terminal pre .command:not([data-prompt]):before{content:"$"}
+table.pyhltable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.pyhltable td{vertical-align:top;padding-top:0;padding-bottom:0}
+table.pyhltable td.code{padding-left:.75em;padding-right:0}
+pre.pygments .lineno,table.pyhltable td:not(.code){color:#999;padding-left:0;padding-right:.5em;border-right:1px solid #ddddd8}
+pre.pygments .lineno{display:inline-block;margin-right:.25em}
+table.pyhltable .linenodiv{background:none!important;padding-right:0!important}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock blockquote p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote:before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.5em;margin-right:.5ex;text-align:right}
+.quoteblock .quoteblock{margin-left:0;margin-right:0;padding:.5em 0;border-left:3px solid rgba(0,0,0,.6)}
+.quoteblock .quoteblock blockquote{padding:0 0 0 .75em}
+.quoteblock .quoteblock blockquote:before{display:none}
+.verseblock{margin:0 1em 1.25em 1em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.05em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract{margin:0 0 1.25em 0;display:block}
+.quoteblock.abstract blockquote,.quoteblock.abstract blockquote p{text-align:left;word-spacing:0}
+.quoteblock.abstract blockquote:before,.quoteblock.abstract blockquote p:first-of-type:before{display:none}
+table.tableblock{max-width:100%;border-collapse:separate}
+table.tableblock td>.paragraph:last-child p>p:last-child,table.tableblock th>p:last-child,table.tableblock td>p:last-child{margin-bottom:0}
+table.spread{width:100%}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all th.tableblock,table.grid-all td.tableblock{border-width:0 1px 1px 0}
+table.grid-all tfoot>tr>th.tableblock,table.grid-all tfoot>tr>td.tableblock{border-width:1px 1px 0 0}
+table.grid-cols th.tableblock,table.grid-cols td.tableblock{border-width:0 1px 0 0}
+table.grid-all *>tr>.tableblock:last-child,table.grid-cols *>tr>.tableblock:last-child{border-right-width:0}
+table.grid-rows th.tableblock,table.grid-rows td.tableblock{border-width:0 0 1px 0}
+table.grid-all tbody>tr:last-child>th.tableblock,table.grid-all tbody>tr:last-child>td.tableblock,table.grid-all thead:last-child>tr>th.tableblock,table.grid-rows tbody>tr:last-child>th.tableblock,table.grid-rows tbody>tr:last-child>td.tableblock,table.grid-rows thead:last-child>tr>th.tableblock{border-bottom-width:0}
+table.grid-rows tfoot>tr>th.tableblock,table.grid-rows tfoot>tr>td.tableblock{border-width:1px 0 0 0}
+table.frame-all{border-width:1px}
+table.frame-sides{border-width:0 1px}
+table.frame-topbot{border-width:1px 0}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{display:table-cell;line-height:1.6;background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+td>div.verse{white-space:pre}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+ol>li p,ul>li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.unstyled,ol.unnumbered,ul.checklist,ul.none{list-style-type:none}
+ul.unstyled,ol.unnumbered,ul.checklist{margin-left:.625em}
+ul.checklist li>p:first-child>.fa-square-o:first-child,ul.checklist li>p:first-child>.fa-check-square-o:first-child{width:1em;font-size:.85em}
+ul.checklist li>p:first-child>input[type="checkbox"]:first-child{width:1em;position:relative;top:1px}
+ul.inline{margin:0 auto .625em auto;margin-left:-1.375em;margin-right:0;padding:0;list-style:none;overflow:hidden}
+ul.inline>li{list-style:none;float:left;margin-left:1.375em;display:block}
+ul.inline>li>*{display:block}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1{padding-right:.75em;font-weight:bold}
+td.hdlist1,td.hdlist2{vertical-align:top}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist>table tr>td:first-of-type{padding:0 .75em;line-height:1}
+.colist>table tr>td:last-of-type{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:solid 4px #fff;-webkit-box-shadow:0 0 0 1px #ddd;box-shadow:0 0 0 1px #ddd}
+.imageblock.left,.imageblock[style*="float: left"]{margin:.25em .625em 1.25em 0}
+.imageblock.right,.imageblock[style*="float: right"]{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none}
+span.footnote,span.footnoteref{vertical-align:super;font-size:.875em}
+span.footnote a,span.footnoteref a{text-decoration:none}
+span.footnote a:active,span.footnoteref a:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em 0;border-width:1px 0 0 0}
+#footnotes .footnote{padding:0 .375em;line-height:1.3;font-size:.875em;margin-left:1.2em;text-indent:-1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+.gist .file-data>table{border:0;background:#fff;width:100%;margin-bottom:0}
+.gist .file-data>table td.line-data{width:99%}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background-color:#00fafa}
+.black{color:#000}
+.black-background{background-color:#000}
+.blue{color:#0000bf}
+.blue-background{background-color:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background-color:#fa00fa}
+.gray{color:#606060}
+.gray-background{background-color:#7d7d7d}
+.green{color:#006000}
+.green-background{background-color:#007d00}
+.lime{color:#00bf00}
+.lime-background{background-color:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background-color:#7d0000}
+.navy{color:#000060}
+.navy-background{background-color:#00007d}
+.olive{color:#606000}
+.olive-background{background-color:#7d7d00}
+.purple{color:#600060}
+.purple-background{background-color:#7d007d}
+.red{color:#bf0000}
+.red-background{background-color:#fa0000}
+.silver{color:#909090}
+.silver-background{background-color:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background-color:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background-color:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background-color:#fafa00}
+span.icon>.fa{cursor:default}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note:before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip:before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning:before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution:before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important:before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background-color:rgba(0,0,0,.8);-webkit-border-radius:100px;border-radius:100px;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]:after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+h1,h2{letter-spacing:-.01em}
+dt,th.tableblock,td.content{text-rendering:optimizeLegibility}
+p,td.content{letter-spacing:-.01em}
+p strong,td.content strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background-color:#fffef7;border-color:#e0e0dc;-webkit-box-shadow:0 1px 4px #e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@media print{@page{margin:1.25cm .75cm}
+*{-webkit-box-shadow:none!important;box-shadow:none!important;text-shadow:none!important}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare):after,a[href^="https:"]:not(.bare):after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]:after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img{page-break-inside:avoid}
+thead{display:table-header-group}
+img{max-width:100%!important}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #ddddd8!important;padding-bottom:0!important}
+.sect1{padding-bottom:0!important}
+.sect1+.sect1{border:0!important}
+#header>h1:first-child{margin-top:1.25rem}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em 0}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span:before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]:before{display:block}
+#footer{background:none!important;padding:0 .9375em}
+#footer-text{color:rgba(0,0,0,.6)!important;font-size:.9em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+</style>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+  TeX: { equationNumbers: { autoNumber: "none" } }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.4.0/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Cryptographie pratique</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_introduction">Introduction</a></li>
+<li><a href="#_1_le_format_x509">1. Le format x509</a>
+<ul class="sectlevel2">
+<li><a href="#_1_1_visualisation_d_un_certificat_x509">1.1 Visualisation d&#8217;un certificat x509</a></li>
+<li><a href="#_1_2_structure_d_un_certificat_x509">1.2 Structure d&#8217;un certificat x509</a></li>
+<li><a href="#_1_3_hiérarchie_des_certificats">1.3 Hiérarchie des certificats</a></li>
+</ul>
+</li>
+<li><a href="#_2_vérification_de_signature_rsa">2 Vérification de signature RSA</a>
+<ul class="sectlevel2">
+<li><a href="#_2_1_la_signature_rsa">2.1 La signature RSA</a></li>
+<li><a href="#_2_2_vérification_du_certificat_de_letsencrypto_org">2.2 Vérification du certificat de letsencrypto.org</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_introduction">Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Cet article décrit les calculs à réaliser pour vérifier des signatures RSA et ECDSA, dans le cas des certificats x509. Ces certificats sont les plus couramment utilisés et servent notamment à la sécurisation https.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>RSA</em>&#160;: ce cas sera traité avec le certificat d&#8217;un serveur https.</p>
+</li>
+<li>
+<p><em>ECDSA</em>&#160;: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l&#8217;occasion, afin de se familiariser avec les calculs qu&#8217;implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (Certificat Électronique Visible). Ce dernier cas sort du cadre x509 qui est l&#8217;objet principal de cet article, le format pour un tel certificat étant 2D-Doc.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Au fil du document nous ferons appel aux outils suivants&#160;:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>openssl</code> pour travailler sur les certificats x509 en ligne de commande</p>
+</li>
+<li>
+<p><code>python</code>, <code>bc</code> ou <code>zsbc</code> pour faire des calculs avec des nombres entiers de grande taille</p>
+</li>
+<li>
+<p>Conversion entre encodage <em>PEM</em> et encodage <em>binaire</em> (Linux&#160;: <code>base64</code>, Windows&#160;: <code>notepad</code>++)</p>
+</li>
+<li>
+<p>Édition du contenu de fichier binaire (Linux&#160;: <code>gvim/xxd</code>, Windows&#160;: <code>notepad</code>++)</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Windows versus Unix/Linux</div>
+<div class="paragraph">
+<p>Ce document s&#8217;adresse aux utilisateurs de Windows et Linux.
+Il arrive qu&#8217;entre les deux environnements l&#8217;outil "naturel" pour effectuer une certaine tâche diffère, dans ce cas les outils des deux systèmes sont présentés.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Plan&#160;:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Le format x509</p>
+</li>
+<li>
+<p>Outillage pour manipuler le format x509</p>
+</li>
+<li>
+<p>Cas d&#8217;un certificat RSA</p>
+</li>
+<li>
+<p>Cas d&#8217;un certificat ECDSA</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_1_le_format_x509">1. Le format x509</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_1_1_visualisation_d_un_certificat_x509">1.1 Visualisation d&#8217;un certificat x509</h3>
+<div class="paragraph">
+<p>A l&#8217;aide d&#8217;un navigateur, ouvrir une page en https et afficher le certificat.</p>
+</div>
+<div class="paragraph">
+<p>Exemple avec Firefox 44 et le site <a href="https://letsencrypt.org/" class="bare">https://letsencrypt.org/</a>. Dans la suite, nous continuerons avec le certificat de ce site.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Cliquer sur l&#8217;icône de cadenas à gauche de la barre d&#8217;adresse</p>
+</li>
+<li>
+<p>Cliquer sur la flèche droite</p>
+</li>
+<li>
+<p>Cliquer sur <em>Plus d&#8217;informations</em></p>
+</li>
+<li>
+<p>Cliquer sur <em>Afficher le certificat</em></p>
+</li>
+<li>
+<p>Afficher l&#8217;onglet <em>Détails</em></p>
+</li>
+</ol>
+</div>
+<table class="tableblock frame-none grid-all" style="width: 50%;">
+<caption class="title">Table 1. Afficher les détails d&#8217;un certificat https depuis Firefox</caption>
+<colgroup>
+<col style="width: 33%;">
+<col style="width: 33%;">
+<col style="width: 33%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-firefox-1.png" alt="Image Firefox 1" width="382"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-firefox-2.png" alt="Image Firefox 2" width="221"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-firefox-3.png" alt="Image Firefox 3" width="351"></span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-firefox-4.png" alt="Image Firefox 4" width="381"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-firefox-5.png" alt="Image Firefox 5" width="353"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-firefox-6.png" alt="Image Firefox 6" width="353"></span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Nous nous intéresserons à la partie supérieure (<em>Hiérarchie des certificats</em>) plus tard.</p>
+</div>
+<div class="paragraph">
+<p>Pour le moment examinons le certificat. L&#8217;affichage de Firefox en dessous de <em>Champs du certificat</em> liste trois parties&#160;:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Le certificat proprement dit, qui contient beaucoup d&#8217;informations structurées sur plusieurs niveaux hiérarchiques</p>
+</li>
+<li>
+<p>L&#8217;algorithme de signature du certificat, dans notre exemple, <em>PKCS #1 SHA-256 avec chiffrement RSA</em></p>
+</li>
+<li>
+<p>La signature du certificat, ici, une suite de 256 octets</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Cette structure en trois parties est toujours respectée pour un certificat x509.
+A noter qu&#8217;Internet Explorer affiche les mêmes informations, mais elles ne sont pas hiérarchisées en trois parties comme le fait Firefox.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_1_2_structure_d_un_certificat_x509">1.2 Structure d&#8217;un certificat x509</h3>
+<div class="paragraph">
+<p>Où la structure d&#8217;un certificat est-elle définie, et quelle est cette définition ?</p>
+</div>
+<div class="paragraph">
+<p>Une recherche sur un moteur de recherche avec les mots-clés <em>RFC</em> et <em>x509</em> produit l&#8217;URL suivante dans les premières réponses&#160;:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://tools.ietf.org/html/rfc5280" class="bare">https://tools.ietf.org/html/rfc5280</a></p>
+</div>
+<div class="paragraph">
+<p>Et effectivement la <strong>RFC 5280</strong> définit le format x509 version 3 en totalité.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Un ou une RFC ?</div>
+<div class="paragraph">
+<p>Nous utiliserons le féminin dans ce document, en sachant que RFC étant un acronyme anglais, il n&#8217;y a pas d&#8217;argument définitif en faveur du masculin ou du féminin.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Affichons la RFC 5280. Dans la section <em>4.1</em> se trouve la définition suivante&#160;:</p>
+</div>
+<div class="literalblock">
+<div class="title">Extrait de la RFC 5280</div>
+<div class="content">
+<pre>...
+4.1.  Basic Certificate Fields
+
+   The X.509 v3 certificate basic syntax is as follows.  For signature
+   calculation, the data that is to be signed is encoded using the ASN.1
+   distinguished encoding rules (DER) [X.690].  ASN.1 DER encoding is a
+   tag, length, value encoding system for each element.
+
+Certificate  ::=  SEQUENCE  {
+	tbsCertificate       TBSCertificate,
+	signatureAlgorithm   AlgorithmIdentifier,
+	signatureValue       BIT STRING  }
+...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>La suite définit les différents éléments du certificat, à savoir ce que sont les structures <em>TBSCertificate</em> et <em>AlgorithmIdentifier</em>.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">Grammaire, ASN.2 et DER</div>
+<div class="paragraph">
+<p>La structure du certificat est décrite par une <em>grammaire</em>, d&#8217;après les règles de syntaxe <a href="http://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx"><strong>ASN.1</strong></a>.</p>
+</div>
+<div class="paragraph">
+<p>L&#8217;encodage de données dont la structure est décrite en <em>ASN.1</em> est défini par la norme <a href="https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf"><strong>X.690</strong></a>.</p>
+</div>
+<div class="paragraph">
+<p>La RFC précise que la partie du certificat à signer doit être encodée selon le standard Distinguished Encoding Rules ou <em>DER</em>. Entre autres encodages, le document <a href="https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf"><strong>X.690</strong></a> définit le <em>DER</em>.</p>
+</div>
+<div class="paragraph">
+<p>Nous verrons par la suite l&#8217;encodage <em>DER</em>. Si vous souhaitez l&#8217;aborder sans attendre, plutôt que d&#8217;examiner directement le document X.690, je vous recommande cette page&#160;: <a href="https://en.wikipedia.org/wiki/X.690"><strong>Présentation&#160;X.690&#160;&#160;(Wikipédia)</strong></a></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>En ASN.1 le mot-clé <code>SEQUENCE</code> sans autre précision indique un bloc constitué d&#8217;une suite de sous-blocs de données. On a donc le bloc de données <em>Certificate</em> dans lequel se trouvent, à la suite&#160;:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Le bloc <em>tbsCertificate</em>, soit le certificat à signer (<strong>t</strong>o <strong>b</strong>e <strong>s</strong>igned <strong>Certificate</strong>)</p>
+</li>
+<li>
+<p>Le bloc <em>signatureAlgorithm</em>, soit l&#8217;identification de l&#8217;algorithme de signature</p>
+</li>
+<li>
+<p>Le bloc <em>signatureValue</em>, soit la signature elle-même</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_1_3_hiérarchie_des_certificats">1.3 Hiérarchie des certificats</h3>
+<div class="paragraph">
+<p>Dans la partie <em>tbsCertificate</em> de letsencrypt.org, intéressons-nous à deux éléments en particulier, l'<em>émetteur</em> du certificat et le <em>sujet</em> du certificat.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Le <em>sujet</em> du certificat a pour CN (c&#8217;est le nom commun, <strong>CN</strong> pour <strong>C</strong>ommon <strong>N</strong>ame) letsencrypt.org et c&#8217;est le dernier nom qui est affiché dans la hiérarchie des certificats (partie supérieure de la fenêtre).</p>
+</li>
+<li>
+<p>L'<em>émetteur</em> du certificat a pour CN <em>TrustID Server CA A52</em> et on peut voir ce nom au-dessus de letsencrypt.org dans la hiérarchie.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>L&#8217;émetteur et le sujet ont également le pays (<strong>C</strong>) et l&#8217;organisation (<strong>O</strong>) définis dans leur nom, ainsi que d&#8217;autres éléments.
+Le "nom simple" ou "nom court" du certificat est son CN. Le standard x509 ne définit pas cette notion de "nom simple" ou "nom court", nous l&#8217;employons ici pour préciser que dans la pratique, le CN est le véritable nom du certificat, les autres éléments donnant des informations annexes.
+Parfois, seul le CN est affiché pour désigner un certificat.</p>
+</div>
+<div class="paragraph">
+<p>Cela dit, le nom du certificat (au sens du standard x509) est constitué de <em>la totlité des éléments qui le composent</em>, et non pas seulement du CN.</p>
+</div>
+<table class="tableblock frame-none grid-all" style="width: 50%;">
+<caption class="title">Table 2. Sujet et émetteur du certificat x509</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Sujet</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Émetteur</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-crt-1.png" alt="Image certificat : sujet" width="372"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-crt-2.png" alt="Image certificat : émetteur" width="372"></span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Le lien hiérarchique est toujours établi entre un émetteur et un sujet.</p>
+</div>
+<div class="paragraph">
+<p>L&#8217;émetteur est celui qui signe le certificat, le sujet est celui qui est signé.
+Pour signer, l&#8217;émetteur utilise sa clé privée. La vérification de la signature est faite avec sa clé publique.
+Ainsi pour vérifier l&#8217;authenticité du certificat letsencrypt.org, nous aurons besoin de la clé publique de son émetteur, TrustID Server CA A52.</p>
+</div>
+<div class="paragraph">
+<p>Ce principe est toujours respecté avec les certificats x509, que ce soit avec RSA ou d&#8217;autres systèmes à clé publique / clé privée.</p>
+</div>
+<div class="paragraph">
+<p>Nous allons maintenant passer au cas du RSA.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_2_vérification_de_signature_rsa">2 Vérification de signature RSA</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_2_1_la_signature_rsa">2.1 La signature RSA</h3>
+<div class="sect3">
+<h4 id="_notations">Notations</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Le certificat à signer (le sujet du certificat) est <em>tbsCertificate</em>, soit le certificat sans les informations de signature.</p>
+</li>
+<li>
+<p>L&#8217;entité qui signe le certificat (l&#8217;émetteur du certificat) a pour clé RSA <strong>(n, e)</strong> (<strong>n</strong> est le modulo, <strong>e</strong> est l&#8217;exposant) et <strong>d</strong>.
+Le couple <strong>(n, e)</strong> est la clé publique, <strong>d</strong> est la clé privée.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>La page <a href="https://fr.wikipedia.org/wiki/Chiffrement_RSA#Chiffrement_du_message">Chiffrement RSA (Wikipédia)</a> explique le lien entre <em>(n, e)</em> et <em>d</em>, et nous indique le calcul à effectuer pour <em>chiffrer</em>.
+Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et public, et pour <em>vérifier</em> la signature, le rôle des exposants privé et public est encore inversé (par rapport à la signature).</p>
+</div>
+<div class="paragraph">
+<p>Dans notre exemple le <em>tbsCertificate</em> est celui de letsencrypt.org, tandis que la clé RSA (clé publique <em>(n, e)</em> et clé privée <em>d</em>) est celle de TrustID Server CA A52.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_calcul_de_la_signature">Calcul de la signature</h4>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Clé privée, clé publique</div>
+<div class="paragraph">
+<p>Le calcul de la signature nécessite de connaître <em>d</em>, la clé privée, que nous ne connaissons pas ici puisque le certificat émetteur (TrustID Server CA A52) ne nous appartient pas. Plus loin nous manipulerons des certificats auto-signés ce qui nous permettra de manipuler la clé privée.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>L&#8217;émetteur calcule le hash (noté <em>M</em>) du bloc de données <em>tbsCertificate</em> du sujet, soit \$M=hash("tbsCertificate")\$</p>
+</li>
+<li>
+<p>Il calcule ensuite la signature (notée <em>S</em>) avec la formule \$S \equiv M^d ("mod " n)\$
+<span class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnote_1" title="View footnote.">1</a>]</span>
+<span class="footnote">[<a id="_footnoteref_2" class="footnote" href="#_footnote_2" title="View footnote.">2</a>]</span></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_vérification_de_la_signature">Vérification de la signature</h4>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Le vérificateur calcule \$M \equiv S^e ("mod " n)\$
+<span class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnote_3" title="View footnote.">3</a>]</span></p>
+</li>
+<li>
+<p>Il calcule \$M'=hash("tbsCertificate")\$</p>
+</li>
+<li>
+<p>Si on a l&#8217;égalité \$M=M'\$, la signature est vérifiée</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_2_2_vérification_du_certificat_de_letsencrypto_org">2.2 Vérification du certificat de letsencrypto.org</h3>
+<div class="paragraph">
+<p>Ce certificat est de type RSA et nous allons mettre en oeuvre les calculs présentés pour vérifier une signature de type RSA.</p>
+</div>
+<div class="sect3">
+<h4 id="_2_2_1_choix_d_un_programme_de_calcul">2.2.1 Choix d&#8217;un programme de calcul</h4>
+<div class="paragraph">
+<p>Nous avons besoin d&#8217;une "calculatrice" qui calcule sur des nombres entiers arbitrairement grands, sans perte de précision. Dans la suite de ce document, c&#8217;est <em>bc</em> qui sera utilisé.</p>
+</div>
+<div class="paragraph">
+<p>Page d&#8217;accueil de <em>bc</em>&#160;: <a href="https://www.gnu.org/software/bc/">bc</a></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Linux&#160;: <em>bc</em> est disponible par défaut sur la plupart des distributions</p>
+</li>
+<li>
+<p>Windows&#160;: les binaires sont accessibles ici&#160;: <a href="http://gnuwin32.sourceforge.net/packages/bc.htm">bc (Windows)</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Le choix de bc</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>bc</em> est installé par défaut sur la plupart des distributions Linux, et facile et rapide à installer sous Windows.</p>
+</li>
+<li>
+<p><em>bc</em> est pratique pour manipuler des nombres en base hexadécimale (quoique le système {ibase, obase} peut être déroutant au début).</p>
+</li>
+<li>
+<p><em>bc</em> contient peu de fonctions mathématiques intégrées mais sur Internet on trouve de nombreux scripts qui permettent de l&#8217;enrichir considérablement.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Dans <em>bc</em> la variable <em>scale</em> définit le nombre de décimales des nombres manipulés. Comme nous ne ferons que des calculs sur des entiers, nous laisserons <em>scale</em> à zéro (pas de partie décimale). Zéro est la valeur par défaut de <em>scale</em> au lancement de <em>bc</em>
+<span class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnote_4" title="View footnote.">4</a>]</span>
+.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Alternatives à bc</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>sagemath</strong>, logiciel mathématique en licence GPL</p>
+</li>
+<li>
+<p><strong>python</strong>, langage de programmation en licence GPL, calcule par défaut sur des entiers de taille arbitrairement grande et convient donc aux calculs cryptographiques</p>
+</li>
+<li>
+<p>Logiciels mathématiques propriétaires bien connus</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 3. Comparaison entre <em>bc</em> et <em>python</em></caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-top">bc</th>
+<th class="tableblock halign-center valign-top">python</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top" colspan="2"><p class="tableblock">Saisie d&#8217;un entier en hexadécimal</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exécuter au préalable
+</p><p class="tableblock"><code>ibase = 2 * 8</code> <span class="footnote" id="_footnote_ibase16">[<a id="_footnoteref_5" class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</span>
+</p><p class="tableblock">Exemple&#160;:
+</p><p class="tableblock"><code><strong>ibase = 2 * 8</strong></code>
+</p><p class="tableblock"><code><strong>var = ABEF0E0</strong></code> <em>(Attention les caractères hexadécimaux doivent être en majuscule.)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Saisir l&#8217;entier précédé de <em>0x</em>
+</p><p class="tableblock">Exemple&#160;:
+</p><p class="tableblock"><code><strong>var = 0xabef0e0</strong></code>
+<span class="footnote">[<a id="_footnoteref_6" class="footnote" href="#_footnote_6" title="View footnote.">6</a>]</span></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top" colspan="2"><p class="tableblock">Affichage d&#8217;entier en hexadécimal</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exécuter au préalable
+</p><p class="tableblock"><code>obase = 2 * 8</code>
+<span class="footnoteref">[<a class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</span>
+</p><p class="tableblock">Exemple&#160;:
+</p><p class="tableblock"><code><strong>obase = 2 * 8</strong></code>
+</p><p class="tableblock"><code><strong>2 ^ (2 ^ 4) + 1</strong></code>
+<span class="footnote">[<a id="_footnoteref_7" class="footnote" href="#_footnote_7" title="View footnote.">7</a>]</span>
+</p><p class="tableblock"><code>10001</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Interpoler avec <em>%x</em>
+</p><p class="tableblock">Exemple&#160;:
+</p><p class="tableblock"><code><strong>'%x' % (2 ** (2 ** 4) + 1)</strong></code>
+</p><p class="tableblock"><code>'10001'</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_2_2_2_enregistrement_de_la_signature_sous_forme_d_entier">2.2.2 Enregistrement de la signature sous forme d&#8217;entier</h4>
+<div class="paragraph">
+<p>Depuis le navigateur, afficher la signature du certificat de letsencrypt.org, la sélectionner et la copier-coller dans un éditeur de texte, ensuite supprimer les caractère surnuméraires (enlever les ':' et les sauts de ligne), et passer les caractères hexadécimaux en majuscule
+<span class="footnote">[<a id="_footnoteref_8" class="footnote" href="#_footnote_8" title="View footnote.">8</a>]</span>.
+Ajouter <strong><em>s=</em></strong> devant le nombre, et ajouter une première ligne <strong><em>ibase = 2 * 8</em></strong>. Enregistrer dans <strong><em>val.b</em></strong>.</p>
+</div>
+<div class="paragraph">
+<p>L&#8217;instruction <em>ibase = 2 * 8</em> ordonne à bc de lire les nombres en hexadécimal. <em>ibase = 16</em> fonctionne aussi, à condition qu&#8217;ibase soit égal à 10 (valeur par défaut) au moment d&#8217;exécuter <em>ibase = 16</em>. Si ibase est déjà égal à 16 et que l&#8217;on exécute <em>ibase = 16</em>, une erreur se produit car bc lit 16 en hexadécimal (soit 22) et cette valeur est interdite.</p>
+</div>
+<table class="tableblock frame-none grid-all" style="width: 50%;">
+<caption class="title">Table 4. La signature</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Signature dans le navigateur</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Signature dans un éditeur de texte après transformation</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-cle-1.png" alt="Image signature dans navigateur" width="372"></span></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><span class="image"><img src="img-cle-2.png" alt="Image signature dans éditeur" width="330"></span></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Avec <em>bc</em> il est impératif de passer les nombres hexadécimaux en majuscule.</p>
+</li>
+<li>
+<p>Avec <em>bc</em> les noms de variable ne peuvent pas contenir de majuscule.</p>
+</li>
+<li>
+<p>Le navigateur affiche l&#8217;exposant sous forme décimale, alors que dans le script bc nous l&#8217;entrons en hexadécimal. Pour convertir un nombre décimal en hexadécimal, exécuter dans un terminal&#160;:</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">Linux&#160;:</div>
+<div class="content">
+<pre><strong>echo "obase=16; 65537" | bc</strong>
+10001</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Windows&#160;:</div>
+<div class="content">
+<pre><strong>echo obase=16; 65537 | bc.exe</strong>
+10001</pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Passer du texte en majuscule</div>
+<div class="paragraph">
+<div class="title">Linux</div>
+<p>Sous Linux, on peut utiliser la ligne de commande, par exemple (nombreuses autres solutions)&#160;:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>tr '[:lower:]' '[:upper:]' &lt; fichier_entrée &gt; fichier_sortie</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Un éditeur suffisamment avancé comme <em>vi</em> ou <em>emacs</em> le permet aussi.</p>
+</div>
+<div class="paragraph">
+<div class="title">Windows</div>
+<p>Windows ne dispose pas par défaut d&#8217;outil pour passer du texte en majuscule. Il faut installer <em>GNUWin32</em> ou <em>cygwin</em>.</p>
+</div>
+<div class="paragraph">
+<p>L&#8217;éditeur de texte (natif) adéquat pour ce type de transformation est <strong><em>notepad++</em></strong>, disponible <a href="https://notepad-plus-plus.org/fr/">ici</a>.</p>
+</div>
+<div class="paragraph">
+<p>À noter que <em>vim</em> et <em>emacs</em> sont disponibles sous Windows.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_2_2_3_enregistrement_de_la_clé_publique_sous_forme_d_entier">2.2.3 Enregistrement de la clé publique sous forme d&#8217;entier</h4>
+<div class="paragraph">
+<p>Depuis le navigateur, sélectionner le certificat de TrustID Server CA A52, afficher sa clé publique, la sélectionner et la copier-coller dans <strong><em>val.b</em></strong>.
+Il faut le faire en deux fois, une fois pour la clé de 256 octets (variable <em>n</em>) et une fois pour l&#8217;exposant (variable <em>e</em>).</p>
+</div>
+<div class="paragraph">
+<p>Avec <em>bc</em>: ne pas oublier de passer les caractères hexadécimaux en majuscule.</p>
+</div>
+<div class="paragraph">
+<div class="title">Clé publique dans le navigateur</div>
+<p><span class="image"><img src="img-cle-3.png" alt="Image clé dans navigateur" width="381"></span></p>
+</div>
+<div class="paragraph">
+<p>A l&#8217;arrivée, <strong><em>val.b</em></strong> contient trois variables, s, n et e.</p>
+</div>
+<div class="listingblock">
+<div class="title">val.b</div>
+<div class="content">
+<pre><strong>ibase</strong>=2*8
+
+<strong>s</strong>=8049A7CE9627701FC4E520876B97271A8AEF34D13A5ECA776172BD7C9053DBEF9C8504E4C85629135D934D1F9C6FB09375189812B3475D5F0797F5D32BC9B11B12BC29733DCD40E57EB97BC819F21939764A4F2A270036906BAE5FD280D68DCC16428C0FCD3D213025BCFA10A6697529ED1A168E0D2CEFCB24A9C9A64C85F0BF8942B91F2CD1E92989F73EF9F2267BAB5535C3388C10C3C1D55DBC3A50A01A77CEDED612862D83A9B1A68A08B68DC35BE0F2E23E3BD9AFD4C0BA1537CFD694A5AF5D6CF8887861A9DCB89B9DE35AD3F255C251B0ECD54C2CF693DD5732EDF33939334BDB1E64C29636E0502E57914984BDA74C7E05AC948403D2BEBE051452F8
+
+<strong>n</strong>=9769D7999885023FE9264276E8F4733FA932442690782E78579119A05D762B49F9935A5D5ACE82F3C2D8E54C367A2B1D0DDBA6A7FE91127CED7201B78CA1C5DACC9DFE09FB57E214470FE89E918F942D8032939303F5287868BA7E0F42B4317A0514225333E4A3AD6C8FAFBE636BB2329FD917B9C9E0607C99D631E1E4A0B73FAFB232AC7E8C9CDC02EBE1BC1F149CBC91F7B2FB42F3E1202BCBBF8FF3B37063FAF7752802ABC5D4B0EDEA257F87CD371496833C40021BA09E19477FF3B0CCC52560B83512F151EB17DCFC5BA5D99BEF404CD77771E9FB458B7EF2E369B042661746903ACD463DF1B0096FDCFFEE3361CAFCC72E3CED5E0AD1BF221269804B23
+
+<strong>e</strong>=10001</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_2_2_4_la_fonction_powmod">2.2.4 La fonction powmod</h4>
+<div class="paragraph">
+<p>Les amateurs de <em>python</em> ont encore un avantage à ce stade. L&#8217;équivalent de la fonction <em>powmod</em> y est disponible sous forme d&#8217;un troisième paramètre (facultatif) à la fonction <em>pow</em>.</p>
+</div>
+<div class="paragraph">
+<p>Pour ceux qui utilisent bc comme moi, il faut écrire la fonction.</p>
+</div>
+<div class="paragraph">
+<p>La fonction <em>powmod</em> met en oeuvre l&#8217;algorithme d&#8217;exponentiation rapide, décrit ici&#160;: <a href="https://fr.wikipedia.org/wiki/Exponentiation_rapide">Exponentiation&#160;rapide&#160;(Wikipédia)</a>.
+En fait nous sommes dans un contexte modulaire et d&#8217;après Wikipédia le nom exact de l&#8217;algorithme est <em>exponentiation modulaire</em>, une page spécifique y étant consacrée&#160;: <a href="https://fr.wikipedia.org/wiki/Exponentiation_modulaire">Exponentiation&#160;modulaire&#160;(Wikipédia)</a>.
+Les deux algorithmes font appel au même principe, mais le second exploite le contexte modulaire pour que les nombres manipulés n&#8217;atteignent pas une taille démesurée. C&#8217;est le second algorithme (<em>exponentiation modulaire</em>) dont nous avons besoin pour la suite.</p>
+</div>
+<div class="paragraph">
+<p>Sur Internet, on peut trouver la fonction <em>powmod</em> dans de nombreux scripts <em>bc</em> à télécharger. À noter qu&#8217;elle porte parfois d&#8217;autres noms, <em>mpower</em> en particulier.</p>
+</div>
+<div class="listingblock">
+<div class="title">powmod.b</div>
+<div class="content">
+<pre>define powmod(a, b, c) {
+	auto p, r
+	p = a
+	r = 1
+	while (b &gt; 0) {
+		if (b % 2) r = (r * p) % c
+		p = (p * p) % c
+		b /= 2
+	}
+	return r
+}</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_2_2_5_calcul_de_em_m_em">2.2.5 Calcul de <em>M</em></h4>
+<div class="paragraph">
+<p>Nous voilà prêts pour calculer <em>M</em>.</p>
+</div>
+<div class="paragraph">
+<p>Lancer <em>bc</em>
+<span class="footnote">[<a id="_footnoteref_9" class="footnote" href="#_footnote_9" title="View footnote.">9</a>]</span>
+avec en paramètres <em>powmod.b</em> et <em>val.b</em>, définir obase à <em>2 * 8</em>
+<span class="footnoteref">[<a class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</span>
+(pour que les nombres soient affichés en hexadécimal) et exécuter la fonction powmod. Rappelons que c&#8217;est <em>S</em> (variable <em>s</em>) qui doit être élevé à la puissance <em>e</em>, modulo <em>n</em>. Attention lors de la définition d&#8217;obase, ibase vaut 16 (résultat du script <em>val.b</em> chargé au démarrage) donc obase=16 <strong>ne fonctionnera pas</strong>.</p>
+</div>
+<div class="paragraph">
+<div class="title">Calcul</div>
+<p><span class="image"><img src="img-powmod.png" alt="Image résultat powmod"></span></p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+Au démarrage de bc, ibase est égal à 16 du fait du chargement de <em>val.b</em>. Si vous exécutez obase = 16, obase sera égal à&#8230;&#8203; 22 !
+C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&#8217;utiliser <em>2&#160;*&#160;8</em> comme indiqué. Vous pouvez aussi exécuter <em>obase = 10</em> (ibase étant égal à 16), mais c&#8217;est moins clair, et vous devez être certain qu&#8217;ibase vaut bien 16 au moment d&#8217;exécuter <em>obase = 10</em>, pour passer l&#8217;affichage des nombres en hexadécimal
+(<em>2 * 8</em> fonctionne toujours quelle que soit la valeur d&#8217;ibase, y compris pour les valeurs inférieures ou égales à 4).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Le résultat avec tous ces <em>F</em> prouve avec une quasi certitude que le calcul s&#8217;est bien passé. Les <em>F</em> correspondent au 'padding' standard effectué pour une signature RSA, la valeur qui suit l&#8217;octet nul est le hash. Attention il ne s&#8217;agit pas exactement de la valeur de <em>M</em> présentée ci-dessus, il s&#8217;agit du codage du hash en DER. dans la partie suivante nous allons analyser ce contenu.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_2_2_6_analyse_de_em_m_em">2.2.6 Analyse de <em>M</em></h4>
+<div class="paragraph">
+<p>Faisons un copier-coller de <em>M</em> (en hexadécimal) à partir de l&#8217;octet qui suit l&#8217;octet nul, et enregistrons le résultat dans le fichier <strong><em>m.hex</em></strong>.</p>
+</div>
+<div class="paragraph">
+<div class="title">m.hex</div>
+<p><span class="image"><img src="img-m.hex.png" alt="Image m.hex"></span></p>
+</div>
+<div class="literalblock">
+<div class="title">Contenu de m.hex</div>
+<div class="content">
+<pre>3031300D0609608648016503040201050004208364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Il nous faut maintenant convertir <em>m.hex</em> en binaire, puisque le contenu actuel est le <em>codage des octets en hexadécimal</em> de la signature, ce n&#8217;est pas la signature elle-même.</p>
+</div>
+<div class="paragraph">
+<div class="title">Linux</div>
+<p>Exécuter</p>
+</div>
+<div class="paragraph">
+<p><code>xxd -r -p m.hex &gt; m.der</code></p>
+</div>
+<div class="paragraph">
+<div class="title">Windows</div>
+<p>Le plus simple est d&#8217;utiliser <em>notepad++</em> et d&#8217;enregistrer le fichier transformé avec le nom <em>m.der</em>.</p>
+</div>
+<div class="paragraph">
+<p>Le fichier <em>m.der</em> contient les octets que l&#8217;on avait dans la signature, ce que l&#8217;on peut vérifier facilement&#8230;&#8203;</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>&#8230;&#8203; sous Linux avec la commande <em>hd</em> (on peut aussi utiliser <em>hexdump</em> ou <em>xxd</em>).</p>
+</li>
+<li>
+<p>&#8230;&#8203; sous Windows le plus simple est d&#8217;utiliser <em>notepad++</em> et reconvertir en hexadécimal pour vérifier que l&#8217;on retombe sur ses pieds. Sinon on peut s&#8217;installer un freeware d&#8217;affichage ou d&#8217;édition de fichier en binaire.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<div class="title">m.der</div>
+<p><span class="image"><img src="img-m.der.png" alt="Image m.der"></span></p>
+</div>
+<div class="sidebarblock">
+<div class="content">
+<div class="title">L&#8217;outil openssl</div>
+<div class="paragraph">
+<p>Pour afficher le contenu encodé en DER nous allons utiliser <em>openssl</em>, l&#8217;exécutable en ligne de commande.</p>
+</div>
+<div class="paragraph">
+<p>Par la suite nous utiliserons également <em>dder</em> et <em>pkfile</em>, des petits utilitaires créés par l&#8217;auteur de cet article pour afficher et extraire plus facilement ce type de contenu.</p>
+</div>
+<div class="paragraph">
+<p><strong>openssl</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Sous Linux ce programme est disponible par défaut.</p>
+</li>
+<li>
+<p>Sous Windows il faut trouver un binaire à télécharger.
+Le plus simple est de télécharger la version GNUWin32, disponible <a href="http://gnuwin32.sourceforge.net/packages/openssl.htm">ici</a>.
+La version proposée au téléchargement (en février 2016) date de 2008. Des binaires beaucoup plus récents sont disponibles sur Internet. Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Exécuter la commande <code>openssl asn1parse -inform der -in m.der</code></p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="img-m.der-openssl.png" alt="Image m.der avec openssl"></span></p>
+</div>
+<div class="paragraph">
+<p><em>openssl</em> nous donne deux informations :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>L&#8217;algorithme de hachage était SHA-256, ce que l&#8217;on savait déjà</p>
+</li>
+<li>
+<p><em>openssl</em> affiche la valeur du hachage (<em>OCTET STRING</em>) sous forme hexadécimale</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Nous savons désormais que la signature SHA-256 de la partie tbsCertificate du certificat de letsencrypt.org devrait être :</p>
+</div>
+<div class="paragraph">
+<p><code><strong>8364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD</strong></code></p>
+</div>
+<div class="paragraph">
+<p>C&#8217;est ce que nous allons vérifier en calculant maintenant <em>M'</em>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_2_2_7_calcul_de_em_m_em">2.2.7 Calcul de <em>M'</em></h4>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<hr>
+<div class="footnote" id="_footnote_1">
+<a href="#_footnoteref_1">1</a>. On simplifie ici pour se concentrer sur les étapes importantes. En fait, le hash <em>M</em> calculé n&#8217;est pas signé tel quel, il subit auparavant quelques transformations comme nous le verrons plus loin
+</div>
+<div class="footnote" id="_footnote_2">
+<a href="#_footnoteref_2">2</a>. Ce calcul est le même que pour déchiffrer un message destiné au propriétaire de la clé publique (qui est ici l&#8217;émetteur du certificat). Signer en RSA revient à inverser le rôle de l&#8217;exposant public et privé.
+</div>
+<div class="footnote" id="_footnote_3">
+<a href="#_footnoteref_3">3</a>. Ce calcul est identique à l&#8217;opération de chiffrement, dans lequel on chiffre un message à destination du propriétaire de la clé publique, qu&#8217;il déchiffrera avec sa clé privée.
+</div>
+<div class="footnote" id="_footnote_4">
+<a href="#_footnoteref_4">4</a>. Lorsque <em>bc</em> est lancé avec l&#8217;option <strong><em>-l</em></strong>, des fonctions mathématiques sont chargées au démarrage et <em>scale</em> vaut 20. Nous ne nous servirons pas de cette option dans ce document et <em>scale</em> sera toujours égal à zéro.
+</div>
+<div class="footnote" id="_footnote_5">
+<a href="#_footnoteref_5">5</a>. <em>2 * 8</em> produit toujours 16 (décimal). Si <em>ibase = 16</em> est exécuté alors qu&#8217;ibase vaut déjà 16, le résultat sera lu en hexadécimal et vaudra 22.
+</div>
+<div class="footnote" id="_footnote_6">
+<a href="#_footnoteref_6">6</a>. <em>python</em> peut lire les nombres hexadécimaux indifféremment en majuscule et minuscule. <em>bc</em> exige des majuscules.
+</div>
+<div class="footnote" id="_footnote_7">
+<a href="#_footnoteref_7">7</a>. Sous Windows, <em>bc</em> semble avoir des difficultés à lire le caractère <strong>^</strong> au clavier (en-dessous de la touche <strong>9</strong>). Pour contourner ce problème, il est possible d&#8217;utiliser (sur un clavier français) l&#8217;accent circonflexe à droite de la touche <strong>P</strong>, en appuyant dessus à deux reprises.
+</div>
+<div class="footnote" id="_footnote_8">
+<a href="#_footnoteref_8">8</a>. Si vous utilisez <em>python</em>, il est inutile de passer les caractères hexadécimaux en majuscule.
+</div>
+<div class="footnote" id="_footnote_9">
+<a href="#_footnoteref_9">9</a>. Par défaut, <em>bc</em> ajoute un anti-slash après le 68e caractère et passe à la ligne suivante. On peut modifier ce comportement avec la variable d&#8217;environnement <em>BC_LINE_LENGTH</em>. Quand cette variable est égale à zéro, les nombres ne sont pas tronqués.
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2016-02-20 14:40:53 CET
+</div>
+</div>
+</body>
+</html>

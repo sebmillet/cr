@@ -1,0 +1,451 @@
+= Cryptographie pratique
+:stem:
+:toc:
+
+== Introduction
+
+Cet article décrit les calculs à réaliser pour vérifier des signatures RSA et ECDSA, dans le cas des certificats x509. Ces certificats sont les plus couramment utilisés et servent notamment à la sécurisation https.
+
+- _RSA_{nbsp}: ce cas sera traité avec le certificat d'un serveur https.
+- _ECDSA_{nbsp}: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l'occasion, afin de se familiariser avec les calculs qu'implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (Certificat Électronique Visible). Ce dernier cas sort du cadre x509 qui est l'objet principal de cet article, le format pour un tel certificat étant 2D-Doc.
+
+Au fil du document nous ferons appel aux outils suivants{nbsp}:
+
+- `openssl` pour travailler sur les certificats x509 en ligne de commande
+- `python`, `bc` ou `zsbc` pour faire des calculs avec des nombres entiers de grande taille
+- Conversion entre encodage _PEM_ et encodage _binaire_ (Linux{nbsp}: `base64`, Windows{nbsp}: `notepad`++)
+- Édition du contenu de fichier binaire (Linux{nbsp}: `gvim/xxd`, Windows{nbsp}: `notepad`++)
+
+[NOTE]
+.Windows versus Unix/Linux
+======================================
+Ce document s'adresse aux utilisateurs de Windows et Linux.
+Il arrive qu'entre les deux environnements l'outil "naturel" pour effectuer une certaine tâche diffère, dans ce cas les outils des deux systèmes sont présentés.
+======================================
+
+Plan{nbsp}:
+
+- Le format x509
+- Outillage pour manipuler le format x509
+- Cas d'un certificat RSA
+- Cas d'un certificat ECDSA
+
+== 1. Le format x509
+
+=== 1.1 Visualisation d'un certificat x509
+
+A l'aide d'un navigateur, ouvrir une page en https et afficher le certificat.
+
+Exemple avec Firefox 44 et le site https://letsencrypt.org/. Dans la suite, nous continuerons avec le certificat de ce site.
+
+. Cliquer sur l'icône de cadenas à gauche de la barre d'adresse
+. Cliquer sur la flèche droite
+. Cliquer sur _Plus d'informations_
+. Cliquer sur _Afficher le certificat_
+. Afficher l'onglet _Détails_
+
+.Afficher les détails d'un certificat https depuis Firefox
+[width = "50%", frame="none"]
+|=====================================
+|image:img-firefox-1.png["Image Firefox 1", width = 382]|image:img-firefox-2.png["Image Firefox 2", width = 221]|image:img-firefox-3.png["Image Firefox 3", width = 351]
+|image:img-firefox-4.png["Image Firefox 4", width = 381]|image:img-firefox-5.png["Image Firefox 5", width = 353]|image:img-firefox-6.png["Image Firefox 6", width = 353]
+|=====================================
+
+Nous nous intéresserons à la partie supérieure (_Hiérarchie des certificats_) plus tard.
+
+Pour le moment examinons le certificat. L'affichage de Firefox en dessous de _Champs du certificat_ liste trois parties{nbsp}:
+
+. Le certificat proprement dit, qui contient beaucoup d'informations structurées sur plusieurs niveaux hiérarchiques
+. L'algorithme de signature du certificat, dans notre exemple, _PKCS #1 SHA-256 avec chiffrement RSA_
+. La signature du certificat, ici, une suite de 256 octets
+
+Cette structure en trois parties est toujours respectée pour un certificat x509.
+A noter qu'Internet Explorer affiche les mêmes informations, mais elles ne sont pas hiérarchisées en trois parties comme le fait Firefox.
+
+=== 1.2 Structure d'un certificat x509
+
+Où la structure d'un certificat est-elle définie, et quelle est cette définition ?
+
+Une recherche sur un moteur de recherche avec les mots-clés _RFC_ et _x509_ produit l'URL suivante dans les premières réponses{nbsp}:
+
+https://tools.ietf.org/html/rfc5280
+
+Et effectivement la *RFC 5280* définit le format x509 version 3 en totalité.
+
+[NOTE]
+.Un ou une RFC ?
+======================================
+Nous utiliserons le féminin dans ce document, en sachant que RFC étant un acronyme anglais, il n'y a pas d'argument définitif en faveur du masculin ou du féminin.
+======================================
+
+Affichons la RFC 5280. Dans la section _4.1_ se trouve la définition suivante{nbsp}:
+
+.Extrait de la RFC 5280
+....
+...
+4.1.  Basic Certificate Fields
+
+   The X.509 v3 certificate basic syntax is as follows.  For signature
+   calculation, the data that is to be signed is encoded using the ASN.1
+   distinguished encoding rules (DER) [X.690].  ASN.1 DER encoding is a
+   tag, length, value encoding system for each element.
+
+Certificate  ::=  SEQUENCE  {
+	tbsCertificate       TBSCertificate,
+	signatureAlgorithm   AlgorithmIdentifier,
+	signatureValue       BIT STRING  }
+...
+....
+
+La suite définit les différents éléments du certificat, à savoir ce que sont les structures _TBSCertificate_ et _AlgorithmIdentifier_.
+
+[IMPORTANT]
+.Grammaire, ASN.2 et DER
+======================================
+La structure du certificat est décrite par une _grammaire_, d'après les règles de syntaxe http://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx[*ASN.1*].
+
+L'encodage de données dont la structure est décrite en _ASN.1_ est défini par la norme https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf[*X.690*].
+
+La RFC précise que la partie du certificat à signer doit être encodée selon le standard Distinguished Encoding Rules ou _DER_. Entre autres encodages, le document https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf[*X.690*] définit le _DER_.
+
+Nous verrons par la suite l'encodage _DER_. Si vous souhaitez l'aborder sans attendre, plutôt que d'examiner directement le document X.690, je vous recommande cette page{nbsp}: https://en.wikipedia.org/wiki/X.690[*Présentation{nbsp}X.690{nbsp}{nbsp}(Wikipédia)*]
+======================================
+
+En ASN.1 le mot-clé `SEQUENCE` sans autre précision indique un bloc constitué d'une suite de sous-blocs de données. On a donc le bloc de données _Certificate_ dans lequel se trouvent, à la suite{nbsp}:
+
+. Le bloc _tbsCertificate_, soit le certificat à signer (**t**o **b**e **s**igned *Certificate*)
+. Le bloc _signatureAlgorithm_, soit l'identification de l'algorithme de signature
+. Le bloc _signatureValue_, soit la signature elle-même
+
+=== 1.3 Hiérarchie des certificats
+
+Dans la partie _tbsCertificate_ de letsencrypt.org, intéressons-nous à deux éléments en particulier, l'_émetteur_ du certificat et le _sujet_ du certificat.
+
+* Le _sujet_ du certificat a pour CN (c'est le nom commun, *CN* pour **C**ommon **N**ame) letsencrypt.org et c'est le dernier nom qui est affiché dans la hiérarchie des certificats (partie supérieure de la fenêtre).
+* L'_émetteur_ du certificat a pour CN _TrustID Server CA A52_ et on peut voir ce nom au-dessus de letsencrypt.org dans la hiérarchie.
+
+L'émetteur et le sujet ont également le pays (**C**) et l'organisation (**O**) définis dans leur nom, ainsi que d'autres éléments.
+Le "nom simple" ou "nom court" du certificat est son CN. Le standard x509 ne définit pas cette notion de "nom simple" ou "nom court", nous l'employons ici pour préciser que dans la pratique, le CN est le véritable nom du certificat, les autres éléments donnant des informations annexes.
+Parfois, seul le CN est affiché pour désigner un certificat.
+
+Cela dit, le nom du certificat (au sens du standard x509) est constitué de _la totlité des éléments qui le composent_, et non pas seulement du CN.
+
+.Sujet et émetteur du certificat x509
+[width = "50%", frame="none"]
+|=====================================
+|_Sujet_|_Émetteur_
+|image:img-crt-1.png["Image certificat : sujet", width = 372]|image:img-crt-2.png["Image certificat : émetteur", width = 372]
+|=====================================
+
+Le lien hiérarchique est toujours établi entre un émetteur et un sujet.
+
+L'émetteur est celui qui signe le certificat, le sujet est celui qui est signé.
+Pour signer, l'émetteur utilise sa clé privée. La vérification de la signature est faite avec sa clé publique.
+Ainsi pour vérifier l'authenticité du certificat letsencrypt.org, nous aurons besoin de la clé publique de son émetteur, TrustID Server CA A52.
+
+Ce principe est toujours respecté avec les certificats x509, que ce soit avec RSA ou d'autres systèmes à clé publique / clé privée.
+
+Nous allons maintenant passer au cas du RSA.
+
+== 2 Vérification de signature RSA
+
+=== 2.1 La signature RSA
+
+==== Notations
+
+* Le certificat à signer (le sujet du certificat) est _tbsCertificate_, soit le certificat sans les informations de signature.
+* L'entité qui signe le certificat (l'émetteur du certificat) a pour clé RSA *(n, e)* (**n** est le modulo, **e** est l'exposant) et **d**.
+Le couple *(n, e)* est la clé publique, **d** est la clé privée.
+
+La page https://fr.wikipedia.org/wiki/Chiffrement_RSA#Chiffrement_du_message[Chiffrement RSA (Wikipédia)] explique le lien entre _(n, e)_ et _d_, et nous indique le calcul à effectuer pour _chiffrer_.
+Pour _signer_, le calcul inverse le rôle de l'exposant privé et public, et pour _vérifier_ la signature, le rôle des exposants privé et public est encore inversé (par rapport à la signature).
+
+Dans notre exemple le _tbsCertificate_ est celui de letsencrypt.org, tandis que la clé RSA (clé publique _(n, e)_ et clé privée _d_) est celle de TrustID Server CA A52.
+
+==== Calcul de la signature
+
+[NOTE]
+.Clé privée, clé publique
+======================================
+Le calcul de la signature nécessite de connaître _d_, la clé privée, que nous ne connaissons pas ici puisque le certificat émetteur (TrustID Server CA A52) ne nous appartient pas. Plus loin nous manipulerons des certificats auto-signés ce qui nous permettra de manipuler la clé privée.
+======================================
+
+. L'émetteur calcule le hash (noté _M_) du bloc de données _tbsCertificate_ du sujet, soit stem:[M=hash("tbsCertificate")]
+. Il calcule ensuite la signature (notée _S_) avec la formule stem:[S \equiv M^d ("mod " n)]
+footnote:[On simplifie ici pour se concentrer sur les étapes importantes. En fait, le hash _M_ calculé n'est pas signé tel quel, il subit auparavant quelques transformations comme nous le verrons plus loin]
+footnote:[Ce calcul est le même que pour déchiffrer un message destiné au propriétaire de la clé publique (qui est ici l'émetteur du certificat). Signer en RSA revient à inverser le rôle de l'exposant public et privé.]
+
+==== Vérification de la signature
+
+. Le vérificateur calcule stem:[M \equiv S^e ("mod " n)]
+footnote:[Ce calcul est identique à l'opération de chiffrement, dans lequel on chiffre un message à destination du propriétaire de la clé publique, qu'il déchiffrera avec sa clé privée.]
+. Il calcule stem:[M'=hash("tbsCertificate")]
+. Si on a l'égalité stem:[M=M'], la signature est vérifiée
+
+=== 2.2 Vérification du certificat de letsencrypto.org
+
+Ce certificat est de type RSA et nous allons mettre en oeuvre les calculs présentés pour vérifier une signature de type RSA.
+
+==== 2.2.1 Choix d'un programme de calcul
+
+Nous avons besoin d'une "calculatrice" qui calcule sur des nombres entiers arbitrairement grands, sans perte de précision. Dans la suite de ce document, c'est _bc_ qui sera utilisé.
+
+Page d'accueil de _bc_{nbsp}: https://www.gnu.org/software/bc/[bc]
+
+* Linux{nbsp}: _bc_ est disponible par défaut sur la plupart des distributions
+* Windows{nbsp}: les binaires sont accessibles ici{nbsp}: http://gnuwin32.sourceforge.net/packages/bc.htm[bc (Windows)]
+
+[NOTE]
+.Le choix de bc
+======================================
+* _bc_ est installé par défaut sur la plupart des distributions Linux, et facile et rapide à installer sous Windows.
+* _bc_ est pratique pour manipuler des nombres en base hexadécimale (quoique le système {ibase, obase} peut être déroutant au début).
+* _bc_ contient peu de fonctions mathématiques intégrées mais sur Internet on trouve de nombreux scripts qui permettent de l'enrichir considérablement.
+** Dans _bc_ la variable _scale_ définit le nombre de décimales des nombres manipulés. Comme nous ne ferons que des calculs sur des entiers, nous laisserons _scale_ à zéro (pas de partie décimale). Zéro est la valeur par défaut de _scale_ au lancement de _bc_
+footnote:[Lorsque _bc_ est lancé avec l'option *_-l_*, des fonctions mathématiques sont chargées au démarrage et _scale_ vaut 20. Nous ne nous servirons pas de cette option dans ce document et _scale_ sera toujours égal à zéro.]
+.
+======================================
+
+[NOTE]
+.Alternatives à bc
+======================================
+* *sagemath*, logiciel mathématique en licence GPL
+* *python*, langage de programmation en licence GPL, calcule par défaut sur des entiers de taille arbitrairement grande et convient donc aux calculs cryptographiques
+* Logiciels mathématiques propriétaires bien connus
+======================================
+
+.Comparaison entre _bc_ et _python_
+[options="header"]
+|=====================================
+^|bc ^|python
+2+^|Saisie d'un entier en hexadécimal
+|Exécuter au préalable
+
+`ibase = 2 * 8` footnoteref:[ibase16, _2 * 8_ produit toujours 16 (décimal). Si _ibase = 16_ est exécuté alors qu'ibase vaut déjà 16, le résultat sera lu en hexadécimal et vaudra 22.]
+
+Exemple{nbsp}:
+
+`*ibase = 2 * 8*`
+
+`*var = ABEF0E0*` _(Attention les caractères hexadécimaux doivent être en majuscule.)_
+
+|Saisir l'entier précédé de _0x_
+
+Exemple{nbsp}:
+
+`*var = 0xabef0e0*`
+footnote:[_python_ peut lire les nombres hexadécimaux indifféremment en majuscule et minuscule. _bc_ exige des majuscules.]
+
+2+^|Affichage d'entier en hexadécimal
+|Exécuter au préalable
+
+`obase = 2 * 8`
+footnoteref:[ibase16]
+
+Exemple{nbsp}:
+
+`*obase = 2 * 8*`
+
+`*2 ^ (2 ^ 4) + 1*`
+footnote:[Sous Windows, _bc_ semble avoir des difficultés à lire le caractère *{caret}* au clavier (en-dessous de la touche **9**). Pour contourner ce problème, il est possible d'utiliser (sur un clavier français) l'accent circonflexe à droite de la touche **P**, en appuyant dessus à deux reprises.]
+
+`10001`
+
+|Interpoler avec _%x_
+
+Exemple{nbsp}:
+
+`*'%x' % (2 {asterisk}{asterisk} (2 {asterisk}{asterisk} 4) + 1)*`
+
+`'10001'`
+|=====================================
+
+==== 2.2.2 Enregistrement de la signature sous forme d'entier
+
+Depuis le navigateur, afficher la signature du certificat de letsencrypt.org, la sélectionner et la copier-coller dans un éditeur de texte, ensuite supprimer les caractère surnuméraires (enlever les ':' et les sauts de ligne), et passer les caractères hexadécimaux en majuscule
+footnote:[Si vous utilisez _python_, il est inutile de passer les caractères hexadécimaux en majuscule.].
+Ajouter *_s=_* devant le nombre, et ajouter une première ligne *_ibase = 2 {asterisk} 8_*. Enregistrer dans *_val.b_*.
+
+L'instruction _ibase = 2 {asterisk} 8_ ordonne à bc de lire les nombres en hexadécimal. _ibase = 16_ fonctionne aussi, à condition qu'ibase soit égal à 10 (valeur par défaut) au moment d'exécuter _ibase = 16_. Si ibase est déjà égal à 16 et que l'on exécute _ibase = 16_, une erreur se produit car bc lit 16 en hexadécimal (soit 22) et cette valeur est interdite.
+
+.La signature
+[width = "50%", frame="none"]
+|=====================================
+|_Signature dans le navigateur_|_Signature dans un éditeur de texte après transformation_
+|image:img-cle-1.png["Image signature dans navigateur", width = 372]|image:img-cle-2.png["Image signature dans éditeur", width = 330]
+|=====================================
+
+[IMPORTANT]
+======================================
+. Avec _bc_ il est impératif de passer les nombres hexadécimaux en majuscule.
+
+. Avec _bc_ les noms de variable ne peuvent pas contenir de majuscule.
+
+. Le navigateur affiche l'exposant sous forme décimale, alors que dans le script bc nous l'entrons en hexadécimal. Pour convertir un nombre décimal en hexadécimal, exécuter dans un terminal{nbsp}:
+
+.Linux{nbsp}:
+[subs=+quotes]
+----
+*echo "obase=16; 65537" | bc*
+10001
+----
+
+.Windows{nbsp}:
+[subs=+quotes]
+----
+*echo obase=16; 65537 | bc.exe*
+10001
+----
+
+======================================
+
+.Passer du texte en majuscule
+****
+.Linux
+Sous Linux, on peut utiliser la ligne de commande, par exemple (nombreuses autres solutions){nbsp}:
+
+ tr '[:lower:]' '[:upper:]' < fichier_entrée > fichier_sortie
+
+Un éditeur suffisamment avancé comme _vi_ ou _emacs_ le permet aussi.
+
+.Windows
+Windows ne dispose pas par défaut d'outil pour passer du texte en majuscule. Il faut installer _GNUWin32_ ou _cygwin_.
+
+L'éditeur de texte (natif) adéquat pour ce type de transformation est *_notepad++_*, disponible https://notepad-plus-plus.org/fr/[ici].
+
+À noter que _vim_ et _emacs_ sont disponibles sous Windows.
+****
+
+==== 2.2.3 Enregistrement de la clé publique sous forme d'entier
+
+Depuis le navigateur, sélectionner le certificat de TrustID Server CA A52, afficher sa clé publique, la sélectionner et la copier-coller dans *_val.b_*.
+Il faut le faire en deux fois, une fois pour la clé de 256 octets (variable _n_) et une fois pour l'exposant (variable _e_).
+
+Avec _bc_: ne pas oublier de passer les caractères hexadécimaux en majuscule.
+
+.Clé publique dans le navigateur
+image:img-cle-3.png["Image clé dans navigateur", width = 381]
+
+A l'arrivée, *_val.b_* contient trois variables, s, n et e.
+
+.val.b
+[subs=+quotes]
+----
+*ibase*=2*8
+
+*s*=8049A7CE9627701FC4E520876B97271A8AEF34D13A5ECA776172BD7C9053DBEF9C8504E4C85629135D934D1F9C6FB09375189812B3475D5F0797F5D32BC9B11B12BC29733DCD40E57EB97BC819F21939764A4F2A270036906BAE5FD280D68DCC16428C0FCD3D213025BCFA10A6697529ED1A168E0D2CEFCB24A9C9A64C85F0BF8942B91F2CD1E92989F73EF9F2267BAB5535C3388C10C3C1D55DBC3A50A01A77CEDED612862D83A9B1A68A08B68DC35BE0F2E23E3BD9AFD4C0BA1537CFD694A5AF5D6CF8887861A9DCB89B9DE35AD3F255C251B0ECD54C2CF693DD5732EDF33939334BDB1E64C29636E0502E57914984BDA74C7E05AC948403D2BEBE051452F8
+
+*n*=9769D7999885023FE9264276E8F4733FA932442690782E78579119A05D762B49F9935A5D5ACE82F3C2D8E54C367A2B1D0DDBA6A7FE91127CED7201B78CA1C5DACC9DFE09FB57E214470FE89E918F942D8032939303F5287868BA7E0F42B4317A0514225333E4A3AD6C8FAFBE636BB2329FD917B9C9E0607C99D631E1E4A0B73FAFB232AC7E8C9CDC02EBE1BC1F149CBC91F7B2FB42F3E1202BCBBF8FF3B37063FAF7752802ABC5D4B0EDEA257F87CD371496833C40021BA09E19477FF3B0CCC52560B83512F151EB17DCFC5BA5D99BEF404CD77771E9FB458B7EF2E369B042661746903ACD463DF1B0096FDCFFEE3361CAFCC72E3CED5E0AD1BF221269804B23
+
+*e*=10001
+
+----
+
+==== 2.2.4 La fonction powmod
+
+Les amateurs de _python_ ont encore un avantage à ce stade. L'équivalent de la fonction _powmod_ y est disponible sous forme d'un troisième paramètre (facultatif) à la fonction _pow_.
+
+Pour ceux qui utilisent bc comme moi, il faut écrire la fonction.
+
+La fonction _powmod_ met en oeuvre l'algorithme d'exponentiation rapide, décrit ici{nbsp}: https://fr.wikipedia.org/wiki/Exponentiation_rapide[Exponentiation{nbsp}rapide{nbsp}(Wikipédia)].
+En fait nous sommes dans un contexte modulaire et d'après Wikipédia le nom exact de l'algorithme est _exponentiation modulaire_, une page spécifique y étant consacrée{nbsp}: https://fr.wikipedia.org/wiki/Exponentiation_modulaire[Exponentiation{nbsp}modulaire{nbsp}(Wikipédia)].
+Les deux algorithmes font appel au même principe, mais le second exploite le contexte modulaire pour que les nombres manipulés n'atteignent pas une taille démesurée. C'est le second algorithme (_exponentiation modulaire_) dont nous avons besoin pour la suite.
+
+Sur Internet, on peut trouver la fonction _powmod_ dans de nombreux scripts _bc_ à télécharger. À noter qu'elle porte parfois d'autres noms, _mpower_ en particulier.
+
+.powmod.b
+----
+define powmod(a, b, c) {
+	auto p, r
+	p = a
+	r = 1
+	while (b > 0) {
+		if (b % 2) r = (r * p) % c
+		p = (p * p) % c
+		b /= 2
+	}
+	return r
+}
+----
+
+==== 2.2.5 Calcul de _M_
+
+Nous voilà prêts pour calculer _M_.
+
+Lancer _bc_
+footnote:[Par défaut, _bc_ ajoute un anti-slash après le 68e caractère et passe à la ligne suivante. On peut modifier ce comportement avec la variable d'environnement _BC_LINE_LENGTH_. Quand cette variable est égale à zéro, les nombres ne sont pas tronqués.]
+avec en paramètres _powmod.b_ et _val.b_, définir obase à _2 * 8_
+footnoteref:[ibase16]
+(pour que les nombres soient affichés en hexadécimal) et exécuter la fonction powmod. Rappelons que c'est _S_ (variable _s_) qui doit être élevé à la puissance _e_, modulo _n_. Attention lors de la définition d'obase, ibase vaut 16 (résultat du script _val.b_ chargé au démarrage) donc obase=16 *ne fonctionnera pas*.
+
+.Calcul
+image:img-powmod.png["Image résultat powmod"]
+
+[IMPORTANT]
+Au démarrage de bc, ibase est égal à 16 du fait du chargement de _val.b_. Si vous exécutez obase = 16, obase sera égal à... 22 !
+C'est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d'utiliser _2{nbsp}{asterisk}{nbsp}8_ comme indiqué. Vous pouvez aussi exécuter _obase = 10_ (ibase étant égal à 16), mais c'est moins clair, et vous devez être certain qu'ibase vaut bien 16 au moment d'exécuter _obase = 10_, pour passer l'affichage des nombres en hexadécimal
+(_2 {asterisk} 8_ fonctionne toujours quelle que soit la valeur d'ibase, y compris pour les valeurs inférieures ou égales à 4).
+
+Le résultat avec tous ces _F_ prouve avec une quasi certitude que le calcul s'est bien passé. Les _F_ correspondent au 'padding' standard effectué pour une signature RSA, la valeur qui suit l'octet nul est le hash. Attention il ne s'agit pas exactement de la valeur de _M_ présentée ci-dessus, il s'agit du codage du hash en DER. dans la partie suivante nous allons analyser ce contenu.
+
+==== 2.2.6 Analyse de _M_
+
+Faisons un copier-coller de _M_ (en hexadécimal) à partir de l'octet qui suit l'octet nul, et enregistrons le résultat dans le fichier *_m.hex_*.
+
+.m.hex
+image:img-m.hex.png["Image m.hex"]
+
+.Contenu de m.hex
+....
+3031300D0609608648016503040201050004208364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD
+....
+
+Il nous faut maintenant convertir _m.hex_ en binaire, puisque le contenu actuel est le _codage des octets en hexadécimal_ de la signature, ce n'est pas la signature elle-même.
+
+.Linux
+Exécuter
+
+`xxd -r -p m.hex > m.der`
+
+.Windows
+Le plus simple est d'utiliser _notepad++_ et d'enregistrer le fichier transformé avec le nom _m.der_.
+
+Le fichier _m.der_ contient les octets que l'on avait dans la signature, ce que l'on peut vérifier facilement...
+
+* ... sous Linux avec la commande _hd_ (on peut aussi utiliser _hexdump_ ou _xxd_).
+* ... sous Windows le plus simple est d'utiliser _notepad++_ et reconvertir en hexadécimal pour vérifier que l'on retombe sur ses pieds. Sinon on peut s'installer un freeware d'affichage ou d'édition de fichier en binaire.
+
+.m.der
+image:img-m.der.png["Image m.der"]
+
+.L'outil openssl
+****
+Pour afficher le contenu encodé en DER nous allons utiliser _openssl_, l'exécutable en ligne de commande.
+
+Par la suite nous utiliserons également _dder_ et _pkfile_, des petits utilitaires créés par l'auteur de cet article pour afficher et extraire plus facilement ce type de contenu.
+
+*openssl*
+
+* Sous Linux ce programme est disponible par défaut.
+* Sous Windows il faut trouver un binaire à télécharger.
+Le plus simple est de télécharger la version GNUWin32, disponible http://gnuwin32.sourceforge.net/packages/openssl.htm[ici].
+La version proposée au téléchargement (en février 2016) date de 2008. Des binaires beaucoup plus récents sont disponibles sur Internet. Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.
+****
+
+Exécuter la commande `openssl asn1parse -inform der -in m.der`
+
+image:img-m.der-openssl.png["Image m.der avec openssl"]
+
+_openssl_ nous donne deux informations :
+
+* L'algorithme de hachage était SHA-256, ce que l'on savait déjà
+* _openssl_ affiche la valeur du hachage (_OCTET STRING_) sous forme hexadécimale
+
+Nous savons désormais que la signature SHA-256 de la partie tbsCertificate du certificat de letsencrypt.org devrait être :
+
+`*8364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD*`
+
+C'est ce que nous allons vérifier en calculant maintenant _M'_.
+
+==== 2.2.7 Calcul de _M'_
+
