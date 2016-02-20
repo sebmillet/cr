@@ -1,0 +1,271 @@
+src\main.c:664	Nodes string: '1.3.1'
+src\main.c:686	Node: 1
+src\main.c:686	Node: 3
+src\main.c:686	Node: 1
+src\main.c:793	codepage according to GetConsoleOutputCP(): 850
+src\main.c:1300	charset found with windows_getcharset() function
+src\main.c:1313	charset = IBM850
+src\main.c:978	found charset in cstable[], index 7, name IBM850
+Reading from file letsencryptorg.cer
+Parsing input of 2532 byte(s)
+Trying to parse input data against PEM rules
+PEM block: [CERTIFICATE]
+Will use pem decoded/decrypted data as pk input
+src\main.c:1402	Output to stdout
+src\main.c:716	manage_pkdata() start
+src\pkfile.c:166	++ Adding one seq_t level, current level = 0
+src\pkfile.c:166	++ Adding one seq_t level, current level = 1
+src\pkfile.c:461	Length: 1794
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 1794
+src\pkfile.c:166	++ Adding one seq_t level, current level = 2
+src\pkfile.c:461	Length: 1514
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 1514
+src\pkfile.c:166	++ Adding one seq_t level, current level = 3
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	cont-cons: cont [ 0 ], len: 3
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 1
+src\pkfile.c:476	univ-prim: INTEGER, len: 1
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 3
+src\pkfile.c:461	Length: 16
+src\pkfile.c:476	univ-prim: INTEGER, len: 16
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 3
+src\pkfile.c:461	Length: 13
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 13
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 9
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 9
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 0
+src\pkfile.c:476	univ-prim: NULL, len: 0
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 3
+src\pkfile.c:461	Length: 90
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 90
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 11
+src\pkfile.c:476	univ-cons: SET, len: 11
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 9
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 9
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 2
+src\pkfile.c:476	univ-prim: PRINTABLESTRING, len: 2
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 18
+src\pkfile.c:476	univ-cons: SET, len: 18
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 16
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 16
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 9
+src\pkfile.c:476	univ-prim: PRINTABLESTRING, len: 9
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 23
+src\pkfile.c:476	univ-cons: SET, len: 23
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 21
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 21
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 14
+src\pkfile.c:476	univ-prim: PRINTABLESTRING, len: 14
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 30
+src\pkfile.c:476	univ-cons: SET, len: 30
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 28
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 28
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 21
+src\pkfile.c:476	univ-prim: PRINTABLESTRING, len: 21
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 3
+src\pkfile.c:461	Length: 30
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 30
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 13
+src\pkfile.c:476	univ-prim: UTCTime, len: 13
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 13
+src\pkfile.c:476	univ-prim: UTCTime, len: 13
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 3
+src\pkfile.c:461	Length: 127
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 127
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 24
+src\pkfile.c:476	univ-cons: SET, len: 24
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 22
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 22
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 15
+src\pkfile.c:476	univ-prim: PRINTABLESTRING, len: 15
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 41
+src\pkfile.c:476	univ-cons: SET, len: 41
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 39
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 39
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 32
+src\pkfile.c:476	univ-prim: PRINTABLESTRING, len: 32
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 22
+src\pkfile.c:476	univ-cons: SET, len: 22
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 20
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 20
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 13
+src\pkfile.c:476	univ-prim: PRINTABLESTRING, len: 13
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 19
+src\pkfile.c:476	univ-cons: SET, len: 19
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 17
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 17
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 10
+src\pkfile.c:476	univ-prim: PRINTABLESTRING, len: 10
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 11
+src\pkfile.c:476	univ-cons: SET, len: 11
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 9
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 9
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 2
+src\pkfile.c:476	univ-prim: PRINTABLESTRING, len: 2
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 3
+src\pkfile.c:461	Length: 290
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 290
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 13
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 13
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 9
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 9
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 0
+src\pkfile.c:476	univ-prim: NULL, len: 0
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 271
+src\pkfile.c:476	univ-prim: BIT STRING, len: 271
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 3
+src\pkfile.c:461	Length: 925
+src\pkfile.c:476	cont-cons: cont [ 3 ], len: 925
+src\pkfile.c:166	++ Adding one seq_t level, current level = 4
+src\pkfile.c:461	Length: 921
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 921
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 14
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 14
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 1
+src\pkfile.c:476	univ-prim: BOOLEAN, len: 1
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 4
+src\pkfile.c:476	univ-prim: OCTET STRING, len: 4
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 551
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 551
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 542
+src\pkfile.c:476	univ-prim: OCTET STRING, len: 542
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:297	-- Removing one seq_t level
+src\pkfile.c:166	++ Adding one seq_t level, current level = 5
+src\pkfile.c:461	Length: 29
+src\pkfile.c:476	univ-cons: SEQUENCE, len: 29
+src\pkfile.c:166	++ Adding one seq_t level, current level = 6
+src\pkfile.c:461	Length: 3
+src\pkfile.c:476	univ-prim: OBJECT IDENTIFIER, len: 3
+src\pkfile.c:297	-- Removing

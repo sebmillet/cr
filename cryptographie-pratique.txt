@@ -422,7 +422,7 @@ image:img-m.der.png["Image m.der"]
 ****
 Pour afficher le contenu encodé en DER nous allons utiliser _openssl_, l'exécutable en ligne de commande.
 
-Par la suite nous utiliserons également _dder_ et _pkfile_, des petits utilitaires créés par l'auteur de cet article pour afficher et extraire plus facilement ce type de contenu.
+Par la suite nous utiliserons également _dder_ et _pkfile_, des petits utilitaires créés par l'auteur de cet article pour afficher et extraire plus facilement ce type de données.
 
 *openssl*
 
@@ -448,4 +448,8 @@ Nous savons désormais que la signature SHA-256 de la partie tbsCertificate du c
 C'est ce que nous allons vérifier en calculant maintenant _M'_.
 
 ==== 2.2.7 Calcul de _M'_
+
+
+
+http://gnuwin32.sourceforge.net/packages/readline.htm
 
