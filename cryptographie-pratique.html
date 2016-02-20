@@ -839,6 +839,13 @@ Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et p
 </li>
 <li>
 <p>Windows&#160;: les binaires sont accessibles ici&#160;: <a href="http://gnuwin32.sourceforge.net/packages/bc.htm">bc (Windows)</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Attention sous windows <em>bc</em> a besoin du fichier <em>readline5.dll</em> pour s&#8217;exécuter. Vous pouvez le trouver <a href="http://gnuwin32.sourceforge.net/packages/readline.htm">ici</a>. Conseil : téléchargez le zip contenant les binaires et copiez le fichier <em>readline5.dll</em> dans le répertoire où est situé <em>bc.exe</em>.</p>
+</li>
+</ul>
+</div>
 </li>
 </ul>
 </div>
@@ -1113,7 +1120,7 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
 <span class="footnote">[<a id="_footnoteref_9" class="footnote" href="#_footnote_9" title="View footnote.">9</a>]</span>
 avec en paramètres <em>powmod.b</em> et <em>val.b</em>, définir obase à <em>2 * 8</em>
 <span class="footnoteref">[<a class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</span>
-(pour que les nombres soient affichés en hexadécimal) et exécuter la fonction powmod. Rappelons que c&#8217;est <em>S</em> (variable <em>s</em>) qui doit être élevé à la puissance <em>e</em>, modulo <em>n</em>. Attention lors de la définition d&#8217;obase, ibase vaut 16 (résultat du script <em>val.b</em> chargé au démarrage) donc obase=16 <strong>ne fonctionnera pas</strong>.</p>
+(pour que les nombres soient affichés en hexadécimal) et exécuter la fonction powmod. Rappelons que c&#8217;est <em>S</em> (variable <em>s</em>) qui doit être élevé à la puissance <em>e</em>, modulo <em>n</em>. Attention lors de la définition d&#8217;obase, ibase vaut 16 (résultat du script <em>val.b</em> chargé au démarrage) donc obase=16 ne fonctionnera pas.</p>
 </div>
 <div class="paragraph">
 <div class="title">Calcul</div>
@@ -1140,6 +1147,24 @@ C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&
 <div class="sect3">
 <h4 id="_2_2_6_analyse_de_em_m_em">2.2.6 Analyse de <em>M</em></h4>
 <div class="paragraph">
+<p>Nous allons procéder en trois étapes :</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Enregistrement du contenu hexadécimal</p>
+</li>
+<li>
+<p>Conversion du contenu hexadécimal en binaire</p>
+</li>
+<li>
+<p>Examen du contenu binaire avec la commande <em>openssl asn1parse</em></p>
+</li>
+</ol>
+</div>
+<div class="sect4">
+<h5 id="_1_enregistrement_du_contenu_hexadécimal">1 Enregistrement du contenu hexadécimal</h5>
+<div class="paragraph">
 <p>Faisons un copier-coller de <em>M</em> (en hexadécimal) à partir de l&#8217;octet qui suit l&#8217;octet nul, et enregistrons le résultat dans le fichier <strong><em>m.hex</em></strong>.</p>
 </div>
 <div class="paragraph">
@@ -1152,19 +1177,42 @@ C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&
 <pre>3031300D0609608648016503040201050004208364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD</pre>
 </div>
 </div>
+</div>
+<div class="sect4">
+<h5 id="_2_conversion_du_contenu_hexadécimal_en_binaire">2 Conversion du contenu hexadécimal en binaire</h5>
 <div class="paragraph">
 <p>Il nous faut maintenant convertir <em>m.hex</em> en binaire, puisque le contenu actuel est le <em>codage des octets en hexadécimal</em> de la signature, ce n&#8217;est pas la signature elle-même.</p>
 </div>
-<div class="paragraph">
+<div class="exampleblock">
 <div class="title">Linux</div>
+<div class="content">
+<div class="paragraph">
 <p>Exécuter</p>
 </div>
 <div class="paragraph">
-<p><code>xxd -r -p m.hex &gt; m.der</code></p>
+<p><code><strong>xxd -r -p m.hex &gt; m.der</strong></code></p>
+</div>
+</div>
+</div>
+<div class="exampleblock">
+<div class="title">Windows</div>
+<div class="content">
+<div class="paragraph">
+<p>Le plus simple est d&#8217;utiliser <em>notepad++</em> et d&#8217;enregistrer le fichier transformé avec le nom <em>m.der</em>.</p>
 </div>
 <div class="paragraph">
-<div class="title">Windows</div>
-<p>Le plus simple est d&#8217;utiliser <em>notepad++</em> et d&#8217;enregistrer le fichier transformé avec le nom <em>m.der</em>.</p>
+<p><em>Avant</em></p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="img-notepadpp-1.png" alt="Image notepad++ 1"></span></p>
+</div>
+<div class="paragraph">
+<p><em>Après (on a enregistré le nouveau contenu avec le nouveau nom <strong>m.der</strong>)</em></p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="img-notepadpp-2.png" alt="Image notepad++ 2"></span></p>
+</div>
+</div>
 </div>
 <div class="paragraph">
 <p>Le fichier <em>m.der</em> contient les octets que l&#8217;on avait dans la signature, ce que l&#8217;on peut vérifier facilement&#8230;&#8203;</p>
@@ -1183,17 +1231,20 @@ C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&
 <div class="title">m.der</div>
 <p><span class="image"><img src="img-m.der.png" alt="Image m.der"></span></p>
 </div>
+</div>
+<div class="sect4">
+<h5 id="_3_examen_du_contenu_binaire_avec_la_commande_em_openssl_asn1parse_em">3 Examen du contenu binaire avec la commande <em>openssl asn1parse</em></h5>
 <div class="sidebarblock">
 <div class="content">
-<div class="title">L&#8217;outil openssl</div>
+<div class="title">openssl</div>
 <div class="paragraph">
-<p>Pour afficher le contenu encodé en DER nous allons utiliser <em>openssl</em>, l&#8217;exécutable en ligne de commande.</p>
+<p>Pour afficher le contenu binaire (qui se trouve être encodé en DER) nous allons utiliser l&#8217;exécutable en ligne de commande fourni avec la librairie openssl. Cet outil s&#8217;appelle <em>openssl</em>.</p>
 </div>
 <div class="paragraph">
-<p>Par la suite nous utiliserons également <em>dder</em> et <em>pkfile</em>, des petits utilitaires créés par l&#8217;auteur de cet article pour afficher et extraire plus facilement ce type de contenu.</p>
+<p>Par la suite nous utiliserons également <em>dder</em> et <em>pkfile</em>, deux utilitaires créés par l&#8217;auteur de cet article pour afficher et extraire plus facilement ce type de données.</p>
 </div>
 <div class="paragraph">
-<p><strong>openssl</strong></p>
+<p><strong>Exécutable openssl</strong></p>
 </div>
 <div class="ulist">
 <ul>
@@ -1203,7 +1254,15 @@ C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&
 <li>
 <p>Sous Windows il faut trouver un binaire à télécharger.
 Le plus simple est de télécharger la version GNUWin32, disponible <a href="http://gnuwin32.sourceforge.net/packages/openssl.htm">ici</a>.
-La version proposée au téléchargement (en février 2016) date de 2008. Des binaires beaucoup plus récents sont disponibles sur Internet. Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.</p>
+La version proposée au téléchargement (en février 2016) date de 2008. Des binaires beaucoup plus récents sont disponibles sur Internet.
+Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>À noter que Sous Windows les environnements "de taille importante" (<em>cygwin</em>, <em>perl</em>, &#8230;&#8203;) sont souvent installés avec leur librairie openssl, qui contient l&#8217;outil en ligne de commande <em>openssl</em>.</p>
+</li>
+</ul>
+</div>
 </li>
 </ul>
 </div>
@@ -1221,21 +1280,22 @@ La version proposée au téléchargement (en février 2016) date de 2008. Des bi
 <div class="ulist">
 <ul>
 <li>
-<p>L&#8217;algorithme de hachage était SHA-256, ce que l&#8217;on savait déjà</p>
+<p>L&#8217;algorithme de hachage est SHA-256, ce que l&#8217;on savait déjà d&#8217;après le contenu de <em>signatureAlgorithm</em> (deuxième bloc de données du certificat)</p>
 </li>
 <li>
-<p><em>openssl</em> affiche la valeur du hachage (<em>OCTET STRING</em>) sous forme hexadécimale</p>
+<p><em>openssl</em> affiche la valeur du hachage (bloc <em>prim: OCTET STRING</em>) sous forme hexadécimale</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Nous savons désormais que la signature SHA-256 de la partie tbsCertificate du certificat de letsencrypt.org devrait être :</p>
+<p>Nous savons désormais que la signature SHA-256 du bloc de données <em>tbsCertificate</em> du certificat de letsencrypt.org devrait être :</p>
 </div>
 <div class="paragraph">
 <p><code><strong>8364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD</strong></code></p>
 </div>
 <div class="paragraph">
 <p>C&#8217;est ce que nous allons vérifier en calculant maintenant <em>M'</em>.</p>
+</div>
 </div>
 </div>
 <div class="sect3">
@@ -1267,7 +1327,7 @@ La version proposée au téléchargement (en février 2016) date de 2008. Des bi
 <a href="#_footnoteref_6">6</a>. <em>python</em> peut lire les nombres hexadécimaux indifféremment en majuscule et minuscule. <em>bc</em> exige des majuscules.
 </div>
 <div class="footnote" id="_footnote_7">
-<a href="#_footnoteref_7">7</a>. Sous Windows, <em>bc</em> semble avoir des difficultés à lire le caractère <strong>^</strong> au clavier (en-dessous de la touche <strong>9</strong>). Pour contourner ce problème, il est possible d&#8217;utiliser (sur un clavier français) l&#8217;accent circonflexe à droite de la touche <strong>P</strong>, en appuyant dessus à deux reprises.
+<a href="#_footnoteref_7">7</a>. Sous Windows, <em>bc</em> a des difficultés à lire le caractère <strong>^</strong> au clavier (en-dessous de la touche <strong>9</strong>). Pour contourner ce problème, il est possible d&#8217;utiliser (sur un clavier français) l&#8217;accent circonflexe à droite de la touche <strong>P</strong>, en appuyant dessus à deux reprises. Cela affiche <strong>^^</strong> et vous devez alors en supprimer un. Pas très pratique&#8230;&#8203;
 </div>
 <div class="footnote" id="_footnote_8">
 <a href="#_footnoteref_8">8</a>. Si vous utilisez <em>python</em>, il est inutile de passer les caractères hexadécimaux en majuscule.
@@ -1278,7 +1338,7 @@ La version proposée au téléchargement (en février 2016) date de 2008. Des bi
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-02-20 14:40:53 CET
+Last updated 2016-02-20 22:25:30 CET
 </div>
 </div>
 </body>

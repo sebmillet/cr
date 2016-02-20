@@ -194,6 +194,7 @@ Page d'accueil de _bc_{nbsp}: https://www.gnu.org/software/bc/[bc]
 
 * Linux{nbsp}: _bc_ est disponible par défaut sur la plupart des distributions
 * Windows{nbsp}: les binaires sont accessibles ici{nbsp}: http://gnuwin32.sourceforge.net/packages/bc.htm[bc (Windows)]
+** Attention sous windows _bc_ a besoin du fichier _readline5.dll_ pour s'exécuter. Vous pouvez le trouver http://gnuwin32.sourceforge.net/packages/readline.htm[ici]. Conseil : téléchargez le zip contenant les binaires et copiez le fichier _readline5.dll_ dans le répertoire où est situé _bc.exe_.
 
 [NOTE]
 .Le choix de bc
@@ -247,7 +248,7 @@ Exemple{nbsp}:
 `*obase = 2 * 8*`
 
 `*2 ^ (2 ^ 4) + 1*`
-footnote:[Sous Windows, _bc_ semble avoir des difficultés à lire le caractère *{caret}* au clavier (en-dessous de la touche **9**). Pour contourner ce problème, il est possible d'utiliser (sur un clavier français) l'accent circonflexe à droite de la touche **P**, en appuyant dessus à deux reprises.]
+footnote:[Sous Windows, _bc_ a des difficultés à lire le caractère *{caret}* au clavier (en-dessous de la touche **9**). Pour contourner ce problème, il est possible d'utiliser (sur un clavier français) l'accent circonflexe à droite de la touche **P**, en appuyant dessus à deux reprises. Cela affiche *{caret}{caret}* et vous devez alors en supprimer un. Pas très pratique...]
 
 `10001`
 
@@ -296,7 +297,6 @@ L'instruction _ibase = 2 {asterisk} 8_ ordonne à bc de lire les nombres en hexa
 *echo obase=16; 65537 | bc.exe*
 10001
 ----
-
 ======================================
 
 .Passer du texte en majuscule
@@ -376,7 +376,7 @@ Lancer _bc_
 footnote:[Par défaut, _bc_ ajoute un anti-slash après le 68e caractère et passe à la ligne suivante. On peut modifier ce comportement avec la variable d'environnement _BC_LINE_LENGTH_. Quand cette variable est égale à zéro, les nombres ne sont pas tronqués.]
 avec en paramètres _powmod.b_ et _val.b_, définir obase à _2 * 8_
 footnoteref:[ibase16]
-(pour que les nombres soient affichés en hexadécimal) et exécuter la fonction powmod. Rappelons que c'est _S_ (variable _s_) qui doit être élevé à la puissance _e_, modulo _n_. Attention lors de la définition d'obase, ibase vaut 16 (résultat du script _val.b_ chargé au démarrage) donc obase=16 *ne fonctionnera pas*.
+(pour que les nombres soient affichés en hexadécimal) et exécuter la fonction powmod. Rappelons que c'est _S_ (variable _s_) qui doit être élevé à la puissance _e_, modulo _n_. Attention lors de la définition d'obase, ibase vaut 16 (résultat du script _val.b_ chargé au démarrage) donc obase=16 ne fonctionnera pas.
 
 .Calcul
 image:img-powmod.png["Image résultat powmod"]
@@ -390,6 +390,14 @@ Le résultat avec tous ces _F_ prouve avec une quasi certitude que le calcul s'e
 
 ==== 2.2.6 Analyse de _M_
 
+Nous allons procéder en trois étapes :
+
+. Enregistrement du contenu hexadécimal
+. Conversion du contenu hexadécimal en binaire
+. Examen du contenu binaire avec la commande _openssl asn1parse_
+
+===== 1 Enregistrement du contenu hexadécimal
+
 Faisons un copier-coller de _M_ (en hexadécimal) à partir de l'octet qui suit l'octet nul, et enregistrons le résultat dans le fichier *_m.hex_*.
 
 .m.hex
@@ -400,15 +408,31 @@ image:img-m.hex.png["Image m.hex"]
 3031300D0609608648016503040201050004208364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD
 ....
 
+===== 2 Conversion du contenu hexadécimal en binaire
+
 Il nous faut maintenant convertir _m.hex_ en binaire, puisque le contenu actuel est le _codage des octets en hexadécimal_ de la signature, ce n'est pas la signature elle-même.
 
 .Linux
+[caption=""]
+======================================
 Exécuter
 
-`xxd -r -p m.hex > m.der`
+`*xxd -r -p m.hex > m.der*`
+======================================
 
 .Windows
+[caption=""]
+======================================
 Le plus simple est d'utiliser _notepad++_ et d'enregistrer le fichier transformé avec le nom _m.der_.
+
+_Avant_
+
+image:img-notepadpp-1.png["Image notepad++ 1"]
+
+_Après (on a enregistré le nouveau contenu avec le nouveau nom *m.der*)_
+
+image:img-notepadpp-2.png["Image notepad++ 2"]
+======================================
 
 Le fichier _m.der_ contient les octets que l'on avait dans la signature, ce que l'on peut vérifier facilement...
 
@@ -418,18 +442,22 @@ Le fichier _m.der_ contient les octets que l'on avait dans la signature, ce que 
 .m.der
 image:img-m.der.png["Image m.der"]
 
-.L'outil openssl
+===== 3 Examen du contenu binaire avec la commande _openssl asn1parse_
+
+.openssl
 ****
-Pour afficher le contenu encodé en DER nous allons utiliser _openssl_, l'exécutable en ligne de commande.
+Pour afficher le contenu binaire (qui se trouve être encodé en DER) nous allons utiliser l'exécutable en ligne de commande fourni avec la librairie openssl. Cet outil s'appelle _openssl_.
 
-Par la suite nous utiliserons également _dder_ et _pkfile_, des petits utilitaires créés par l'auteur de cet article pour afficher et extraire plus facilement ce type de données.
+Par la suite nous utiliserons également _dder_ et _pkfile_, deux utilitaires créés par l'auteur de cet article pour afficher et extraire plus facilement ce type de données.
 
-*openssl*
+*Exécutable openssl*
 
 * Sous Linux ce programme est disponible par défaut.
 * Sous Windows il faut trouver un binaire à télécharger.
 Le plus simple est de télécharger la version GNUWin32, disponible http://gnuwin32.sourceforge.net/packages/openssl.htm[ici].
-La version proposée au téléchargement (en février 2016) date de 2008. Des binaires beaucoup plus récents sont disponibles sur Internet. Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.
+La version proposée au téléchargement (en février 2016) date de 2008. Des binaires beaucoup plus récents sont disponibles sur Internet.
+Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.
+** À noter que Sous Windows les environnements "de taille importante" (_cygwin_, _perl_, ...) sont souvent installés avec leur librairie openssl, qui contient l'outil en ligne de commande _openssl_.
 ****
 
 Exécuter la commande `openssl asn1parse -inform der -in m.der`
@@ -438,18 +466,14 @@ image:img-m.der-openssl.png["Image m.der avec openssl"]
 
 _openssl_ nous donne deux informations :
 
-* L'algorithme de hachage était SHA-256, ce que l'on savait déjà
-* _openssl_ affiche la valeur du hachage (_OCTET STRING_) sous forme hexadécimale
+* L'algorithme de hachage est SHA-256, ce que l'on savait déjà d'après le contenu de _signatureAlgorithm_ (deuxième bloc de données du certificat)
+* _openssl_ affiche la valeur du hachage (bloc _prim: OCTET STRING_) sous forme hexadécimale
 
-Nous savons désormais que la signature SHA-256 de la partie tbsCertificate du certificat de letsencrypt.org devrait être :
+Nous savons désormais que la signature SHA-256 du bloc de données _tbsCertificate_ du certificat de letsencrypt.org devrait être :
 
 `*8364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD*`
 
 C'est ce que nous allons vérifier en calculant maintenant _M'_.
 
 ==== 2.2.7 Calcul de _M'_
-
-
-
-http://gnuwin32.sourceforge.net/packages/readline.htm
 
