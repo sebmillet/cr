@@ -654,15 +654,15 @@ Certificate  ::=  SEQUENCE  {
 <div class="title">Important</div>
 </td>
 <td class="content">
-<div class="title">Grammaire, ASN.2 et DER</div>
+<div class="title">Grammaire, ASN.1 et DER</div>
 <div class="paragraph">
 <p>La structure du certificat est décrite par une <em>grammaire</em>, d&#8217;après les règles de syntaxe <a href="http://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx"><strong>ASN.1</strong></a>.</p>
 </div>
 <div class="paragraph">
-<p>L&#8217;encodage de données dont la structure est décrite en <em>ASN.1</em> est défini par la norme <a href="https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf"><strong>X.690</strong></a>.</p>
+<p>Les différents encodages possibles du standard <em>ASN.1</em> sont eux-mêmes des standards et le <a href="https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf"><strong>X.690</strong></a> est l&#8217;un d&#8217;entre eux.</p>
 </div>
 <div class="paragraph">
-<p>La RFC précise que la partie du certificat à signer doit être encodée selon le standard Distinguished Encoding Rules ou <em>DER</em>. Entre autres encodages, le document <a href="https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf"><strong>X.690</strong></a> définit le <em>DER</em>.</p>
+<p>La RFC précise que la partie du certificat à signer doit être encodée selon le standard <em>Distinguished Encoding Rules</em> ou <strong><em>DER</em></strong>. Entre autres encodages, le document <a href="https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf"><strong>X.690</strong></a> définit le <em>DER</em>.</p>
 </div>
 <div class="paragraph">
 <p>Nous verrons par la suite l&#8217;encodage <em>DER</em>. Si vous souhaitez l&#8217;aborder sans attendre, plutôt que d&#8217;examiner directement le document X.690, je vous recommande cette page&#160;: <a href="https://en.wikipedia.org/wiki/X.690"><strong>Présentation&#160;X.690&#160;&#160;(Wikipédia)</strong></a></p>
@@ -672,18 +672,18 @@ Certificate  ::=  SEQUENCE  {
 </table>
 </div>
 <div class="paragraph">
-<p>En ASN.1 le mot-clé <code>SEQUENCE</code> sans autre précision indique un bloc constitué d&#8217;une suite de sous-blocs de données. On a donc le bloc de données <em>Certificate</em> dans lequel se trouvent, à la suite&#160;:</p>
+<p>En ASN.1 le mot-clé <code>SEQUENCE</code> sans autre précision indique un bloc constitué d&#8217;une suite de sous-blocs de données. On a donc la valeur <em>Certificate</em> dans lequel se trouvent, à la suite&#160;:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Le bloc <em>tbsCertificate</em>, soit le certificat à signer (<strong>t</strong>o <strong>b</strong>e <strong>s</strong>igned <strong>Certificate</strong>)</p>
+<p>La valeur <em>tbsCertificate</em>, soit le certificat à signer (<strong>t</strong>o <strong>b</strong>e <strong>s</strong>igned <strong>Certificate</strong>)</p>
 </li>
 <li>
-<p>Le bloc <em>signatureAlgorithm</em>, soit l&#8217;identification de l&#8217;algorithme de signature</p>
+<p>La valeur <em>signatureAlgorithm</em>, soit l&#8217;identification de l&#8217;algorithme de signature</p>
 </li>
 <li>
-<p>Le bloc <em>signatureValue</em>, soit la signature elle-même</p>
+<p>La valeur <em>signatureValue</em>, soit la signature elle-même</p>
 </li>
 </ol>
 </div>
@@ -791,7 +791,7 @@ Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et p
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>L&#8217;émetteur calcule le hash (noté <em>M</em>) du bloc de données <em>tbsCertificate</em> du sujet, soit \$M=hash("tbsCertificate")\$</p>
+<p>L&#8217;émetteur calcule le hash (noté <em>M</em>) de la valeur <em>tbsCertificate</em> du sujet, soit \$M=hash("tbsCertificate")\$</p>
 </li>
 <li>
 <p>Il calcule ensuite la signature (notée <em>S</em>) avec la formule \$S \equiv M^d ("mod " n)\$
@@ -1183,6 +1183,20 @@ C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&
 <div class="paragraph">
 <p>Il nous faut maintenant convertir <em>m.hex</em> en binaire, puisque le contenu actuel est le <em>codage des octets en hexadécimal</em> de la signature, ce n&#8217;est pas la signature elle-même.</p>
 </div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Attention</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Ne pas laisser un saut de ligne à la fin du fichier qui s&#8217;ajouterait aux données binaires de la signature.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="exampleblock">
 <div class="title">Linux</div>
 <div class="content">
@@ -1223,7 +1237,7 @@ C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&
 <p>&#8230;&#8203; sous Linux avec la commande <em>hd</em> (on peut aussi utiliser <em>hexdump</em> ou <em>xxd</em>).</p>
 </li>
 <li>
-<p>&#8230;&#8203; sous Windows le plus simple est d&#8217;utiliser <em>notepad++</em> et reconvertir en hexadécimal pour vérifier que l&#8217;on retombe sur ses pieds. Sinon on peut s&#8217;installer un freeware d&#8217;affichage ou d&#8217;édition de fichier en binaire.</p>
+<p>&#8230;&#8203; sous Windows avec <em>notepad++</em> : reconvertir en hexadécimal pour vérifier que l&#8217;on retombe sur ses pieds. Sinon on peut s&#8217;installer un freeware d&#8217;affichage ou d&#8217;édition de fichier en binaire.</p>
 </li>
 </ul>
 </div>
@@ -1275,20 +1289,23 @@ Pour faire les manipulations décrites dans ce document, la version de GNUWin32 
 <p><span class="image"><img src="img-m.der-openssl.png" alt="Image m.der avec openssl"></span></p>
 </div>
 <div class="paragraph">
-<p><em>openssl</em> nous donne deux informations :</p>
+<p>Nous verrons dans le chapitre suivant la syntaxe ASN.1 plus en détail.</p>
+</div>
+<div class="paragraph">
+<p>Nous notons pour le moment que <em>openssl</em> nous donne deux informations :</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>L&#8217;algorithme de hachage est SHA-256, ce que l&#8217;on savait déjà d&#8217;après le contenu de <em>signatureAlgorithm</em> (deuxième bloc de données du certificat)</p>
+<p>L&#8217;algorithme de hachage est SHA-256, ce que l&#8217;on savait déjà d&#8217;après le contenu de <em>signatureAlgorithm</em> (deuxième valeur du certificat)</p>
 </li>
 <li>
-<p><em>openssl</em> affiche la valeur du hachage (bloc <em>prim: OCTET STRING</em>) sous forme hexadécimale</p>
+<p>Nous voyons la valeur du hachage (le bloc <em>prim: OCTET STRING</em>) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Nous savons désormais que la signature SHA-256 du bloc de données <em>tbsCertificate</em> du certificat de letsencrypt.org devrait être :</p>
+<p>Nous savons désormais que la signature SHA-256 de la valeur <em>tbsCertificate</em> du certificat de letsencrypt.org devrait être :</p>
 </div>
 <div class="paragraph">
 <p><code><strong>8364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD</strong></code></p>
@@ -1300,7 +1317,110 @@ Pour faire les manipulations décrites dans ce document, la version de GNUWin32 
 </div>
 <div class="sect3">
 <h4 id="_2_2_7_calcul_de_em_m_em">2.2.7 Calcul de <em>M'</em></h4>
+<div class="paragraph">
+<p>Nous allons calculer M' en deux étapes :</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Extraction de tbsCertificate du certificat letsencrypt.org</p>
+</li>
+<li>
+<p>Calcul du hachage SHA-256 de tbsCertificate</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Mais avant d&#8217;extraire tbsCertificate, nous devons comprendre comment le certificat est structuré et encodé.</p>
+</div>
+<div class="sect4">
+<h5 id="_asn_1_et_der">ASN.1 et DER</h5>
+<div class="paragraph">
+<p>Au début de ce document, nous avons observé que la section 4.1 de la RFC 5280, qui définit la structure des certificats x509 v3, contient cette définition :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Certificate  ::=  SEQUENCE  {
+	tbsCertificate       TBSCertificate,
+	signatureAlgorithm   AlgorithmIdentifier,
+	signatureValue       BIT STRING  }</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Un certificat x509 est défini selon la syntaxe ASN.1.
+L&#8217;encodage peut être BER
+<span class="footnote">[<a id="_footnoteref_10" class="footnote" href="#_footnote_10" title="View footnote.">10</a>]</span>
+, CER
+<span class="footnote">[<a id="_footnoteref_11" class="footnote" href="#_footnote_11" title="View footnote.">11</a>]</span>
+ou DER
+<span class="footnote">[<a id="_footnoteref_12" class="footnote" href="#_footnote_12" title="View footnote.">12</a>]</span>
+.</p>
+</div>
+<div class="paragraph">
+<p>Ces trois standards sont très proches, l&#8217;intérêt de DER étant son unicité : une structure de données spécifiée en ASN.1 ne peut être encodée en DER que d&#8217;une manière, et une seule. BER et CER permettent certaines variations dans la manière d&#8217;encoder.</p>
+</div>
+<div class="paragraph">
+<p>Pour ne pas alourdir la rédaction, nous parlerons toujours d&#8217;encodage DER ou simplement DER, même lorsque les données manipulées pourraient ne pas être strictement conformes au DER
+<span class="footnote">[<a id="_footnoteref_13" class="footnote" href="#_footnote_13" title="View footnote.">13</a>]</span>
+.</p>
+</div>
+<div class="paragraph">
+<p>ASN.1 structure chaque valeur (<em>data value</em> dans le document X.690) selon la typologie <strong>T-L-V</strong> ou <strong>T</strong>ag-<strong>L</strong>ength-<strong>V</strong>alue. La forme "longueur indéfinie" apporte un quatrième élément, "end-of-contents" (marqueur de fin de valeur), que nous ignorerons car DER ne permet pas cette forme.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Le <em>tag</em> définit toutes les caractéristiques de la valeur, notamment son <em>type</em>, par exemple une date (<em>UTCTime</em>), une séquence (<em>SEQUENCE</em> ou <em>SEQUENCE OF</em>), un entier (<em>INTEGER</em>), et bien d&#8217;autres. Il définit également si l&#8217;encodage de la valeur est <em>primitive</em> ou <em>contructed</em>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Encodage <em>primitive</em> : la donnée ne contient pas de sous-structure</p>
+</li>
+<li>
+<p>Encodage <em>constructed</em> : la donnée est elle-même une structure qui suit la typologie <strong>T</strong>-<strong>L</strong>-<strong>V</strong>, et ici, cette structure est elle-même définie en ASN.1
+<span class="footnote">[<a id="_footnoteref_14" class="footnote" href="#_footnote_14" title="View footnote.">14</a>]</span>.</p>
+</li>
+<li>
+<p>Cette différence <em>primitive</em> - <em>constructed</em> est à la base de la structure hiérarchique d&#8217;une spécification ASN.1
+.</p>
+</li>
+<li>
+<p>Dans la définition d&#8217;un <em>Certificate</em> ci-dessus, le type <em>SEQUENCE</em> est, par définition du type <em>SEQUENCE</em> en ASN.1, <em>constructed</em>. Cela signifie que la valeur <em>SEQUENCE</em> est elle-même une structure ASN.1, ce qu&#8217;on peut voir dans la liste des trois composants d&#8217;un certificat définie entre accolades.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Le <em>length</em> donne la longueur de la valeur en octets</p>
+</li>
+<li>
+<p>Le <em>value</em> est la donnée elle-même. Dans ce document nous employons le terme <em>valeur</em> (dans le document X.690 le terme est <em>data value</em>).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>L&#8217;utilitaire en ligne de commande <em>dder</em>, disponible <a href="https://www.google.fr">ici</a>, affiche le contenu d&#8217;un fichier encodé en DER.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Exécuter
+<strong>dder -width 8 -recursive "|  " m.der</strong></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="img-dder.png" alt="Image lecture m.der avec dder"></span></p>
+</div>
+<div class="paragraph">
+<p>La description de la donnée indique <em>-cons</em> ou <em>-prim</em>, pour <em>constructed</em> ou <em>primitive</em>. Chaque fois que le tag indique une valeur <em>constructed</em> (ici, il s&#8217;agit à deux reprises du type <em>SEQUENCE</em>, qui est obligatoirement <em>constructed</em>), on descend d&#8217;un niveau dans la structure hiérarchique, que l&#8217;on a fait ressortir ici avec l&#8217;option <em>-recursive "|  "</em>.</p>
+</div>
+<div class="paragraph">
+<p>Nous n&#8217;en dirons pas plus sur l&#8217;encodage DER, qui est d&#8217;une grande r</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_1_extraction_de_tbscertificate_du_certificat_letsencrypt_org">1 Extraction de tbsCertificate du certificat letsencrypt.org</h5>
 
+</div>
 </div>
 </div>
 </div>
@@ -1335,10 +1455,25 @@ Pour faire les manipulations décrites dans ce document, la version de GNUWin32 
 <div class="footnote" id="_footnote_9">
 <a href="#_footnoteref_9">9</a>. Par défaut, <em>bc</em> ajoute un anti-slash après le 68e caractère et passe à la ligne suivante. On peut modifier ce comportement avec la variable d&#8217;environnement <em>BC_LINE_LENGTH</em>. Quand cette variable est égale à zéro, les nombres ne sont pas tronqués.
 </div>
+<div class="footnote" id="_footnote_10">
+<a href="#_footnoteref_10">10</a>. BER signifie <strong>B</strong>asic <strong>E</strong>ncoding <strong>R</strong>ules
+</div>
+<div class="footnote" id="_footnote_11">
+<a href="#_footnoteref_11">11</a>. CER signifie <strong>C</strong>anonical <strong>E</strong>ncoding <strong>R</strong>ules
+</div>
+<div class="footnote" id="_footnote_12">
+<a href="#_footnoteref_12">12</a>. DER signifie <strong>D</strong>istinguished <strong>E</strong>ncoding <strong>R</strong>ules
+</div>
+<div class="footnote" id="_footnote_13">
+<a href="#_footnoteref_13">13</a>. La RFC 5280 indique que les <em>données signées</em> d&#8217;un certificat (la partie <em>tbsCertificate</em>) doivent être encodées en DER, mais ne donne pas d&#8217;indication pour le reste, qui peut donc être encodé en BER ou CER.
+</div>
+<div class="footnote" id="_footnote_14">
+<a href="#_footnoteref_14">14</a>. Certains types de données, notamment les <em>*string</em> (OCTET STRING, UTF8String, etc.), peuvent être <em>primitive</em> ou <em>constructed</em>, ce qui signifie que leur encodage peut suivre une structure hiérarchique "propre à l&#8217;encodage", non explicitée dans la définition de la valeur en ASN.1.
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-02-20 22:25:30 CET
+Last updated 2016-02-22 21:39:45 CET
 </div>
 </div>
 </body>

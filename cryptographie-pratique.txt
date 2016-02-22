@@ -100,22 +100,22 @@ Certificate  ::=  SEQUENCE  {
 La suite définit les différents éléments du certificat, à savoir ce que sont les structures _TBSCertificate_ et _AlgorithmIdentifier_.
 
 [IMPORTANT]
-.Grammaire, ASN.2 et DER
+.Grammaire, ASN.1 et DER
 ======================================
 La structure du certificat est décrite par une _grammaire_, d'après les règles de syntaxe http://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx[*ASN.1*].
 
-L'encodage de données dont la structure est décrite en _ASN.1_ est défini par la norme https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf[*X.690*].
+Les différents encodages possibles du standard _ASN.1_ sont eux-mêmes des standards et le https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf[*X.690*] est l'un d'entre eux.
 
-La RFC précise que la partie du certificat à signer doit être encodée selon le standard Distinguished Encoding Rules ou _DER_. Entre autres encodages, le document https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf[*X.690*] définit le _DER_.
+La RFC précise que la partie du certificat à signer doit être encodée selon le standard _Distinguished Encoding Rules_ ou *_DER_*. Entre autres encodages, le document https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf[*X.690*] définit le _DER_.
 
 Nous verrons par la suite l'encodage _DER_. Si vous souhaitez l'aborder sans attendre, plutôt que d'examiner directement le document X.690, je vous recommande cette page{nbsp}: https://en.wikipedia.org/wiki/X.690[*Présentation{nbsp}X.690{nbsp}{nbsp}(Wikipédia)*]
 ======================================
 
-En ASN.1 le mot-clé `SEQUENCE` sans autre précision indique un bloc constitué d'une suite de sous-blocs de données. On a donc le bloc de données _Certificate_ dans lequel se trouvent, à la suite{nbsp}:
+En ASN.1 le mot-clé `SEQUENCE` sans autre précision indique un bloc constitué d'une suite de sous-blocs de données. On a donc la valeur _Certificate_ dans lequel se trouvent, à la suite{nbsp}:
 
-. Le bloc _tbsCertificate_, soit le certificat à signer (**t**o **b**e **s**igned *Certificate*)
-. Le bloc _signatureAlgorithm_, soit l'identification de l'algorithme de signature
-. Le bloc _signatureValue_, soit la signature elle-même
+. La valeur _tbsCertificate_, soit le certificat à signer (**t**o **b**e **s**igned *Certificate*)
+. La valeur _signatureAlgorithm_, soit l'identification de l'algorithme de signature
+. La valeur _signatureValue_, soit la signature elle-même
 
 === 1.3 Hiérarchie des certificats
 
@@ -170,7 +170,7 @@ Dans notre exemple le _tbsCertificate_ est celui de letsencrypt.org, tandis que 
 Le calcul de la signature nécessite de connaître _d_, la clé privée, que nous ne connaissons pas ici puisque le certificat émetteur (TrustID Server CA A52) ne nous appartient pas. Plus loin nous manipulerons des certificats auto-signés ce qui nous permettra de manipuler la clé privée.
 ======================================
 
-. L'émetteur calcule le hash (noté _M_) du bloc de données _tbsCertificate_ du sujet, soit stem:[M=hash("tbsCertificate")]
+. L'émetteur calcule le hash (noté _M_) de la valeur _tbsCertificate_ du sujet, soit stem:[M=hash("tbsCertificate")]
 . Il calcule ensuite la signature (notée _S_) avec la formule stem:[S \equiv M^d ("mod " n)]
 footnote:[On simplifie ici pour se concentrer sur les étapes importantes. En fait, le hash _M_ calculé n'est pas signé tel quel, il subit auparavant quelques transformations comme nous le verrons plus loin]
 footnote:[Ce calcul est le même que pour déchiffrer un message destiné au propriétaire de la clé publique (qui est ici l'émetteur du certificat). Signer en RSA revient à inverser le rôle de l'exposant public et privé.]
@@ -412,6 +412,12 @@ image:img-m.hex.png["Image m.hex"]
 
 Il nous faut maintenant convertir _m.hex_ en binaire, puisque le contenu actuel est le _codage des octets en hexadécimal_ de la signature, ce n'est pas la signature elle-même.
 
+[CAUTION]
+[caption="Attention"]
+======================================
+Ne pas laisser un saut de ligne à la fin du fichier qui s'ajouterait aux données binaires de la signature.
+======================================
+
 .Linux
 [caption=""]
 ======================================
@@ -437,7 +443,7 @@ image:img-notepadpp-2.png["Image notepad++ 2"]
 Le fichier _m.der_ contient les octets que l'on avait dans la signature, ce que l'on peut vérifier facilement...
 
 * ... sous Linux avec la commande _hd_ (on peut aussi utiliser _hexdump_ ou _xxd_).
-* ... sous Windows le plus simple est d'utiliser _notepad++_ et reconvertir en hexadécimal pour vérifier que l'on retombe sur ses pieds. Sinon on peut s'installer un freeware d'affichage ou d'édition de fichier en binaire.
+* ... sous Windows avec _notepad++_ : reconvertir en hexadécimal pour vérifier que l'on retombe sur ses pieds. Sinon on peut s'installer un freeware d'affichage ou d'édition de fichier en binaire.
 
 .m.der
 image:img-m.der.png["Image m.der"]
@@ -464,16 +470,79 @@ Exécuter la commande `openssl asn1parse -inform der -in m.der`
 
 image:img-m.der-openssl.png["Image m.der avec openssl"]
 
-_openssl_ nous donne deux informations :
+Nous verrons dans le chapitre suivant la syntaxe ASN.1 plus en détail.
 
-* L'algorithme de hachage est SHA-256, ce que l'on savait déjà d'après le contenu de _signatureAlgorithm_ (deuxième bloc de données du certificat)
-* _openssl_ affiche la valeur du hachage (bloc _prim: OCTET STRING_) sous forme hexadécimale
+Nous notons pour le moment que _openssl_ nous donne deux informations :
 
-Nous savons désormais que la signature SHA-256 du bloc de données _tbsCertificate_ du certificat de letsencrypt.org devrait être :
+* L'algorithme de hachage est SHA-256, ce que l'on savait déjà d'après le contenu de _signatureAlgorithm_ (deuxième valeur du certificat)
+* Nous voyons la valeur du hachage (le bloc _prim: OCTET STRING_) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).
+
+Nous savons désormais que la signature SHA-256 de la valeur _tbsCertificate_ du certificat de letsencrypt.org devrait être :
 
 `*8364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD*`
 
 C'est ce que nous allons vérifier en calculant maintenant _M'_.
 
 ==== 2.2.7 Calcul de _M'_
+
+Nous allons calculer M' en deux étapes :
+
+. Extraction de tbsCertificate du certificat letsencrypt.org
+. Calcul du hachage SHA-256 de tbsCertificate
+
+Mais avant d'extraire tbsCertificate, nous devons comprendre comment le certificat est structuré et encodé.
+
+===== ASN.1 et DER
+
+Au début de ce document, nous avons observé que la section 4.1 de la RFC 5280, qui définit la structure des certificats x509 v3, contient cette définition :
+
+--------------------------------------
+Certificate  ::=  SEQUENCE  {
+	tbsCertificate       TBSCertificate,
+	signatureAlgorithm   AlgorithmIdentifier,
+	signatureValue       BIT STRING  }
+--------------------------------------
+
+Un certificat x509 est défini selon la syntaxe ASN.1.
+L'encodage peut être BER
+footnote:[BER signifie **B**asic **E**ncoding **R**ules]
+, CER
+footnote:[CER signifie **C**anonical **E**ncoding **R**ules]
+ou DER
+footnote:[DER signifie **D**istinguished **E**ncoding **R**ules]
+.
+
+Ces trois standards sont très proches, l'intérêt de DER étant son unicité : une structure de données spécifiée en ASN.1 ne peut être encodée en DER que d'une manière, et une seule. BER et CER permettent certaines variations dans la manière d'encoder.
+
+Pour ne pas alourdir la rédaction, nous parlerons toujours d'encodage DER ou simplement DER, même lorsque les données manipulées pourraient ne pas être strictement conformes au DER
+footnote:[La RFC 5280 indique que les _données signées_ d'un certificat (la partie _tbsCertificate_) doivent être encodées en DER, mais ne donne pas d'indication pour le reste, qui peut donc être encodé en BER ou CER.]
+.
+
+ASN.1 structure chaque valeur (_data value_ dans le document X.690) selon la typologie *T-L-V* ou **T**ag-**L**ength-**V**alue. La forme "longueur indéfinie" apporte un quatrième élément, "end-of-contents" (marqueur de fin de valeur), que nous ignorerons car DER ne permet pas cette forme.
+
+* Le _tag_ définit toutes les caractéristiques de la valeur, notamment son _type_, par exemple une date (_UTCTime_), une séquence (_SEQUENCE_ ou _SEQUENCE OF_), un entier (_INTEGER_), et bien d'autres. Il définit également si l'encodage de la valeur est _primitive_ ou _contructed_.
+** Encodage _primitive_ : la donnée ne contient pas de sous-structure
+** Encodage _constructed_ : la donnée est elle-même une structure qui suit la typologie **T**-**L**-**V**, et ici, cette structure est elle-même définie en ASN.1
+footnote:[Certains types de données, notamment les _{asterisk}string_ (OCTET STRING, UTF8String, etc.), peuvent être _primitive_ ou _constructed_, ce qui signifie que leur encodage peut suivre une structure hiérarchique "propre à l'encodage", non explicitée dans la définition de la valeur en ASN.1.].
+** Cette différence _primitive_ - _constructed_ est à la base de la structure hiérarchique d'une spécification ASN.1
+.
+** Dans la définition d'un _Certificate_ ci-dessus, le type _SEQUENCE_ est, par définition du type _SEQUENCE_ en ASN.1, _constructed_. Cela signifie que la valeur _SEQUENCE_ est elle-même une structure ASN.1, ce qu'on peut voir dans la liste des trois composants d'un certificat définie entre accolades.
+
+* Le _length_ donne la longueur de la valeur en octets
+* Le _value_ est la donnée elle-même. Dans ce document nous employons le terme _valeur_ (dans le document X.690 le terme est _data value_).
+
+
+L'utilitaire en ligne de commande _dder_, disponible https://www.google.fr[ici], affiche le contenu d'un fichier encodé en DER.
+
+[subs=+quotes]
+----
+Exécuter
+*dder -width 8 -recursive "|  " m.der*
+----
+image:img-dder.png["Image lecture m.der avec dder"]
+
+La description de la donnée indique _-cons_ ou _-prim_, pour _constructed_ ou _primitive_. Chaque fois que le tag indique une valeur _constructed_ (ici, il s'agit à deux reprises du type _SEQUENCE_, qui est obligatoirement _constructed_), on descend d'un niveau dans la structure hiérarchique, que l'on a fait ressortir ici avec l'option _-recursive "|  "_.
+
+===== 1 Extraction de tbsCertificate du certificat letsencrypt.org
+
 
