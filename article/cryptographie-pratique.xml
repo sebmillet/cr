@@ -1,0 +1,1245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+
+<article lang="en">
+<articleinfo>
+    <title>Cryptographie pratique</title>
+</articleinfo>
+<section id="_introduction">
+<title>Introduction</title>
+<simpara>Cet article décrit les calculs à réaliser pour vérifier des signatures RSA et ECDSA, dans le cas des certificats x509. Ces certificats sont couramment utilisés et servent notamment à la sécurisation https.</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+<emphasis>RSA</emphasis>&#160;: ce cas sera traité avec le certificat d&#8217;un serveur https.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>ECDSA</emphasis>&#160;: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l&#8217;occasion, afin de se familiariser avec les calculs qu&#8217;implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (Certificat Électronique Visible). Ce dernier cas sort du cadre x509 qui est l&#8217;objet principal de cet article, le format pour un tel certificat étant 2D-Doc.
+</simpara>
+</listitem>
+</itemizedlist>
+<simpara>Au fil du document nous ferons appel aux outils suivants&#160;:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+<literal>openssl</literal> pour travailler sur les certificats x509 en ligne de commande
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<literal>python</literal>, <literal>bc</literal> ou <literal>zsbc</literal> pour faire des calculs avec des nombres entiers de grande taille
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Conversion entre encodage <emphasis>PEM</emphasis> et encodage <emphasis>binaire</emphasis> (Linux&#160;: <literal>base64</literal>, Windows&#160;: <literal>notepad</literal>++)
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Édition du contenu de fichier binaire (Linux&#160;: <literal>gvim/xxd</literal>, Windows&#160;: <literal>notepad</literal>++)
+</simpara>
+</listitem>
+</itemizedlist>
+<note>
+<title>Windows versus Linux</title>
+<simpara>Ce document s&#8217;adresse aux utilisateurs de Windows et Linux.</simpara>
+<simpara>Il peut arriver qu&#8217;entre les deux environnements l&#8217;outil ou la commande à employer soit différente. Dans ce cas la solution pour chaque système est présentée.</simpara>
+</note>
+<simpara><?asciidoc-pagebreak?></simpara>
+</section>
+<section id="_le_format_x509">
+<title>Le format x509</title>
+<section id="_visualisation_d_8217_un_certificat_x509">
+<title>Visualisation d&#8217;un certificat x509</title>
+<simpara>A l&#8217;aide d&#8217;un navigateur, ouvrir une page en https et afficher le certificat.
+Les exemples de ce document sont réalisés avec le certificat https du site <ulink url="https://letsencrypt.org/">https://letsencrypt.org/</ulink>.</simpara>
+<orderedlist numeration="arabic"><title>Exemple avec Firefox 44</title>
+<listitem>
+<simpara>
+Cliquer sur l&#8217;icône de cadenas à gauche de la barre d&#8217;adresse et cliquer sur la flèche droite (figure 1)
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Cliquer sur <emphasis>Plus d&#8217;informations</emphasis> (figure 2)
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Cliquer sur <emphasis>Afficher le certificat</emphasis> (figure 3)
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Afficher l&#8217;onglet <emphasis>Détails</emphasis> et parcourir les différents champs du certificat (figures 4, 5, 6)
+</simpara>
+</listitem>
+</orderedlist>
+<formalpara><title>Fig. 1</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-firefox-1-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image Firefox 1</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig. 2</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-firefox-2-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image Firefox 2</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig. 3</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-firefox-3-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image Firefox 3</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig. 4</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-firefox-4-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image Firefox 4</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig. 5</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-firefox-5-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image Firefox 5</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig. 6</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-firefox-6-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image Firefox 6</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>Nous nous intéresserons à la partie supérieure (<emphasis>Hiérarchie des certificats</emphasis>) plus tard.</simpara>
+<simpara>Pour le moment examinons le certificat. L&#8217;affichage de Firefox en dessous de <emphasis>Champs du certificat</emphasis> liste trois parties&#160;:</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Le certificat proprement dit, qui contient beaucoup d&#8217;informations structurées sur plusieurs niveaux hiérarchiques
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+L&#8217;algorithme de signature du certificat, dans notre exemple, <emphasis>PKCS #1 SHA-256 avec chiffrement RSA</emphasis>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+La signature du certificat, ici, une suite de 256 octets
+</simpara>
+</listitem>
+</orderedlist>
+<simpara>Cette structure en trois parties est toujours respectée pour un certificat x509.
+A noter qu&#8217;Internet Explorer et Chrome affichent les mêmes informations mais sans faire ressortir la structure trois parties.</simpara>
+</section>
+<section id="_structure_d_8217_un_certificat_x509">
+<title>Structure d&#8217;un certificat x509</title>
+<simpara>Où la structure d&#8217;un certificat est-elle définie, et quelle est cette définition ?</simpara>
+<simpara>Une recherche sur un moteur de recherche avec les mots-clés <emphasis>RFC</emphasis> et <emphasis>x509</emphasis> produit l&#8217;URL suivante dans les premières réponses&#160;:</simpara>
+<simpara><ulink url="https://tools.ietf.org/html/rfc5280">https://tools.ietf.org/html/rfc5280</ulink></simpara>
+<simpara>Et effectivement la<footnote><simpara>Nous utiliserons le féminin dans ce document. RFC étant un acronyme anglais, il n&#8217;y a pas d&#8217;argument définitif pour l&#8217;emploi du masculin ou du féminin.</simpara></footnote>
+<emphasis role="strong">RFC 5280</emphasis> définit le format x509 version 3.</simpara>
+<simpara>Affichons-la. Dans la section <emphasis>4.1</emphasis> se trouve la définition suivante.</simpara>
+<screen>...
+4.1.  Basic Certificate Fields
+
+   The X.509 v3 certificate basic syntax is as follows.  For signature
+   calculation, the data that is to be signed is encoded using the ASN.1
+   distinguished encoding rules (DER) [X.690].  ASN.1 DER encoding is a
+   tag, length, value encoding system for each element.
+
+Certificate  ::=  SEQUENCE  {
+        tbsCertificate       TBSCertificate,
+        signatureAlgorithm   AlgorithmIdentifier,
+        signatureValue       BIT STRING  }
+...</screen>
+<simpara>La suite définit les différents éléments du certificat, à savoir ce que sont les structures <emphasis>TBSCertificate</emphasis> et <emphasis>AlgorithmIdentifier</emphasis>.</simpara>
+<sidebar>
+<title>Grammaire, ASN.1 et DER</title>
+<simpara>La structure du certificat est décrite par une <emphasis>grammaire</emphasis>, d&#8217;après les règles de syntaxe <emphasis role="strong">ASN.1</emphasis> (<emphasis role="strong">A</emphasis>bstrat <emphasis role="strong">S</emphasis>yntax <emphasis role="strong">N</emphasis>otation number <emphasis role="strong">1</emphasis>)&#160;<xref linkend="1"/>.</simpara>
+<simpara>Les différents encodages possibles du standard <emphasis>ASN.1</emphasis> sont eux-mêmes des standards et le <emphasis role="strong">X.690</emphasis> est l&#8217;un d&#8217;entre eux&#160;<xref linkend="2"/>.</simpara>
+<simpara>La RFC précise que la partie du certificat à signer doit être encodée selon le standard <emphasis>Distinguished Encoding Rules</emphasis> ou <emphasis role="strong">DER</emphasis>. Entre autres encodages, le document X.690 définit le DER.</simpara>
+<simpara>Nous verrons plus loin l&#8217;encodage DER.
+Si vous souhaitez le découvrir, plutôt que d&#8217;examiner directement le document X.690, je vous recommande de commencer par l&#8217;article Wikipédia&#160;<xref linkend="3"/>.</simpara>
+</sidebar>
+<simpara>En ASN.1 le mot-clé <emphasis>SEQUENCE</emphasis> sans autre précision indique que la valeur est constituée d&#8217;une suite de valeurs elles-mêmes spécifiées en ASN.1. La valeur <emphasis>Certificate</emphasis> contient donc, à la suite&#160;:</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+La valeur <emphasis>tbsCertificate</emphasis>, soit le certificat à signer (<emphasis role="strong">t</emphasis>o <emphasis role="strong">b</emphasis>e <emphasis role="strong">s</emphasis>igned <emphasis role="strong">Certificate</emphasis>)
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+La valeur <emphasis>signatureAlgorithm</emphasis>, soit l&#8217;identification de l&#8217;algorithme de signature
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+La valeur <emphasis>signatureValue</emphasis>, soit la signature elle-même
+</simpara>
+</listitem>
+</orderedlist>
+</section>
+<section id="_hiérarchie_des_certificats">
+<title>Hiérarchie des certificats</title>
+<simpara>Dans la partie tbsCertificate de <emphasis>letsencrypt.org</emphasis>, intéressons-nous à deux éléments en particulier, l'<emphasis>émetteur</emphasis> du certificat et le <emphasis>sujet</emphasis> du certificat.</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Le <emphasis>sujet</emphasis> du certificat a pour <emphasis role="strong">CN</emphasis> (<emphasis role="strong">C</emphasis>ommon <emphasis role="strong">N</emphasis>ame) letsencrypt.org et c&#8217;est le dernier nom qui est affiché dans la hiérarchie des certificats (partie supérieure de la fenêtre).
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+L'<emphasis>émetteur</emphasis> du certificat a pour CN <emphasis>TrustID Server CA A52</emphasis> et on peut voir ce nom au-dessus de letsencrypt.org dans la hiérarchie.
+</simpara>
+</listitem>
+</itemizedlist>
+<simpara>L'émetteur et le sujet ont également le pays (<emphasis role="strong">C</emphasis>) et l&#8217;organisation (<emphasis role="strong">O</emphasis>) définis dans leur nom, ainsi que d&#8217;autres éléments.
+Le "nom simple" ou "nom court" du certificat est son CN. Le standard x509 ne définit pas cette notion de "nom simple" ou "nom court", nous l&#8217;employons ici pour préciser que dans la pratique, le CN est le véritable nom du certificat, les autres éléments donnant des informations annexes.
+Parfois, seul le CN est affiché pour désigner un certificat.</simpara>
+<simpara>Cela dit, le nom du certificat (au sens du standard x509) est constitué de <emphasis>la totlité des éléments qui le composent</emphasis>, et non pas seulement du CN.</simpara>
+<simpara>Le lien hiérarchique est toujours établi entre un émetteur et un sujet.
+L'émetteur est celui qui signe le certificat, le sujet est celui qui est signé. Voir figures 7 et 8.</simpara>
+<simpara>Un certificat peut être à la fois émetteur (d&#8217;autres certificats sont signés par lui) et sujet (il est lui-même signé par un autre certificat), et cette chaîne forme une structure hiérarchique.
+Dans notre exemple, on voit que le certificat <emphasis>TrustID Server CA A52</emphasis> est lui-même signé par <emphasis>IdenTrust Commercial Root CA 1</emphasis>.</simpara>
+<note><simpara>Dans la pratique la situation se complique souvent avec des certificats croisés. Quoi qu&#8217;il en soit, la structure de base des liens qui relient les certificats est hiérarchique.</simpara></note>
+<formalpara><title>Fig. 7&#160;: Sujet du certificat</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-crt-1-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image certificat : sujet</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig. 8&#160;: Émetteur du certificat</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-crt-2-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image certificat : émetteur</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>Pour signer, l'émetteur utilise sa clé privée. La vérification de la signature est faite avec sa clé publique.
+Ainsi pour vérifier l&#8217;authenticité du certificat https de <emphasis>letsencrypt.org</emphasis>, nous aurons besoin de la clé publique de son émetteur, <emphasis>TrustID Server CA A52</emphasis>.</simpara>
+<simpara>Ce principe est toujours respecté avec les certificats x509, que ce soit avec RSA ou d&#8217;autres mécanismes à clé publique / clé privée.</simpara>
+<simpara>Nous allons maintenant passer à la vérification de la signature RSA.</simpara>
+<simpara><?asciidoc-pagebreak?></simpara>
+</section>
+</section>
+<section id="_vérification_de_signature_rsa">
+<title>Vérification de signature RSA</title>
+<section id="_la_signature_rsa">
+<title>La signature RSA</title>
+<sidebar>
+<title>Notations</title>
+<itemizedlist>
+<listitem>
+<simpara>
+La valeur à signer (ou si l&#8217;on préfère, le <emphasis>bloc de données</emphasis> à signer) est <emphasis role="strong">tbsCertificate</emphasis>, soit le certificat sans les informations de signature. Dans la structure en trois parties de notre certificat x509, c&#8217;est la première.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+L&#8217;entité qui signe le certificat (l'émetteur du certificat) a pour clé RSA <emphasis role="strong">(n, e)</emphasis> (<emphasis role="strong">n</emphasis> est le modulo, <emphasis role="strong">e</emphasis> est l&#8217;exposant) et <emphasis role="strong">d</emphasis>.
+Le couple <emphasis role="strong">(n, e)</emphasis> est la clé publique, <emphasis role="strong">d</emphasis> est la clé privée.
+</simpara>
+</listitem>
+</itemizedlist>
+<simpara>La page Wikipédia consacrée au système RSA&#160;<xref linkend="4"/> explique le lien entre <emphasis>(n, e)</emphasis> et <emphasis>d</emphasis>, et nous indique le calcul à effectuer pour <emphasis>chiffrer</emphasis>.
+Pour <emphasis>signer</emphasis>, le calcul inverse le rôle de l&#8217;exposant privé et public, et pour <emphasis>vérifier</emphasis> la signature, le rôle des exposants privé et public est encore inversé (par rapport à la signature).</simpara>
+<simpara>Dans notre exemple le tbsCertificate est celui de <emphasis>letsencrypt.org</emphasis>, tandis que la clé RSA (clé publique <emphasis>(n, e)</emphasis> et clé privée <emphasis>d</emphasis>) est celle de <emphasis>TrustID Server CA A52</emphasis>.</simpara>
+</sidebar>
+<section id="_calcul_de_la_signature">
+<title>Calcul de la signature</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+L'émetteur calcule le hash (noté <emphasis>M</emphasis>) de la valeur <emphasis>tbsCertificate</emphasis> du sujet, soit asciimath:[M=hash("tbsCertificate")]
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Il calcule la signature (notée <emphasis>S</emphasis>) avec la formule asciimath:[S \equiv M^d ("mod " n)]
+<footnote><simpara>On simplifie ici pour se concentrer sur les étapes importantes. En fait, le hash <emphasis>M</emphasis> calculé n&#8217;est pas signé tel quel, il subit auparavant quelques transformations comme nous le verrons plus loin.</simpara></footnote>
+<footnote><simpara>Ce calcul est le même que pour déchiffrer un message destiné au propriétaire de la clé publique (qui est ici l'émetteur du certificat). Signer en RSA revient à chiffrer en inversant le rôle de l&#8217;exposant public et privé.</simpara></footnote>
+</simpara>
+</listitem>
+</orderedlist>
+</section>
+<section id="_vérification_de_la_signature">
+<title>Vérification de la signature</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Le vérificateur calcule asciimath:[M \equiv S^e ("mod " n)]
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Il calcule asciimath:[M'=hash("tbsCertificate")]
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Si on a l'égalité asciimath:[M=M'], la signature est vérifiée
+</simpara>
+</listitem>
+</orderedlist>
+</section>
+</section>
+<section id="_vérification_du_certificat_de_letsencrypto_org">
+<title>Vérification du certificat de letsencrypto.org</title>
+<section id="_choix_d_8217_un_programme_de_calcul">
+<title>Choix d&#8217;un programme de calcul</title>
+<simpara>Nous avons besoin d&#8217;une "calculatrice" qui calcule sur des nombres entiers arbitrairement grands, sans perte de précision. Dans la suite de ce document, c&#8217;est <emphasis>bc</emphasis> qui sera utilisé&#160;<xref linkend="5"/>.</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Linux&#160;: <emphasis>bc</emphasis> est disponible par défaut sur la plupart des distributions.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Windows&#160;: les binaires sont accessibles à l&#8217;URL <xref linkend="6"/>.
+</simpara>
+</listitem>
+</itemizedlist>
+<note>
+<title>Le choix de bc</title>
+<itemizedlist>
+<listitem>
+<simpara>
+<emphasis>bc</emphasis> est installé par défaut sur la plupart des distributions Linux, et facile et rapide à installer sous Windows.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>bc</emphasis> contient peu de fonctions mathématiques intégrées mais sur Internet on trouve de nombreux scripts qui permettent de l&#8217;enrichir considérablement.
+</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Dans <emphasis>bc</emphasis> la variable <emphasis>scale</emphasis> définit le nombre de décimales des nombres manipulés. Comme nous ne ferons que des calculs sur des entiers, nous laisserons <emphasis>scale</emphasis> à zéro (pas de partie décimale). Zéro est la valeur par défaut de <emphasis>scale</emphasis> au lancement de <emphasis>bc</emphasis>
+<footnote><simpara>Lorsque <emphasis>bc</emphasis> est lancé avec l&#8217;option <emphasis role="strong"><emphasis>-l</emphasis></emphasis>, des fonctions mathématiques sont chargées au démarrage et <emphasis>scale</emphasis> vaut 20. Nous ne nous servirons pas de cette option dans ce document et <emphasis>scale</emphasis> sera toujours égal à zéro.</simpara></footnote>
+.
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+</itemizedlist>
+</note>
+<note>
+<title>Alternatives à bc</title>
+<itemizedlist>
+<listitem>
+<simpara>
+<emphasis role="strong">sagemath</emphasis>, logiciel mathématique en licence GPL.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong">python</emphasis>, langage de programmation en licence GPL, calcule par défaut sur des entiers de taille arbitrairement grande et convient donc aux calculs que nous allons faire.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Logiciels mathématiques propriétaires bien connus.
+</simpara>
+</listitem>
+</itemizedlist>
+</note>
+<table
+frame="all"
+rowsep="1" colsep="1"
+>
+<title>Comparaison entre <emphasis>bc</emphasis> et <emphasis>python</emphasis></title>
+<tgroup cols="2">
+<colspec colname="col_1" colwidth="50*"/>
+<colspec colname="col_2" colwidth="50*"/>
+<thead>
+<row>
+<entry align="center" valign="top">bc </entry>
+<entry align="center" valign="top">python</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="center" valign="top" namest="col_1" nameend="col_2"><simpara>Saisie d&#8217;un entier en hexadécimal</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>Exécuter au préalable</simpara>
+<simpara><emphasis role="strong"><literal>ibase = 2 * 8</literal></emphasis> <footnote id="ibase16"><simpara><emphasis>2 * 8</emphasis> produit toujours 16 (décimal). Si <emphasis>ibase = 16</emphasis> est exécuté alors qu&#8217;ibase vaut déjà 16</simpara></footnote></simpara>
+<simpara>Exemple&#160;:</simpara>
+<simpara><emphasis role="strong"><literal>ibase = 2 * 8</literal></emphasis></simpara>
+<simpara><emphasis role="strong"><literal>var = ABEF0E0</literal></emphasis></simpara>
+<simpara><emphasis>(Attention les caractères hexadécimaux doivent être en majuscule.)</emphasis></simpara></entry>
+<entry align="left" valign="top"><simpara>Saisir l&#8217;entier précédé de <emphasis>0x</emphasis></simpara>
+<simpara>Exemple&#160;:</simpara>
+<simpara><emphasis role="strong"><literal>&gt;&gt;&gt; var = 0xabef0e0</literal></emphasis>
+<footnote><simpara><emphasis>python</emphasis> peut lire les nombres hexadécimaux indifféremment en majuscule et minuscule. <emphasis>bc</emphasis> exige des majuscules.</simpara></footnote></simpara></entry>
+</row>
+<row>
+<entry align="center" valign="top" namest="col_1" nameend="col_2"><simpara>Affichage d&#8217;entier en hexadécimal</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>Exécuter au préalable</simpara>
+<simpara><emphasis role="strong"><literal>obase = 2 * 8</literal></emphasis>
+<footnoteref linkend="ibase16" /></simpara>
+<simpara>Exemple&#160;:</simpara>
+<simpara><emphasis role="strong"><literal>obase = 2 * 8</literal></emphasis></simpara>
+<simpara><emphasis role="strong"><literal>2 ^ (2 ^ 4) + 1</literal></emphasis>
+<footnote><simpara>Sous Windows, <emphasis>bc</emphasis> a des difficultés à lire le caractère <emphasis>circonflexe</emphasis> au clavier (en-dessous de la touche <emphasis role="strong">9</emphasis>). Pour contourner ce problème, il est possible d&#8217;utiliser (sur un clavier français) l&#8217;accent circonflexe à droite de la touche <emphasis role="strong">P</emphasis>, en appuyant dessus à deux reprises. Cela affiche deux <emphasis>circonflexes</emphasis> et vous devez alors en supprimer un.</simpara></footnote></simpara>
+<simpara><literal>10001</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Interpoler avec <emphasis>%x</emphasis></simpara>
+<simpara>Exemple&#160;:</simpara>
+<simpara><emphasis role="strong"><literal>&gt;&gt;&gt; '%x' % (2 ** (2 ** 4) + 1)</literal></emphasis></simpara>
+<simpara><literal>'10001'</literal></simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section id="_enregistrement_de_la_signature_sous_forme_d_8217_entier">
+<title>Enregistrement de la signature sous forme d&#8217;entier</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Depuis le navigateur, afficher la signature du certificat de <emphasis>letsencrypt.org</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Sélectionner la signature et la copier-coller dans un éditeur de texte.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Supprimer les caractère surnuméraires (enlever les <emphasis>:</emphasis> et les sauts de ligne).
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Passer les caractères hexadécimaux en majuscule <footnote><simpara>Si vous utilisez <emphasis>python</emphasis>, il est inutile de passer les caractères hexadécimaux en majuscule.</simpara></footnote>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Ajouter <emphasis>s=</emphasis> devant le nombre, et ajouter une première ligne <emphasis>ibase = 2 * 8</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Enregistrer dans <emphasis role="strong"><emphasis>val.b</emphasis></emphasis>.
+</simpara>
+</listitem>
+</orderedlist>
+<simpara>Voir figures 9 et 10.</simpara>
+<formalpara><title>Fig. 9&#160;: Signature dans le navigateur</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-cle-1-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image signature dans navigateur</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig. 10&#160;: Fichier val.b</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-cle-2-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image signature dans éditeur</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>L&#8217;instruction <emphasis>ibase = 2 * 8</emphasis> ordonne à bc de lire les nombres en hexadécimal.
+<emphasis>ibase = 16</emphasis> fonctionne aussi, à condition qu&#8217;ibase soit égal à 10 (valeur par défaut) au moment d&#8217;exécuter <emphasis>ibase = 16</emphasis>.
+Si ibase est déjà égal à 16 et que l&#8217;on exécute <emphasis>ibase = 16</emphasis>, une erreur se produit car bc lit 16 en hexadécimal (soit 22) et cette valeur est interdite.</simpara>
+<note>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Avec <emphasis>bc</emphasis> il est impératif de passer les nombres hexadécimaux en majuscule.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>bc</emphasis> n&#8217;accepte pas les noms de variable qui contiennent des majuscules.
+</simpara>
+</listitem>
+</orderedlist>
+</note>
+<simpara>Le navigateur affiche l&#8217;exposant de la clé RSA (le nombre noté <emphasis>e</emphasis> tout à l&#8217;heure) sous forme décimale, alors que dans le script bc nous l&#8217;entrons en hexadécimal. Pour convertir un nombre décimal en hexadécimal, exécuter dans un terminal&#160;:</simpara>
+<example>
+<title>Linux</title>
+<screen>\$ echo "obase=16; 65537" | bc
+10001</screen>
+</example>
+<example>
+<title>Windows</title>
+<screen>\$ echo obase=16; 65537 | bc.exe
+10001</screen>
+</example>
+<sidebar>
+<title>Passer du texte en majuscule</title>
+<example>
+<title>Linux</title>
+<simpara>Sous Linux, on peut utiliser la ligne de commande, par exemple (nombreuses autres solutions)&#160;:</simpara>
+<screen>\$ tr '[:lower:]' '[:upper:]' &lt; fichier_entrée &gt; fichier_sortie</screen>
+<simpara>Un éditeur suffisamment avancé comme <emphasis>vim</emphasis> ou <emphasis>emacs</emphasis> le permet aussi.</simpara>
+</example>
+<example>
+<title>Windows</title>
+<simpara>Windows ne dispose pas par défaut d&#8217;outil pour passer du texte en majuscule. Il faut installer <emphasis>GNUWin32</emphasis> ou <emphasis>cygwin</emphasis>.</simpara>
+<simpara>L'éditeur de texte (natif) adéquat pour ce type de transformation est <emphasis role="strong"><emphasis>notepad++</emphasis></emphasis>, disponible à cette URL <xref linkend="7"/>.</simpara>
+<note><simpara><emphasis>vim</emphasis> et <emphasis>emacs</emphasis> sont disponibles sous Windows.</simpara></note>
+</example>
+</sidebar>
+</section>
+<section id="_enregistrement_de_la_clé_publique_sous_forme_d_8217_entier">
+<title>Enregistrement de la clé publique sous forme d&#8217;entier</title>
+<simpara>Depuis le navigateur&#160;:</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Sélectionner le certificat de <emphasis>TrustID Server CA A52</emphasis> et afficher sa clé publique.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Sélectionner la valeur de la clé publique et la copier-coller dans <emphasis role="strong"><emphasis>val.b</emphasis></emphasis>.
+Il faut le faire en deux fois, une fois pour le modulo de 256 octets (variable <emphasis>n</emphasis>) et une fois pour l&#8217;exposant (variable <emphasis>e</emphasis>).
+</simpara>
+</listitem>
+</orderedlist>
+<simpara>Ne pas oublier de passer les caractères hexadécimaux en majuscule.</simpara>
+<formalpara><title>Clé publique dans le navigateur</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-cle-3-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image clé dans navigateur</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>A l&#8217;arrivée, <emphasis role="strong"><emphasis>val.b</emphasis></emphasis> contient trois variables, s, n et e.</simpara>
+<formalpara><title>val.b</title><para>
+<screen>ibase=2*8
+
+s=8049A7CE9627701FC4E520876B97271A8AEF34D13A5ECA776172BD7C9053DBEF9C8504E4C85629135D934D1F9C6FB09375189812B3475D5F0797F5D32BC9B11B12BC29733DCD40E57EB97BC819F21939764A4F2A270036906BAE5FD280D68DCC16428C0FCD3D213025BCFA10A6697529ED1A168E0D2CEFCB24A9C9A64C85F0BF8942B91F2CD1E92989F73EF9F2267BAB5535C3388C10C3C1D55DBC3A50A01A77CEDED612862D83A9B1A68A08B68DC35BE0F2E23E3BD9AFD4C0BA1537CFD694A5AF5D6CF8887861A9DCB89B9DE35AD3F255C251B0ECD54C2CF693DD5732EDF33939334BDB1E64C29636E0502E57914984BDA74C7E05AC948403D2BEBE051452F8
+
+n=9769D7999885023FE9264276E8F4733FA932442690782E78579119A05D762B49F9935A5D5ACE82F3C2D8E54C367A2B1D0DDBA6A7FE91127CED7201B78CA1C5DACC9DFE09FB57E214470FE89E918F942D8032939303F5287868BA7E0F42B4317A0514225333E4A3AD6C8FAFBE636BB2329FD917B9C9E0607C99D631E1E4A0B73FAFB232AC7E8C9CDC02EBE1BC1F149CBC91F7B2FB42F3E1202BCBBF8FF3B37063FAF7752802ABC5D4B0EDEA257F87CD371496833C40021BA09E19477FF3B0CCC52560B83512F151EB17DCFC5BA5D99BEF404CD77771E9FB458B7EF2E369B042661746903ACD463DF1B0096FDCFFEE3361CAFCC72E3CED5E0AD1BF221269804B23
+
+e=10001</screen>
+</para></formalpara>
+</section>
+<section id="_la_fonction_powmod">
+<title>La fonction powmod</title>
+<simpara>Les amateurs de <emphasis>python</emphasis> ont encore un avantage à ce stade. L'équivalent de la fonction <emphasis>powmod</emphasis> y est disponible sous forme d&#8217;un troisième paramètre (facultatif) à la fonction <emphasis>pow</emphasis>.</simpara>
+<simpara>Pour ceux qui utilisent bc comme moi, il faut écrire la fonction.</simpara>
+<simpara>La fonction <emphasis>powmod</emphasis> met en oeuvre l&#8217;algorithme d&#8217;exponentiation rapide, décrit à cette URL <xref linkend="8"/>.
+En fait nous sommes dans un contexte modulaire et d&#8217;après Wikipédia le nom exact de l&#8217;algorithme est <emphasis>exponentiation modulaire</emphasis>. Un article y est consacrée <xref linkend="9"/>.
+Les deux algorithmes font appel au même principe, mais le second exploite le contexte modulaire pour que les nombres manipulés n&#8217;atteignent pas une taille démesurée. C&#8217;est le second algorithme (<emphasis>exponentiation modulaire</emphasis>) dont nous avons besoin pour la suite.</simpara>
+<simpara>Sur Internet, on peut trouver la fonction <emphasis>powmod</emphasis> dans de nombreux scripts <emphasis>bc</emphasis> à télécharger. À noter qu&#8217;elle porte parfois d&#8217;autres noms, <emphasis>mpower</emphasis> par exemple.</simpara>
+<formalpara><title>powmod.b</title><para>
+<screen>define powmod(a, b, c) {
+        auto p, r
+        p = a
+        r = 1
+        while (b &gt; 0) {
+                if (b % 2) r = (r * p) % c
+                p = (p * p) % c
+                b /= 2
+        }
+        return r
+}</screen>
+</para></formalpara>
+</section>
+<section id="_calcul_de_emphasis_m_emphasis">
+<title>Calcul de <emphasis>M</emphasis></title>
+<simpara>Nous voilà prêts pour calculer <emphasis>M</emphasis>.</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Lancer la commande suivante <footnote><simpara>Par défaut, <emphasis>bc</emphasis> ajoute un anti-slash après le 68e caractère et passe à la ligne suivante. On peut modifier ce comportement avec la variable d&#8217;environnement <emphasis>BC_LINE_LENGTH</emphasis>. Quand cette variable est égale à zéro, les nombres ne sont pas coupés.</simpara></footnote>&#160;:
+</simpara>
+</listitem>
+</orderedlist>
+<screen>\$ BC_LINE_LENGTH=0 bc powmod.b val.b</screen>
+<orderedlist numeration="arabic"><?dbfo start="2"?><?dbhtml start="2"?>
+<listitem>
+<simpara>
+Dans le shell <emphasis>bc</emphasis>, exécuter
+<footnoteref linkend="ibase16" /> (pour que les nombres soient affichés en hexadécimal)
+</simpara>
+</listitem>
+</orderedlist>
+<screen>obase=2*8</screen>
+<orderedlist numeration="arabic"><?dbfo start="3"?><?dbhtml start="3"?>
+<listitem>
+<simpara>
+Toujours dans le shell <emphasis>bc</emphasis>, exécuter
+</simpara>
+</listitem>
+</orderedlist>
+<screen>powmod(s, e, n)</screen>
+<simpara>Rappelons que c&#8217;est <emphasis>S</emphasis> (variable <emphasis>s</emphasis> dans <emphasis>val.b</emphasis>) qui doit être élevé à la puissance <emphasis>e</emphasis>, modulo <emphasis>n</emphasis>.
+Lors de la définition d&#8217;obase, ibase vaut 16 (résultat du script <emphasis>val.b</emphasis> chargé au démarrage) donc obase=16 ne fonctionnerait pas.</simpara>
+<formalpara><title>Fig. 11&#160;: Calcul pour vérifier la signature RSA</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-powmod-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image résultat powmod</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<important><simpara>Au démarrage de bc, ibase est égal à 16 du fait du chargement de <emphasis>val.b</emphasis>. Si vous exécutez obase = 16, obase sera égal à&#8230; 22 !
+C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&#8217;utiliser <emphasis>2&#160; * &#160;8</emphasis> comme indiqué. Vous pouvez aussi exécuter <emphasis>obase = 10</emphasis> (ibase étant égal à 16), mais c&#8217;est moins clair, et vous devez être certain qu&#8217;ibase vaut bien 16 au moment d&#8217;exécuter <emphasis>obase = 10</emphasis>, pour passer l&#8217;affichage des nombres en hexadécimal
+(<emphasis>2 * 8</emphasis> fonctionne toujours quelle que soit la valeur d&#8217;ibase, y compris pour les valeurs inférieures ou égales à 7).</simpara></important>
+<simpara>Le résultat (figure 11) avec tous ces <emphasis>F</emphasis> prouve avec une quasi certitude que le calcul s&#8217;est bien passé.
+Les <emphasis>F</emphasis> correspondent au <emphasis>padding</emphasis> standard effectué pour une signature RSA, la valeur qui suit (à partir de <emphasis role="strong"><literal>303130</literal></emphasis>) est le hash de tbsCertificate "emballé".</simpara>
+<simpara>"Emballé", c&#8217;est-à-dire ? La valeur est spécifiée en ASN.1 et codée en DER, et elle contient d&#8217;autres informations que le seul hash de tbsCertificate.</simpara>
+<simpara>C&#8217;est ce que nous allons voir dans le chapitre suivant.</simpara>
+</section>
+<section id="_analyse_de_emphasis_m_emphasis">
+<title>Analyse de <emphasis>M</emphasis></title>
+<simpara>Nous allons procéder en trois étapes&#160;:</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Enregistrement du contenu hexadécimal
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Conversion du contenu hexadécimal en binaire
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Examen du contenu binaire avec la commande <emphasis>openssl asn1parse</emphasis>
+</simpara>
+</listitem>
+</orderedlist>
+<section id="_1_enregistrement_du_contenu_hexadécimal">
+<title>1 Enregistrement du contenu hexadécimal</title>
+<simpara>Faisons un copier-coller de <emphasis>M</emphasis> (en hexadécimal) à partir de l&#8217;octet qui suit l&#8217;octet nul, et enregistrons le résultat dans le fichier <emphasis role="strong"><emphasis>m.hex</emphasis></emphasis>.</simpara>
+<formalpara><title>m.hex</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-m.hex-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image m.hex</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Contenu de m.hex</title><para>
+<screen>3031300D0609608648016503040201050004208364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD</screen>
+</para></formalpara>
+</section>
+<section id="_2_conversion_du_contenu_hexadécimal_en_binaire">
+<title>2 Conversion du contenu hexadécimal en binaire</title>
+<simpara>Maintenant nous allons convertir <emphasis>m.hex</emphasis> en binaire, puisque le contenu actuel est le <emphasis>codage des octets en hexadécimal</emphasis> de la signature, ce n&#8217;est pas la signature elle-même.</simpara>
+<example>
+<title>Linux</title>
+<simpara>Exécuter la commande</simpara>
+<screen>\$ xxd -r -p m.hex &gt; m.der</screen>
+</example>
+<example>
+<title>Windows</title>
+<simpara>Le plus simple est d&#8217;utiliser <emphasis>notepad++</emphasis> et d&#8217;enregistrer le fichier transformé avec le nom <emphasis>m.der</emphasis>.</simpara>
+<formalpara><title>Avant</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-notepadpp-1-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image notepad++ 1</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Après (on a enregistré le contenu binaire sous le nouveau nom <emphasis role="strong">m.der</emphasis>)</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-notepadpp-2-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image notepad++ 2</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+</example>
+<caution><simpara>Ne pas laisser un saut de ligne à la fin du fichier qui s&#8217;ajouterait aux données binaires de la signature.</simpara></caution>
+<informalexample>
+</informalexample>
+<simpara>Le fichier <emphasis>m.der</emphasis> contient les octets que l&#8217;on avait dans la signature, ce que l&#8217;on peut vérifier facilement&#8230;</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+&#8230; sous Linux avec la commande <emphasis>hd</emphasis> (on peut aussi utiliser <emphasis>hexdump</emphasis> ou <emphasis>xxd</emphasis>).
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+&#8230; sous Windows avec <emphasis>notepad++</emphasis>, en reconvertissant en hexadécimal et en vérifiant que l&#8217;on retombe sur ses pieds.
+</simpara>
+</listitem>
+</itemizedlist>
+<formalpara><title>Contenu du fichier binaire m.der</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-m.der-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image m.der</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+</section>
+<section id="_3_examen_du_contenu_der_du_fichier_m_der">
+<title>3 Examen du contenu DER du fichier m.der</title>
+<sidebar>
+<title>openssl</title>
+<simpara>Pour afficher le contenu binaire (qui se trouve être encodé en DER) nous allons utiliser l&#8217;exécutable en ligne de commande fourni avec la librairie openssl. Cet outil s&#8217;appelle <emphasis>openssl</emphasis>.</simpara>
+<simpara>Par la suite nous utiliserons également <emphasis>dder</emphasis> et <emphasis>pkfile</emphasis>, deux utilitaires créés par l&#8217;auteur de cet article pour afficher et extraire plus facilement ce type de données.</simpara>
+<simpara><emphasis>dder</emphasis> est disponible à l&#8217;URL <xref linkend="10"/>.</simpara>
+<simpara><emphasis>pkfile</emphasis> est disponible à l&#8217;URL <xref linkend="11"/>.</simpara>
+<itemizedlist><title>Exécutable openssl</title>
+<listitem>
+<simpara>
+Sous Linux ce programme est disponible par défaut.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Sous Windows il faut trouver un binaire à télécharger.
+Le plus simple est de télécharger la version GNUWin32, disponible à cette URL <xref linkend="12"/>.
+</simpara>
+<simpara>La version proposée au téléchargement (en février 2016) date de 2008. Des binaires plus récents sont disponibles sur Internet.
+Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+À noter que Sous Windows les environnements "de taille importante" (<emphasis>cygwin</emphasis>, <emphasis>perl</emphasis>, &#8230;) sont souvent installés avec leur librairie openssl, qui contient l&#8217;outil en ligne de commande <emphasis>openssl</emphasis>.
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+</itemizedlist>
+</sidebar>
+<simpara>Exécuter la commande</simpara>
+<screen>\$ openssl asn1parse -inform der -in m.der</screen>
+<formalpara><title>Fig. 12</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-m.der-openssl-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image m.der avec openssl</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>Nous verrons dans le chapitre suivant la syntaxe ASN.1 plus en détail.</simpara>
+<simpara>Sur la figure 12 <emphasis>openssl</emphasis> nous donne deux informations&#160;:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+L&#8217;algorithme de hash est SHA-256, ce que l&#8217;on savait déjà d&#8217;après le contenu de <emphasis>signatureAlgorithm</emphasis> (deuxième partie de la structure en trois parties du certificat).
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Nous voyons la valeur du hash (le bloc <emphasis>prim: OCTET STRING</emphasis>) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).
+</simpara>
+</listitem>
+</itemizedlist>
+<simpara>Nous savons désormais que la signature SHA-256 de la valeur tbsCertificate du certificat de <emphasis>letsencrypt.org</emphasis> devrait être&#160;:</simpara>
+<screen>8364DA78F1FD8DCC6812E568268BF2DAF8791BE383109745388879C496A8C3DD</screen>
+<simpara>C&#8217;est ce que nous allons vérifier en calculant maintenant <emphasis>M'</emphasis>.</simpara>
+</section>
+</section>
+<section id="_calcul_de_emphasis_m_emphasis_2">
+<title>Calcul de <emphasis>M'</emphasis></title>
+<simpara>Nous allons calculer M' en deux étapes&#160;:</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Extraction de tbsCertificate du certificat <emphasis>letsencrypt.org</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Calcul du hash SHA-256 de tbsCertificate.
+</simpara>
+</listitem>
+</orderedlist>
+<simpara>Mais avant d&#8217;extraire tbsCertificate, nous devons comprendre comment le certificat est structuré et codé.</simpara>
+<section id="_asn_1_et_der">
+<title>ASN.1 et DER</title>
+<simpara>Au début de ce document, nous avons observé que la section 4.1 de la RFC 5280, qui définit la structure des certificats x509 v3, contient cette définition&#160;:</simpara>
+<screen>Certificate  ::=  SEQUENCE  {
+        tbsCertificate       TBSCertificate,
+        signatureAlgorithm   AlgorithmIdentifier,
+        signatureValue       BIT STRING  }</screen>
+<simpara>Un certificat x509 est défini selon la syntaxe ASN.1.
+L&#8217;encodage peut être BER
+<footnote><simpara>BER signifie <emphasis role="strong">B</emphasis>asic <emphasis role="strong">E</emphasis>ncoding <emphasis role="strong">R</emphasis>ules</simpara></footnote>
+, CER
+<footnote><simpara>CER signifie <emphasis role="strong">C</emphasis>anonical <emphasis role="strong">E</emphasis>ncoding <emphasis role="strong">R</emphasis>ules</simpara></footnote>
+ou DER
+<footnote><simpara>DER signifie <emphasis role="strong">D</emphasis>istinguished <emphasis role="strong">E</emphasis>ncoding <emphasis role="strong">R</emphasis>ules</simpara></footnote>
+.</simpara>
+<simpara>Ces trois standards sont très proches, l&#8217;intérêt de DER étant son unicité&#160;: une structure de données spécifiée en ASN.1 ne peut être encodée en DER que d&#8217;une manière, et une seule. BER et CER permettent certaines variations dans la manière d&#8217;encoder.</simpara>
+<simpara>Pour ne pas alourdir la rédaction, nous parlerons toujours d&#8217;encodage DER ou simplement DER, même lorsque les données manipulées pourraient ne pas être DER
+<footnote><simpara>La RFC 5280 indique que les <emphasis>données signées</emphasis> d&#8217;un certificat (la partie tbsCertificate) doivent être encodées en DER, mais ne donne pas d&#8217;indication pour le reste.</simpara></footnote>
+.</simpara>
+<simpara>ASN.1 structure chaque valeur (<emphasis>data value</emphasis> dans le document X.690) selon la typologie <emphasis role="strong">T</emphasis>&#160;-&#160;<emphasis role="strong">L</emphasis>&#160;-&#160;<emphasis role="strong">V</emphasis> ou <emphasis role="strong">T</emphasis>ag&#160;-&#160;<emphasis role="strong">L</emphasis>ength&#160;-&#160;<emphasis role="strong">V</emphasis>alue.
+La forme "longueur indéfinie" apporte un quatrième élément, "end-of-contents" (marqueur de fin de valeur), que nous ignorerons car DER ne permet pas cette forme.</simpara>
+<variablelist>
+<varlistentry>
+<term>
+[<emphasis role="strong">T</emphasis>]ag
+</term>
+<listitem>
+<simpara>
+Définit toutes les caractéristiques de la valeur, notamment son <emphasis>type</emphasis>, par exemple une date (<emphasis>UTCTime</emphasis>), une séquence (<emphasis>SEQUENCE</emphasis> ou <emphasis>SEQUENCE OF</emphasis>), un entier (<emphasis>INTEGER</emphasis>), et bien d&#8217;autres. Il définit également si l&#8217;encodage de la valeur est <emphasis>primitive</emphasis> ou <emphasis>contructed</emphasis>.
+</simpara>
+<variablelist>
+<varlistentry>
+<term>
+Encodage <emphasis>primitive</emphasis>
+</term>
+<listitem>
+<simpara>
+La donnée ne contient pas de sous-structure
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+Encodage <emphasis>constructed</emphasis>
+</term>
+<listitem>
+<simpara>
+La donnée est elle-même une structure qui suit la typologie <emphasis role="strong">T</emphasis>-<emphasis role="strong">L</emphasis>-<emphasis role="strong">V</emphasis>, et ici, cette structure est elle-même définie en ASN.1
+<footnote><simpara>Certains types de données, notamment les <emphasis>*string</emphasis> (OCTET STRING, UTF8String, etc.), peuvent être <emphasis>primitive</emphasis> ou <emphasis>constructed</emphasis>, ce qui signifie que leur encodage peut suivre une structure hiérarchique "propre à l&#8217;encodage", non explicitée dans la définition de la valeur en ASN.1.</simpara></footnote>.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+Structure hiérarchique
+</term>
+<listitem>
+<simpara>
+La différence <emphasis>primitive</emphasis> - <emphasis>constructed</emphasis> est à la base de la structure hiérarchique d&#8217;une spécification ASN.1, les éléments <emphasis>constructed</emphasis> étant les branches, les éléments <emphasis>primitive</emphasis> étant les feuilles.
+</simpara>
+<simpara>Dans la définition d&#8217;un <emphasis>Certificate</emphasis> ci-dessus, le type <emphasis>SEQUENCE</emphasis> est, par définition du type <emphasis>SEQUENCE</emphasis> en ASN.1, <emphasis>constructed</emphasis>. Cela signifie que la valeur <emphasis>SEQUENCE</emphasis> est elle-même une structure ASN.1, ce qu&#8217;on peut voir dans la liste des trois composants d&#8217;un certificat définie entre accolades.</simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+[<emphasis role="strong">L</emphasis>]ength
+</term>
+<listitem>
+<simpara>
+Donne la longueur de la valeur en octets.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+[<emphasis role="strong">V</emphasis>]alue
+</term>
+<listitem>
+<simpara>
+Est la donnée elle-même. Dans ce document nous employons le terme <emphasis>valeur</emphasis> (dans le document X.690 le terme est <emphasis>data value</emphasis>).
+</simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+<simpara>Affichons le contenu DER avec l&#8217;utilitaire en ligne de commande <emphasis>dder</emphasis> en exécutant la commande suivante&#160;:</simpara>
+<screen>\$ dder -width 8 -recursive "|  " m.der</screen>
+<formalpara><title>Fig. 13</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-dder-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image lecture m.der avec dder</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>La copie d'écran de la figure 12 a été faite sous Windows pour changer un peu.</simpara>
+<simpara>La description de la valeur indique <emphasis>-cons</emphasis> ou <emphasis>-prim</emphasis>, pour <emphasis>constructed</emphasis> ou <emphasis>primitive</emphasis>.
+Chaque fois que le tag indique une valeur <emphasis>constructed</emphasis> (ici, il s&#8217;agit à deux reprises du type <emphasis>SEQUENCE</emphasis>, qui est obligatoirement <emphasis>constructed</emphasis>), on descend d&#8217;un niveau dans la structure hiérarchique, que l&#8217;on a fait ressortir ici avec l&#8217;option <emphasis>-recursive "|  "</emphasis>.</simpara>
+</section>
+<section id="_extraction_de_tbscertificate_du_certificat_emphasis_letsencrypt_org_emphasis">
+<title>Extraction de tbsCertificate du certificat <emphasis>letsencrypt.org</emphasis></title>
+</section>
+<section id="_étape_1_de_l_8217_extraction">
+<title>Étape 1 de l&#8217;extraction</title>
+<simpara>Commençons par enregistrer le certificat depuis le navigateur, dans le fichier <emphasis>letsencryptorg.der</emphasis>.</simpara>
+<example>
+<title>Firefox</title>
+<simpara>Afficher le certificat comme vu précédemment, puis afficher l&#8217;onglet <emphasis>Détails</emphasis> et cliquer sur le bouton <emphasis>Exporter</emphasis>.
+Ensuite sélectionner <emphasis>Certificat X.509 (DER)</emphasis></simpara>
+<formalpara><title>Fig. 14</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-certsave-ff-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Enregistrement certificat depuis Firefox</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+</example>
+<example>
+<title>Internet Explorer et Chrome</title>
+<simpara>Afficher le certificat, puis cliquer sur le bouton <emphasis>Copier dans un fichier&#8230;</emphasis>. Ensuite sélectionner <emphasis>X.509 binaire encodé DER</emphasis></simpara>
+<formalpara><title>Fig. 15</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-certsave-ie-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Enregistrement certificat depuis IE et Chrome</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+</example>
+<note>
+<title>PEM versus DER</title>
+<simpara>Avec les certificats x509, l&#8217;encodage PEM est une surcouche de DER qui consiste à&#160;:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Encoder le contenu binaire (après chiffrement éventuel) en BASE64
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Ajouter au début et à la fin un texte standardisé qui définit et délimite la nature du contenu, ainsi que les informations de chiffrement s&#8217;il y a lieu
+</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+La ligne ajoutée au début commence par <emphasis role="strong"><literal>-----BEGIN</literal></emphasis>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+La ligne ajoutée à la fin commence par <emphasis role="strong"><literal>-----END</literal></emphasis>
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+</itemizedlist>
+<simpara>Si vous avez enregistré le certificat avec un encodage PEM, vous pouvez le convertir en DER avec <emphasis>openssl</emphasis>. Exemple pour <emphasis>letsencrypt.cer</emphasis> (PEM) que l&#8217;on convertit en <emphasis>letsencrypt.der</emphasis> (DER)&#160; - comme on peut voir, l&#8217;encodage par défaut avec <emphasis>openssl</emphasis> est PEM.</simpara>
+<screen>\$ openssl x509 -in letsencryptorg.cer -outform der -out letsencryptorg.der</screen>
+<formalpara><title>Fig. 16</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-pem-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Exemple encodage PEM</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig. 17</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-convpemder-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Exemple conversion PEM vers DER</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>Vous pouvez faire cette conversion "à la main" en enlevant la première et la dernière ligne et en faisant une conversion BASE64&#160;&#8594;&#160;binaire avec des outils comme <emphasis>base64</emphasis> (Linux) ou <emphasis>notepad++</emphasis> (Windows).</simpara>
+</note>
+</section>
+<section id="_étape_2_de_l_8217_extraction">
+<title>Étape 2 de l&#8217;extraction</title>
+<simpara>Nous disposons maintenant d&#8217;un certificat enregistré en binaire (encodage DER) dans le fichier <emphasis>letsencryptorg.der</emphasis>, dont nous allons à présent extraire la partie tbsCertificate.</simpara>
+<note>
+<simpara>Les outils <emphasis>dder</emphasis> et <emphasis>pkfile</emphasis> (<emphasis>pkfile</emphasis> est présenté plus loin) peuvent lire indifféremment des fichiers codés en PEM ou en DER. Si le fichier est PEM, il est décodé à la volée.</simpara>
+</note>
+<simpara>Il y a deux solutions pour ce faire</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+À la main
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+À l&#8217;aide de l&#8217;utilitaire <emphasis>pkfile</emphasis>. <emphasis>pkfile</emphasis> est disponible à cette URL <xref linkend="11"/>.
+</simpara>
+</listitem>
+</orderedlist>
+<formalpara><title>Extraction de tbsCertificate&#160;: alernative 1 (à la main)</title><para>Un éditeur de fichier binaire ferait l&#8217;affaire, mais la manipulation est plus claire si l&#8217;on affiche le contenu hexadécimal avec <emphasis>dder</emphasis>.</para></formalpara>
+<simpara>Exécuter la commande</simpara>
+<screen>\$ dder -recursive "|  " -hex letsencryptorg.der &gt; d</screen>
+<note>
+<title>Encodage des fichiers affichés par dder</title>
+<simpara><emphasis>dder</emphasis> lit indifféremment des fichiers PEM et DER. Si le fichier est PEM il décode (et décrypte si nécessaire) les données en mémoire avant d&#8217;afficher le contenu DER.</simpara>
+<simpara>Donc la commande aurait pu être (avec le fichier <emphasis>letsencryptorg.cer</emphasis> encodé en PEM)&#160;:</simpara>
+<screen>\$ dder -recursive "|  " -hex letsencryptorg.cer &gt; d</screen>
+</note>
+<simpara>Ouvrir le fichier <emphasis>d</emphasis> dans un éditeur de texte.
+Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique (option <emphasis>-recursive "|  "</emphasis>), la structure en trois parties des certificats x509 ressort bien.</simpara>
+<simpara>Supprimer les deux premières lignes et un certain nombre de lignes à la fin pour que seul demeure le contenu de tbsCertificate. Ci-dessous, le texte à conserver est le texte sélectionné (les lignes au milieu ont été supprimées pour condenser l&#8217;image).</simpara>
+<formalpara><title>Fig. 18</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-extracttbs-alt1-1.png"/>
+  </imageobject>
+  <textobject><phrase>Image extraction tbsCertificate alternative 1 - 1</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig. 19</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-extracttbs-alt1-2-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image extraction tbsCertificate alternative 1 - 2</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>Ensuite&#160;:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Supprimer les "|" en début de ligne
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Supprimer l&#8217;offset (numéro sur six caractères)
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Supprimer le texte après les codes hexadécimaux (une fois supprimé les "|" et l&#8217;offset en début de ligne, ce sont tous les caractères au-delà de la 55e position qu&#8217;il faut supprimer).
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Supprimer tous les espaces
+</simpara>
+</listitem>
+</itemizedlist>
+<formalpara><title>Fig. 20</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-extracttbs-alt1-3-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image extraction tbsCertificate alternative 1 - 3</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>On retrouve (figure 20) une sous-partie du fichier <emphasis>letsencryptorg.der</emphasis>, codée en hexadécimal, qui commence par <emphasis role="strong"><literal>308205ea</literal></emphasis> et se termine par <emphasis role="strong"><literal>2e6f7267</literal></emphasis>.</simpara>
+<note>
+<simpara>Cette manipulation peut être faite avec un programme d'édition de fichier binaire, en ne gardant que les données à partir de l&#8217;offset 4, d&#8217;une longueur de 1518 octets.</simpara>
+</note>
+<simpara>Il faut ensuite convertir le contenu "codé hexadécimal" en binaire comme cela a été vu précédemment (commande <emphasis>xxd -r -p</emphasis> sous Linux, avec <emphasis>notepad++</emphasis> sous Windows).</simpara>
+<simpara>Au final on obtient le fichier <emphasis>tbs.der</emphasis> comme montré sur la figure 21.</simpara>
+<formalpara><title>Fig. 21</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-extracttbs-alt1-4-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image extraction tbsCertificate alternative 1 - 4</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Extraction de tbsCertificate&#160;: alernative 2 (à l&#8217;aide de <emphasis>pkfile</emphasis>)</title><para>Exécuter la commande</para></formalpara>
+<screen>\$ pkfile letsencryptorg.der -l 2</screen>
+<formalpara><title>Fig. 22</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-extracttbs-alt2-1-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Image extraction tbsCertificate alternative 2 - 1</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<simpara>Le résultat visible sur la figure 22 nous montre que le tbsCertificate correspond à la valeur <emphasis>SEQUENCE</emphasis> de 1518 octets (4 octets d&#8217;en-tête, 1514 octets de données). <emphasis>pkfile</emphasis> donne à cette valeur les coordonnées 1.1.</simpara>
+<simpara>Nous enregistrons cette valeur en binaire dans le fichier <emphasis>tbs2.der</emphasis> en exécutant la commande</simpara>
+<screen>\$ pkfile letsencryptorg.der -n 1.1 -x -o tbs2.der</screen>
+<formalpara><title>Fig. 23</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-extracttbs-alt2-2.png"/>
+  </imageobject>
+  <textobject><phrase>Image extraction tbsCertificate alternative 2 - 2</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<note>
+<title>Encodage des fichiers analysés par pkfile</title>
+<simpara><emphasis>pkfile</emphasis> lit indifféremment des fichiers PEM et DER. Si le fichier est PEM il décode (et décrypte si nécessaire) les données en mémoire avant de traiter le contenu DER.</simpara>
+</note>
+</section>
+<section id="_calcul_du_hash_de_tbscertificate">
+<title>Calcul du hash de tbsCertificate</title>
+<example>
+<title>Linux</title>
+<simpara>Le calcul des différents algorithmes de hash est disponible en ligne de commande. Pour SHA-256 le programme est <emphasis>sha256sum</emphasis>.</simpara>
+<simpara>Exécuter</simpara>
+<screen>\$ sha256sum tbs.der</screen>
+<formalpara><title>Fig. 20</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-calchash-1-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Calcul hash Linux</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+</example>
+<example>
+<title>Windows</title>
+<simpara>Lels outils de calcul de hash ne sont pas disponibles par défaut. Voici quelques solutions (d&#8217;autres existent)&#160;:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Utiliser <emphasis>pkfile</emphasis>, qui permet de calculer différents hash
+<footnote><simpara><emphasis>pkfile</emphasis> peut le faire aussi sous Linux, mais dans ce système il est plus logique d&#8217;utiliser les programmes déjà installés. La fonctionnalité de calcul de hash a été ajoutée à <emphasis>pkfile</emphasis> pour simplifier les manipulations sous Windows.</simpara></footnote>
+.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Installer les outils <emphasis>GNUWin32</emphasis>, disponibles à cette URL&#160;<xref linkend="12"/>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+7-ZIP ajoute des menus contextuels dans l&#8217;explorateur pour calculer différents hashs, dont SHA-256. 7-ZIP est disponible à cette URL&#160;<xref linkend="13"/>.
+</simpara>
+</listitem>
+</itemizedlist>
+<simpara>Exemple avec <emphasis>pkfile</emphasis>, exécuter</simpara>
+<screen>\$ pkfile --sha256 tbs.der</screen>
+<formalpara><title>Fig 21</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-calchash-2.png"/>
+  </imageobject>
+  <textobject><phrase>Calcul hash Windows, 2</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+<formalpara><title>Fig 22</title><para><inlinemediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-calchash-3.png"/>
+  </imageobject>
+  <textobject><phrase>Calcul hash Windows, 3</phrase></textobject>
+</inlinemediaobject></para></formalpara>
+</example>
+<simpara>Les captures d'écran montrent également le calcul sur le fichier <emphasis>tbs2.der</emphasis> (créé avec <emphasis>pkfile</emphasis>), qui est ben identique à <emphasis>tbs.der</emphasis>, ce qui confirme au passage l'équivalence des deux termes de l&#8217;alternative pour extraire tbsCertificate.</simpara>
+<simpara><emphasis role="strong">Le hash trouvé (<emphasis>M'</emphasis>) concorde avec la signature (<emphasis>M</emphasis>), ce qui valide la signature du certificat <emphasis>letsencrypt.org</emphasis></emphasis></simpara>
+</section>
+</section>
+</section>
+<section id="_conclusion">
+<title>Conclusion</title>
+<simpara>Nous arrivons au terme des manipulations à effectuer pour vérifier la signature RSA d&#8217;un certificat x509. Les calculs étaient élémentaires, mais cela nous a permis de voir&#160;:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Les différents formats et encodages et les outils pour passer de l&#8217;un à l&#8217;autre
+</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+PEM versus DER
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+BASE64 versus binaire
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Hexadécimal versus binaire
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+ASN.1
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+La structure de certificat x509
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+<listitem>
+<simpara>
+Les solutions pour calculer sur des entiers de grande taille
+</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+<emphasis>python</emphasis> (évoqué ici mais non détaillé) et <emphasis>bc</emphasis>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Les transformations éventuelles et précautions à prendre pour calculer en saisie et affichage hexadécimal
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+La création de la fonction <emphasis>powmod</emphasis> dans <emphasis>bc</emphasis>
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+<listitem>
+<simpara>
+Outils divers
+</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Calcul du hash d&#8217;un fichier
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Extraction d&#8217;une valeur d&#8217;un fichier encodé en DER
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+</itemizedlist>
+<simpara>La <emphasis>signature</emphasis> a été vérifiée mais le certificat lui-même n&#8217;a pas été validé en totalité. Il y a deux raisons à cela.</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Une fois un certificat vérifié, il faut vérifier son parent dans la hiérarchie (le certificat qui l&#8217;a signé), et ainsi de suite, jusqu'à vérifier un certificat connu dans la base des certificats du navigateur (les certificats <emphasis>racine</emphasis>).
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Le navigateur vérifie si les certificats rencontrés ont été révoqués à l&#8217;aide des Listes de Révocation des Certificats ou <emphasis>CRL</emphasis> (<emphasis><emphasis role="strong">C</emphasis>ertificate <emphasis role="strong">R</emphasis>evocation <emphasis role="strong">L</emphasis>ist</emphasis>).
+</simpara>
+</listitem>
+</orderedlist>
+</section>
+</section>
+<bibliography id="_bibliography">
+<title>Bibliography</title>
+<itemizedlist>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="1" xreflabel="[1]"/>[1]</emphasis> Présentation de l&#8217;ASN.1&#160;: <ulink url="http://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx">http://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="2" xreflabel="[2]"/>[2]</emphasis> Document X.690 (format PDF)&#160;: <ulink url="https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf">https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="3" xreflabel="[3]"/>[3]</emphasis> Article Wikipédia consacré au X.690&#160;: <ulink url="https://en.wikipedia.org/wiki/X.690">https://en.wikipedia.org/wiki/X.690</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="4" xreflabel="[4]"/>[4]</emphasis> Article Wikipédia consacré au RSA&#160;: <ulink url="https://fr.wikipedia.org/wiki/Chiffrement_RSA">https://fr.wikipedia.org/wiki/Chiffrement_RSA</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="5" xreflabel="[5]"/>[5]</emphasis> Page d&#8217;accueil de <emphasis>bc</emphasis>&#160;: <ulink url="https://www.gnu.org/software/bc/">https://www.gnu.org/software/bc/</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="6" xreflabel="[6]"/>[6]</emphasis> <emphasis>bc</emphasis> pour Windows&#160;: <ulink url="http://gnuwin32.sourceforge.net/packages/bc.htm">http://gnuwin32.sourceforge.net/packages/bc.htm</ulink>
+</simpara>
+<simpara><emphasis>bc</emphasis> a besoin du fichier <emphasis>readline5.dll</emphasis> pour s&#8217;exécuter. Vous pouvez le trouver à cette URL&#160;: <ulink url="http://gnuwin32.sourceforge.net/packages/readline.htm">http://gnuwin32.sourceforge.net/packages/readline.htm</ulink></simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="7" xreflabel="[7]"/>[7]</emphasis> Le site de notepad++ &#160;: <ulink url="https://notepad-plus-plus.org/fr">https://notepad-plus-plus.org/fr</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="8" xreflabel="[8]"/>[8]</emphasis> Article Wikipédia sur l&#8217;algorithme d&#8217;exponentiation rapide&#160;: <ulink url="https://fr.wikipedia.org/wiki/Exponentiation_rapide">https://fr.wikipedia.org/wiki/Exponentiation_rapide</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="9" xreflabel="[9]"/>[9]</emphasis> Article Wikipédia sur l&#8217;exponentiation modulaire&#160;: <ulink url="https://fr.wikipedia.org/wiki/Exponentiation_modulaire">https://fr.wikipedia.org/wiki/Exponentiation_modulaire</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="10" xreflabel="[10]"/>[10]</emphasis> Obtenir <emphasis>dder</emphasis>&#160;: <ulink url="http://dder.sourceforge.net">http://dder.sourceforge.net</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="11" xreflabel="[11]"/>[11]</emphasis> Obtenir <emphasis>pkfile</emphasis>&#160;: <ulink url="http://pkfile.sourceforge.net">http://pkfile.sourceforge.net</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="12" xreflabel="[12]"/>[12]</emphasis> GNUWin32&#160;: <ulink url="http://gnuwin32.sourceforge.net/packages/openssl.htm">http://gnuwin32.sourceforge.net/packages/openssl.htm</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="13" xreflabel="[13]"/>[13]</emphasis> Télécharger 7-ZIP&#160;: <ulink url="http://www.7-zip.org/download.html">http://www.7-zip.org/download.html</ulink>
+</simpara>
+</listitem>
+</itemizedlist>
+</bibliography>
+</article>
