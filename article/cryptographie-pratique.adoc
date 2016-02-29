@@ -1,5 +1,11 @@
+// cryptographie-pratique.adoc
+// Sébastien Millet, February 2016
+
 = Cryptographie pratique
-:asciimath:
+:author: Sébastien Millet
+:email: <milletseb@laposte.net>
+:revnumber: 0.5
+:revdate: February 29th, 2016
 :toc:
 :toclevels: 3
 :numbered:
@@ -38,28 +44,28 @@ Les exemples de ce document sont réalisés avec le certificat https du site htt
 
 .Exemple avec Firefox 44
 
-. Cliquer sur l'icône de cadenas à gauche de la barre d'adresse et cliquer sur la flèche droite (figure 1)
-. Cliquer sur _Plus d'informations_ (figure 2)
-. Cliquer sur _Afficher le certificat_ (figure 3)
-. Afficher l'onglet _Détails_ et parcourir les différents champs du certificat (figures 4, 5, 6)
+. Cliquer sur l'icône de cadenas à gauche de la barre d'adresse et cliquer sur la flèche droite (Figure 1)
+. Cliquer sur _Plus d'informations_ (Figure 2)
+. Cliquer sur _Afficher le certificat_ (Figure 3)
+. Afficher l'onglet _Détails_ et parcourir les différents champs du certificat (Figure 4, 5 et 6)
 
-.Fig. 1
-image:img-firefox-1-redim.png["Image Firefox 1"]
+[caption="Fig. 1", title=" "]
+image::img-firefox-1-redim.png["Image Firefox 1"]
 
-.Fig. 2
-image:img-firefox-2-redim.png["Image Firefox 2"]
+[caption="Fig. 2", title=" "]
+image::img-firefox-2-redim.png["Image Firefox 2"]
 
-.Fig. 3
-image:img-firefox-3-redim.png["Image Firefox 3"]
+[caption="Fig. 3", title=" "]
+image::img-firefox-3-redim.png["Image Firefox 3"]
 
-.Fig. 4
-image:img-firefox-4-redim.png["Image Firefox 4"]
+[caption="Fig. 4", title=" "]
+image::img-firefox-4-redim.png["Image Firefox 4"]
 
-.Fig. 5
-image:img-firefox-5-redim.png["Image Firefox 5"]
+[caption="Fig. 5", title=" "]
+image::img-firefox-5-redim.png["Image Firefox 5"]
 
-.Fig. 6
-image:img-firefox-6-redim.png["Image Firefox 6"]
+[caption="Fig. 6", title=" "]
+image::img-firefox-6-redim.png["Image Firefox 6"]
 
 Nous nous intéresserons à la partie supérieure (_Hiérarchie des certificats_) plus tard.
 
@@ -143,11 +149,11 @@ Dans notre exemple, on voit que le certificat _TrustID Server CA A52_ est lui-m�
 [NOTE]
 Dans la pratique la situation se complique souvent avec des certificats croisés. Quoi qu'il en soit, la structure de base des liens qui relient les certificats est hiérarchique.
 
-.Fig. 7{nbsp}: Sujet du certificat
-image:img-crt-1-redim.png["Image certificat : sujet"]
+[caption="Fig. 7 : Sujet du certificat", title=" "]
+image::img-crt-1-redim.png["Image certificat : sujet"]
 
-.Fig. 8{nbsp}: Émetteur du certificat
-image:img-crt-2-redim.png["Image certificat : émetteur"]
+[caption="Fig. 8 : Émetteur du certificat", title=" "]
+image::img-crt-2-redim.png["Image certificat : émetteur"]
 
 Pour signer, l'émetteur utilise sa clé privée. La vérification de la signature est faite avec sa clé publique.
 Ainsi pour vérifier l'authenticité du certificat https de _letsencrypt.org_, nous aurons besoin de la clé publique de son émetteur, _TrustID Server CA A52_.
@@ -176,16 +182,17 @@ Dans notre exemple le tbsCertificate est celui de _letsencrypt.org_, tandis que 
 
 ==== Calcul de la signature
 
-. L'émetteur calcule le hash (noté _M_) de la valeur _tbsCertificate_ du sujet, soit asciimath:[M=hash("tbsCertificate")]
-. Il calcule la signature (notée _S_) avec la formule asciimath:[S \equiv M^d ("mod " n)]
+. L'émetteur calcule le hash (noté _M_) de la valeur _tbsCertificate_ du sujet, soit _M{nbsp}={nbsp}hash("tbsCertificate")_
+. Il calcule la signature
 footnote:[On simplifie ici pour se concentrer sur les étapes importantes. En fait, le hash _M_ calculé n'est pas signé tel quel, il subit auparavant quelques transformations comme nous le verrons plus loin.]
 footnote:[Ce calcul est le même que pour déchiffrer un message destiné au propriétaire de la clé publique (qui est ici l'émetteur du certificat). Signer en RSA revient à chiffrer en inversant le rôle de l'exposant public et privé.]
+(notée _S_) avec la formule _S{nbsp}={nbsp}M^d^ mod n_
 
 ==== Vérification de la signature
 
-. Le vérificateur calcule asciimath:[M \equiv S^e ("mod " n)]
-. Il calcule asciimath:[M'=hash("tbsCertificate")]
-. Si on a l'égalité asciimath:[M=M'], la signature est vérifiée
+. Le vérificateur calcule _M{nbsp}={nbsp}S^e^{nbsp}mod{nbsp}n_
+. Il calcule _M'{nbsp}={nbsp}hash("tbsCertificate")_
+. Si on a l'égalité _M{nbsp}={nbsp}M'_, la signature est vérifiée
 
 === Vérification du certificat de letsencrypto.org
 
@@ -194,7 +201,7 @@ footnote:[Ce calcul est le même que pour déchiffrer un message destiné au pro
 Nous avons besoin d'une "calculatrice" qui calcule sur des nombres entiers arbitrairement grands, sans perte de précision. Dans la suite de ce document, c'est _bc_ qui sera utilisé{nbsp}<<5>>.
 
 * Linux{nbsp}: _bc_ est disponible par défaut sur la plupart des distributions.
-* Windows{nbsp}: les binaires sont accessibles à l'URL <<6>>.
+* Windows{nbsp}: les binaires sont accessibles à l'URL{nbsp}<<6>>.
 
 [NOTE]
 .Le choix de bc
@@ -221,13 +228,13 @@ footnote:[Lorsque _bc_ est lancé avec l'option *_-l_*, des fonctions mathémati
 2+^|Saisie d'un entier en hexadécimal
 |Exécuter au préalable
 
-*`ibase = 2 * 8`* footnoteref:[ibase16, _2 * 8_ produit toujours 16 (décimal). Si _ibase = 16_ est exécuté alors qu'ibase vaut déjà 16, le résultat sera lu en hexadécimal et vaudra 22.]
+`ibase = 2 * 8` footnoteref:[ibase16, _2 * 8_ produit toujours 16 (décimal). Si _16_ est lu alors qu'ibase vaut déjà 16, le résultat sera lu en hexadécimal et vaudra 22.]
 
 Exemple{nbsp}:
 
-*`ibase = 2 * 8`*
+`ibase = 2 * 8`
 
-*`var = ABEF0E0`*
+`var = ABEF0E0`
 
 _(Attention les caractères hexadécimaux doivent être en majuscule.)_
 
@@ -235,20 +242,20 @@ _(Attention les caractères hexadécimaux doivent être en majuscule.)_
 
 Exemple{nbsp}:
 
-*`>>> var = 0xabef0e0`*
+`>>> var = 0xabef0e0`
 footnote:[_python_ peut lire les nombres hexadécimaux indifféremment en majuscule et minuscule. _bc_ exige des majuscules.]
 
 2+^|Affichage d'entier en hexadécimal
 |Exécuter au préalable
 
-*`obase = 2 * 8`*
+`obase = 2 * 8`
 footnoteref:[ibase16]
 
 Exemple{nbsp}:
 
-*`obase = 2 * 8`*
+`obase = 2 * 8`
 
-*`2 ^ (2 ^ 4) + 1`*
+`2 ^ (2 ^ 4) + 1`
 footnote:[Sous Windows, _bc_ a des difficultés à lire le caractère _circonflexe_ au clavier (en-dessous de la touche **9**). Pour contourner ce problème, il est possible d'utiliser (sur un clavier français) l'accent circonflexe à droite de la touche **P**, en appuyant dessus à deux reprises. Cela affiche deux _circonflexes_ et vous devez alors en supprimer un.]
 
 `10001`
@@ -257,7 +264,7 @@ footnote:[Sous Windows, _bc_ a des difficultés à lire le caractère _circonfle
 
 Exemple{nbsp}:
 
-*`>>> '%x' % (2 ** (2 ** 4) + 1)`*
+`+++>>> '%x' % (2 ** (2 ** 4) + 1)+++`
 
 `'10001'`
 |=====================================
@@ -275,11 +282,11 @@ Exemple{nbsp}:
 
 Voir figures 9 et 10.
 
-.Fig. 9{nbsp}: Signature dans le navigateur
-image:img-cle-1-redim.png["Image signature dans navigateur"]
+[caption="Fig. 9 : Signature dans le navigateur", title=" "]
+image::img-cle-1-redim.png["Image signature dans navigateur"]
 
-.Fig. 10{nbsp}: Fichier val.b
-image:img-cle-2-redim.png["Image signature dans éditeur"]
+[caption="Fig. 10 : Fichier val.b", title=" "]
+image::img-cle-2-redim.png["Image signature dans éditeur"]
 
 L'instruction _ibase = 2 * 8_ ordonne à bc de lire les nombres en hexadécimal.
 _ibase = 16_ fonctionne aussi, à condition qu'ibase soit égal à 10 (valeur par défaut) au moment d'exécuter _ibase = 16_.
@@ -298,7 +305,7 @@ Le navigateur affiche l'exposant de la clé RSA (le nombre noté _e_ tout à l'h
 [caption=""]
 ====
 ----
-\$ echo "obase=16; 65537" | bc
+$ echo "obase=16; 65537" | bc
 10001
 ----
 ====
@@ -307,7 +314,7 @@ Le navigateur affiche l'exposant de la clé RSA (le nombre noté _e_ tout à l'h
 [caption=""]
 ====
 ----
-\$ echo obase=16; 65537 | bc.exe
+$ echo obase=16; 65537 | bc.exe
 10001
 ----
 ====
@@ -320,7 +327,7 @@ Le navigateur affiche l'exposant de la clé RSA (le nombre noté _e_ tout à l'h
 ====
 Sous Linux, on peut utiliser la ligne de commande, par exemple (nombreuses autres solutions){nbsp}:
 ----
-\$ tr '[:lower:]' '[:upper:]' < fichier_entrée > fichier_sortie
+$ tr '[:lower:]' '[:upper:]' < fichier_entrée > fichier_sortie
 ----
 
 Un éditeur suffisamment avancé comme _vim_ ou _emacs_ le permet aussi.
@@ -331,7 +338,7 @@ Un éditeur suffisamment avancé comme _vim_ ou _emacs_ le permet aussi.
 ====
 Windows ne dispose pas par défaut d'outil pour passer du texte en majuscule. Il faut installer _GNUWin32_ ou _cygwin_.
 
-L'éditeur de texte (natif) adéquat pour ce type de transformation est *_notepad++_*, disponible à cette URL <<7>>.
+L'éditeur de texte (natif) adéquat pour ce type de transformation est *_notepad++_*, disponible à cette URL{nbsp}<<7>>.
 
 [NOTE]
 _vim_ et _emacs_ sont disponibles sous Windows.
@@ -348,8 +355,8 @@ Il faut le faire en deux fois, une fois pour le modulo de 256 octets (variable _
 
 Ne pas oublier de passer les caractères hexadécimaux en majuscule.
 
-.Clé publique dans le navigateur
-image:img-cle-3-redim.png["Image clé dans navigateur"]
+[caption="Fig. 11 : Clé publique dans le navigateur", title=" "]
+image::img-cle-3-redim.png["Image clé dans navigateur"]
 
 A l'arrivée, *_val.b_* contient trois variables, s, n et e.
 
@@ -371,8 +378,8 @@ Les amateurs de _python_ ont encore un avantage à ce stade. L'équivalent de la
 
 Pour ceux qui utilisent bc comme moi, il faut écrire la fonction.
 
-La fonction _powmod_ met en oeuvre l'algorithme d'exponentiation rapide, décrit à cette URL <<8>>.
-En fait nous sommes dans un contexte modulaire et d'après Wikipédia le nom exact de l'algorithme est _exponentiation modulaire_. Un article y est consacrée <<9>>.
+La fonction _powmod_ met en oeuvre l'algorithme d'exponentiation rapide, décrit à cette URL{nbsp}<<8>>.
+En fait nous sommes dans un contexte modulaire et d'après Wikipédia le nom exact de l'algorithme est _exponentiation modulaire_. Un article y est consacrée{nbsp}<<9>>.
 Les deux algorithmes font appel au même principe, mais le second exploite le contexte modulaire pour que les nombres manipulés n'atteignent pas une taille démesurée. C'est le second algorithme (_exponentiation modulaire_) dont nous avons besoin pour la suite.
 
 Sur Internet, on peut trouver la fonction _powmod_ dans de nombreux scripts _bc_ à télécharger. À noter qu'elle porte parfois d'autres noms, _mpower_ par exemple.
@@ -388,7 +395,7 @@ Nous voilà prêts pour calculer _M_.
 
 . Lancer la commande suivante footnote:[Par défaut, _bc_ ajoute un anti-slash après le 68e caractère et passe à la ligne suivante. On peut modifier ce comportement avec la variable d'environnement _BC_LINE_LENGTH_. Quand cette variable est égale à zéro, les nombres ne sont pas coupés.]{nbsp}:
 ----
-\$ BC_LINE_LENGTH=0 bc powmod.b val.b
+$ BC_LINE_LENGTH=0 bc powmod.b val.b
 ----
 [start=2]
 . Dans le shell _bc_, exécuter
@@ -405,15 +412,15 @@ powmod(s, e, n)
 Rappelons que c'est _S_ (variable _s_ dans _val.b_) qui doit être élevé à la puissance _e_, modulo _n_.
 Lors de la définition d'obase, ibase vaut 16 (résultat du script _val.b_ chargé au démarrage) donc obase=16 ne fonctionnerait pas.
 
-.Fig. 11{nbsp}: Calcul pour vérifier la signature RSA
-image:img-powmod-redim.png["Image résultat powmod"]
+[caption="Fig. 12 : Calcul pour vérifier la signature RSA", title=" "]
+image::img-powmod-redim.png["Image résultat powmod"]
 
 [IMPORTANT]
 Au démarrage de bc, ibase est égal à 16 du fait du chargement de _val.b_. Si vous exécutez obase = 16, obase sera égal à... 22 !
-C'est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d'utiliser _2{nbsp} * {nbsp}8_ comme indiqué. Vous pouvez aussi exécuter _obase = 10_ (ibase étant égal à 16), mais c'est moins clair, et vous devez être certain qu'ibase vaut bien 16 au moment d'exécuter _obase = 10_, pour passer l'affichage des nombres en hexadécimal
-(_2 * 8_ fonctionne toujours quelle que soit la valeur d'ibase, y compris pour les valeurs inférieures ou égales à 7).
+C'est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d'utiliser _2{nbsp}*{nbsp}8_ comme indiqué. Vous pouvez aussi exécuter _obase = 10_ (ibase étant égal à 16), mais c'est moins clair, et vous devez être certain qu'ibase vaut bien 16 au moment d'exécuter _obase = 10_, pour passer l'affichage des nombres en hexadécimal
+(_2{nbsp}*{nbsp}8_ fonctionne toujours quelle que soit la valeur d'ibase, y compris pour les valeurs inférieures ou égales à 7).
 
-Le résultat (figure 11) avec tous ces _F_ prouve avec une quasi certitude que le calcul s'est bien passé.
+Le résultat (figure 12) avec tous ces _F_ prouve avec une quasi certitude que le calcul s'est bien passé.
 Les _F_ correspondent au 'padding' standard effectué pour une signature RSA, la valeur qui suit (à partir de *`303130`*) est le hash de tbsCertificate "emballé".
 
 "Emballé", c'est-à-dire ? La valeur est spécifiée en ASN.1 et codée en DER, et elle contient d'autres informations que le seul hash de tbsCertificate.
@@ -432,8 +439,8 @@ Nous allons procéder en trois étapes{nbsp}:
 
 Faisons un copier-coller de _M_ (en hexadécimal) à partir de l'octet qui suit l'octet nul, et enregistrons le résultat dans le fichier *_m.hex_*.
 
-.m.hex
-image:img-m.hex-redim.png["Image m.hex"]
+[caption="Fig. 13 : m.hex", title=" "]
+image::img-m.hex-redim.png["Image m.hex"]
 
 .Contenu de m.hex
 ----
@@ -449,7 +456,7 @@ Maintenant nous allons convertir _m.hex_ en binaire, puisque le contenu actuel e
 ====
 Exécuter la commande
 ----
-\$ xxd -r -p m.hex > m.der
+$ xxd -r -p m.hex > m.der
 ----
 ====
 
@@ -458,11 +465,11 @@ Exécuter la commande
 ====
 Le plus simple est d'utiliser _notepad++_ et d'enregistrer le fichier transformé avec le nom _m.der_.
 
-.Avant
-image:img-notepadpp-1-redim.png["Image notepad++ 1"]
+[caption="Fig. 14 : Avant la conversion hexadécimal -> binaire", title=" "]
+image::img-notepadpp-1-redim.png["Image notepad++ 1"]
 
-.Après (on a enregistré le contenu binaire sous le nouveau nom *m.der*)
-image:img-notepadpp-2-redim.png["Image notepad++ 2"]
+[caption="Fig. 15 : Après la conversion hexadécimal -> binaire", title=" "]
+image::img-notepadpp-2-redim.png["Image notepad++ 2"]
 
 [CAUTION]
 [caption="Attention"]
@@ -476,8 +483,8 @@ Le fichier _m.der_ contient les octets que l'on avait dans la signature, ce que 
 * ... sous Linux avec la commande _hd_ (on peut aussi utiliser _hexdump_ ou _xxd_).
 * ... sous Windows avec _notepad++_, en reconvertissant en hexadécimal et en vérifiant que l'on retombe sur ses pieds.
 
-.Contenu du fichier binaire m.der
-image:img-m.der-redim.png["Image m.der"]
+[caption="Fig. 16 : Contenu du fichier binaire m.der", title=" "]
+image::img-m.der-redim.png["Image m.der"]
 
 ===== 3 Examen du contenu DER du fichier m.der
 
@@ -487,15 +494,15 @@ Pour afficher le contenu binaire (qui se trouve être encodé en DER) nous allon
 
 Par la suite nous utiliserons également _dder_ et _pkfile_, deux utilitaires créés par l'auteur de cet article pour afficher et extraire plus facilement ce type de données.
 
-_dder_ est disponible à l'URL <<10>>.
+_dder_ est disponible à l'URL{nbsp}<<10>>.
 
-_pkfile_ est disponible à l'URL <<11>>.
+_pkfile_ est disponible à l'URL{nbsp}<<11>>.
 
 .Exécutable openssl
 
 * Sous Linux ce programme est disponible par défaut.
 * Sous Windows il faut trouver un binaire à télécharger.
-Le plus simple est de télécharger la version GNUWin32, disponible à cette URL <<12>>.
+Le plus simple est de télécharger la version GNUWin32, disponible à cette URL{nbsp}<<12>>.
 +
 La version proposée au téléchargement (en février 2016) date de 2008. Des binaires plus récents sont disponibles sur Internet.
 Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.
@@ -505,18 +512,18 @@ Pour faire les manipulations décrites dans ce document, la version de GNUWin32 
 
 Exécuter la commande
 ----
-\$ openssl asn1parse -inform der -in m.der
+$ openssl asn1parse -inform der -in m.der
 ----
 
-.Fig. 12
-image:img-m.der-openssl-redim.png["Image m.der avec openssl"]
+[caption="Fig. 17", title=" "]
+image::img-m.der-openssl-redim.png["Image m.der avec openssl"]
 
 Nous verrons dans le chapitre suivant la syntaxe ASN.1 plus en détail.
 
-Sur la figure 12 _openssl_ nous donne deux informations{nbsp}:
+La commande _openssl_ (figure 17) nous donne deux informations{nbsp}:
 
 * L'algorithme de hash est SHA-256, ce que l'on savait déjà d'après le contenu de _signatureAlgorithm_ (deuxième partie de la structure en trois parties du certificat).
-* Nous voyons la valeur du hash (le bloc _prim: OCTET STRING_) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).
+* Nous voyons la valeur du hash (le bloc `prim: OCTET STRING`) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).
 
 Nous savons désormais que la signature SHA-256 de la valeur tbsCertificate du certificat de _letsencrypt.org_ devrait être{nbsp}:
 ----
@@ -527,7 +534,7 @@ C'est ce que nous allons vérifier en calculant maintenant _M'_.
 
 ==== Calcul de _M'_
 
-Nous allons calculer M' en deux étapes{nbsp}:
+Nous allons calculer _M'_ en deux étapes{nbsp}:
 
 . Extraction de tbsCertificate du certificat _letsencrypt.org_.
 . Calcul du hash SHA-256 de tbsCertificate.
@@ -568,8 +575,7 @@ Définit toutes les caractéristiques de la valeur, notamment son _type_, par ex
 Encodage _primitive_:::
 La donnée ne contient pas de sous-structure
 Encodage _constructed_:::
-La donnée est elle-même une structure qui suit la typologie **T**-**L**-**V**, et ici, cette structure est elle-même définie en ASN.1
-footnote:[Certains types de données, notamment les _*string_ (OCTET STRING, UTF8String, etc.), peuvent être _primitive_ ou _constructed_, ce qui signifie que leur encodage peut suivre une structure hiérarchique "propre à l'encodage", non explicitée dans la définition de la valeur en ASN.1.].
+La donnée est elle-même une structure qui suit la typologie **T**-**L**-**V**, et ici, cette structure est elle-même définie en ASN.1{nbsp}footnote:[Certains types de données, notamment les _*string_ (OCTET STRING, UTF8String, etc.), peuvent être _primitive_ ou _constructed_, ce qui signifie que leur encodage peut suivre une structure hiérarchique "propre à l'encodage", non explicitée dans la définition de la valeur en ASN.1.].
 Structure hiérarchique:::
 La différence _primitive_ - _constructed_ est à la base de la structure hiérarchique d'une spécification ASN.1, les éléments _constructed_ étant les branches, les éléments _primitive_ étant les feuilles.
 +
@@ -584,13 +590,13 @@ Est la donnée elle-même. Dans ce document nous employons le terme _valeur_ (da
 
 Affichons le contenu DER avec l'utilitaire en ligne de commande _dder_ en exécutant la commande suivante{nbsp}:
 ----
-\$ dder -width 8 -recursive "|  " m.der
+$ dder -width 8 -recursive "|  " m.der
 ----
 
-.Fig. 13
-image:img-dder-redim.png["Image lecture m.der avec dder"]
+[caption="Fig. 18", title=" "]
+image::img-dder-redim.png["Image lecture m.der avec dder"]
 
-La copie d'écran de la figure 12 a été faite sous Windows pour changer un peu.
+La copie d'écran de la figure 18 a été faite sous Windows pour changer un peu.
 
 La description de la valeur indique _-cons_ ou _-prim_, pour _constructed_ ou _primitive_.
 Chaque fois que le tag indique une valeur _constructed_ (ici, il s'agit à deux reprises du type _SEQUENCE_, qui est obligatoirement _constructed_), on descend d'un niveau dans la structure hiérarchique, que l'on a fait ressortir ici avec l'option _-recursive "|  "_.
@@ -604,19 +610,20 @@ Commençons par enregistrer le certificat depuis le navigateur, dans le fichier 
 [caption=""]
 ====
 Afficher le certificat comme vu précédemment, puis afficher l'onglet _Détails_ et cliquer sur le bouton _Exporter_.
-Ensuite sélectionner _Certificat X.509 (DER)_
+Ensuite sélectionner _Certificat X.509 (DER)_.
 
-.Fig. 14
-image:img-certsave-ff-redim.png["Enregistrement certificat depuis Firefox"]
+[caption="Fig. 19", title=" "]
+image::img-certsave-ff-redim.png["Enregistrement certificat depuis Firefox"]
 ====
 
 .Internet Explorer et Chrome
 [caption=""]
 ====
-Afficher le certificat, puis cliquer sur le bouton _Copier dans un fichier..._. Ensuite sélectionner _X.509 binaire encodé DER_
+Afficher le certificat, puis cliquer sur le bouton _Copier dans un fichier..._.
+Ensuite sélectionner _X.509 binaire encodé DER_.
 
-.Fig. 15
-image:img-certsave-ie-redim.png["Enregistrement certificat depuis IE et Chrome"]
+[caption="Fig. 20", title=" "]
+image::img-certsave-ie-redim.png["Enregistrement certificat depuis IE et Chrome"]
 ====
 
 [NOTE]
@@ -631,14 +638,14 @@ Avec les certificats x509, l'encodage PEM est une surcouche de DER qui consiste 
 
 Si vous avez enregistré le certificat avec un encodage PEM, vous pouvez le convertir en DER avec _openssl_. Exemple pour _letsencrypt.cer_ (PEM) que l'on convertit en _letsencrypt.der_ (DER){nbsp} - comme on peut voir, l'encodage par défaut avec _openssl_ est PEM.
 ----
-\$ openssl x509 -in letsencryptorg.cer -outform der -out letsencryptorg.der
+$ openssl x509 -in letsencryptorg.cer -outform der -out letsencryptorg.der
 ----
 
-.Fig. 16
-image:img-pem-redim.png["Exemple encodage PEM"]
+[caption="Fig. 21", title=" "]
+image::img-pem-redim.png["Exemple encodage PEM"]
 
-.Fig. 17
-image:img-convpemder-redim.png["Exemple conversion PEM vers DER"]
+[caption="Fig. 22", title=" "]
+image::img-convpemder-redim.png["Exemple conversion PEM vers DER"]
 
 Vous pouvez faire cette conversion "à la main" en enlevant la première et la dernière ligne et en faisant une conversion BASE64{nbsp}->{nbsp}binaire avec des outils comme _base64_ (Linux) ou _notepad++_ (Windows).
 ======================================
@@ -654,7 +661,7 @@ Les outils _dder_ et _pkfile_ (_pkfile_ est présenté plus loin) peuvent lire i
 Il y a deux solutions pour ce faire
 
 . À la main
-. À l'aide de l'utilitaire _pkfile_. _pkfile_ est disponible à cette URL <<11>>.
+. À l'aide de l'utilitaire _pkfile_. _pkfile_ est disponible à cette URL{nbsp}<<11>>.
 
 .Extraction de tbsCertificate{nbsp}: alernative 1 (à la main)
 
@@ -662,7 +669,7 @@ Un éditeur de fichier binaire ferait l'affaire, mais la manipulation est plus c
 
 Exécuter la commande
 ----
-\$ dder -recursive "|  " -hex letsencryptorg.der > d
+$ dder -recursive "|  " -hex letsencryptorg.der > d
 ----
 
 [NOTE]
@@ -672,7 +679,7 @@ _dder_ lit indifféremment des fichiers PEM et DER. Si le fichier est PEM il dé
 
 Donc la commande aurait pu être (avec le fichier _letsencryptorg.cer_ encodé en PEM){nbsp}:
 ----
-\$ dder -recursive "|  " -hex letsencryptorg.cer > d
+$ dder -recursive "|  " -hex letsencryptorg.cer > d
 ----
 ======================================
 
@@ -681,11 +688,11 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 
 Supprimer les deux premières lignes et un certain nombre de lignes à la fin pour que seul demeure le contenu de tbsCertificate. Ci-dessous, le texte à conserver est le texte sélectionné (les lignes au milieu ont été supprimées pour condenser l'image).
 
-.Fig. 18
-image:img-extracttbs-alt1-1.png["Image extraction tbsCertificate alternative 1 - 1"]
+[caption="Fig. 23", title=" "]
+image::img-extracttbs-alt1-1.png["Image extraction tbsCertificate alternative 1 - 1"]
 
-.Fig. 19
-image:img-extracttbs-alt1-2-redim.png["Image extraction tbsCertificate alternative 1 - 2"]
+[caption="Fig. 24", title=" "]
+image::img-extracttbs-alt1-2-redim.png["Image extraction tbsCertificate alternative 1 - 2"]
 
 Ensuite{nbsp}:
 
@@ -694,10 +701,10 @@ Ensuite{nbsp}:
 * Supprimer le texte après les codes hexadécimaux (une fois supprimé les "|" et l'offset en début de ligne, ce sont tous les caractères au-delà de la 55e position qu'il faut supprimer).
 * Supprimer tous les espaces
 
-.Fig. 20
-image:img-extracttbs-alt1-3-redim.png["Image extraction tbsCertificate alternative 1 - 3"]
+[caption="Fig. 25", title=" "]
+image::img-extracttbs-alt1-3-redim.png["Image extraction tbsCertificate alternative 1 - 3"]
 
-On retrouve (figure 20) une sous-partie du fichier _letsencryptorg.der_, codée en hexadécimal, qui commence par *`308205ea`* et se termine par *`2e6f7267`*.
+On retrouve (figure 25) une sous-partie du fichier _letsencryptorg.der_, codée en hexadécimal, qui commence par *`308205ea`* et se termine par *`2e6f7267`*.
 
 [NOTE]
 ======================================
@@ -706,30 +713,30 @@ Cette manipulation peut être faite avec un programme d'édition de fichier bina
 
 Il faut ensuite convertir le contenu "codé hexadécimal" en binaire comme cela a été vu précédemment (commande _xxd -r -p_ sous Linux, avec _notepad++_ sous Windows).
 
-Au final on obtient le fichier _tbs.der_ comme montré sur la figure 21.
+Au final on obtient le fichier _tbs.der_ comme montré sur la figure 26.
 
-.Fig. 21
-image:img-extracttbs-alt1-4-redim.png["Image extraction tbsCertificate alternative 1 - 4"]
+[caption="Fig. 26", title=" "]
+image::img-extracttbs-alt1-4-redim.png["Image extraction tbsCertificate alternative 1 - 4"]
 
 .Extraction de tbsCertificate{nbsp}: alernative 2 (à l'aide de _pkfile_)
 
 Exécuter la commande
 ----
-\$ pkfile letsencryptorg.der -l 2
+$ pkfile letsencryptorg.der -l 2
 ----
 
-.Fig. 22
-image:img-extracttbs-alt2-1-redim.png["Image extraction tbsCertificate alternative 2 - 1"]
+[caption="Fig. 27", title=" "]
+image::img-extracttbs-alt2-1-redim.png["Image extraction tbsCertificate alternative 2 - 1"]
 
-Le résultat visible sur la figure 22 nous montre que le tbsCertificate correspond à la valeur _SEQUENCE_ de 1518 octets (4 octets d'en-tête, 1514 octets de données). _pkfile_ donne à cette valeur les coordonnées 1.1.
+Le résultat visible sur la figure 27 nous montre que le tbsCertificate correspond à la valeur _SEQUENCE_ de 1518 octets (4 octets d'en-tête, 1514 octets de données). _pkfile_ donne à cette valeur les coordonnées 1.1.
 
 Nous enregistrons cette valeur en binaire dans le fichier _tbs2.der_ en exécutant la commande
 ----
-\$ pkfile letsencryptorg.der -n 1.1 -x -o tbs2.der
+$ pkfile letsencryptorg.der -n 1.1 -x -o tbs2.der
 ----
 
-.Fig. 23
-image:img-extracttbs-alt2-2.png["Image extraction tbsCertificate alternative 2 - 2"]
+[caption="Fig. 28", title=" "]
+image::img-extracttbs-alt2-2.png["Image extraction tbsCertificate alternative 2 - 2"]
 
 [NOTE]
 .Encodage des fichiers analysés par pkfile
@@ -746,11 +753,11 @@ Le calcul des différents algorithmes de hash est disponible en ligne de command
 
 Exécuter
 ----
-\$ sha256sum tbs.der
+$ sha256sum tbs.der
 ----
 
-.Fig. 20
-image:img-calchash-1-redim.png["Calcul hash Linux"]
+[caption="Fig. 29", title=" "]
+image::img-calchash-1-redim.png["Calcul hash Linux"]
 ====
 
 .Windows
@@ -758,22 +765,21 @@ image:img-calchash-1-redim.png["Calcul hash Linux"]
 ====
 Lels outils de calcul de hash ne sont pas disponibles par défaut. Voici quelques solutions (d'autres existent){nbsp}:
 
-* Utiliser _pkfile_, qui permet de calculer différents hash
-footnote:[_pkfile_ peut le faire aussi sous Linux, mais dans ce système il est plus logique d'utiliser les programmes déjà installés. La fonctionnalité de calcul de hash a été ajoutée à _pkfile_ pour simplifier les manipulations sous Windows.]
+* Utiliser _pkfile_, qui permet de calculer différents hashfootnote:[_pkfile_ peut le faire aussi sous Linux, mais dans ce système il est plus logique d'utiliser les programmes déjà installés. La fonctionnalité de calcul de hash a été ajoutée à _pkfile_ pour simplifier les manipulations sous Windows.]
 .
 * Installer les outils _GNUWin32_, disponibles à cette URL{nbsp}<<12>>.
 * 7-ZIP ajoute des menus contextuels dans l'explorateur pour calculer différents hashs, dont SHA-256. 7-ZIP est disponible à cette URL{nbsp}<<13>>.
 
 Exemple avec _pkfile_, exécuter
 ----
-\$ pkfile --sha256 tbs.der
+$ pkfile --sha256 tbs.der
 ----
 
-.Fig 21
-image:img-calchash-2.png["Calcul hash Windows, 2"]
+[caption="Fig. 30", title=" "]
+image::img-calchash-2.png["Calcul hash Windows, 2"]
 
-.Fig 22
-image:img-calchash-3.png["Calcul hash Windows, 3"]
+[caption="Fig. 31", title=" "]
+image::img-calchash-3.png["Calcul hash Windows, 3"]
 ====
 
 Les captures d'écran montrent également le calcul sur le fichier _tbs2.der_ (créé avec _pkfile_), qui est ben identique à _tbs.der_, ce qui confirme au passage l'équivalence des deux termes de l'alternative pour extraire tbsCertificate.
@@ -803,6 +809,7 @@ La _signature_ a été vérifiée mais le certificat lui-même n'a pas été val
 . Une fois un certificat vérifié, il faut vérifier son parent dans la hiérarchie (le certificat qui l'a signé), et ainsi de suite, jusqu'à vérifier un certificat connu dans la base des certificats du navigateur (les certificats _racine_).
 . Le navigateur vérifie si les certificats rencontrés ont été révoqués à l'aide des Listes de Révocation des Certificats ou _CRL_ (_**C**ertificate **R**evocation **L**ist_).
 
+<<<
 
 == Bibliography
 

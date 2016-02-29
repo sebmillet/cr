@@ -5,6 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.2">
+<meta name="author" content="Sébastien Millet">
 <title>Cryptographie pratique</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400">
 <style>
@@ -412,6 +413,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <body class="article">
 <div id="header">
 <h1>Cryptographie pratique</h1>
+<div class="details">
+<span id="author" class="author">Sébastien Millet</span><br>
+<span id="email" class="email">&lt;<a href="mailto:milletseb@laposte.net">milletseb@laposte.net</a>&gt;</span><br>
+<span id="revnumber">version 0.5,</span>
+<span id="revdate">February 29th, 2016</span>
+</div>
 <div id="toc" class="toc">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
@@ -519,42 +526,54 @@ Les exemples de ce document sont réalisés avec le certificat https du site <a 
 <div class="title">Exemple avec Firefox 44</div>
 <ol class="arabic">
 <li>
-<p>Cliquer sur l&#8217;icône de cadenas à gauche de la barre d&#8217;adresse et cliquer sur la flèche droite (figure 1)</p>
+<p>Cliquer sur l&#8217;icône de cadenas à gauche de la barre d&#8217;adresse et cliquer sur la flèche droite (Figure 1)</p>
 </li>
 <li>
-<p>Cliquer sur <em>Plus d&#8217;informations</em> (figure 2)</p>
+<p>Cliquer sur <em>Plus d&#8217;informations</em> (Figure 2)</p>
 </li>
 <li>
-<p>Cliquer sur <em>Afficher le certificat</em> (figure 3)</p>
+<p>Cliquer sur <em>Afficher le certificat</em> (Figure 3)</p>
 </li>
 <li>
-<p>Afficher l&#8217;onglet <em>Détails</em> et parcourir les différents champs du certificat (figures 4, 5, 6)</p>
+<p>Afficher l&#8217;onglet <em>Détails</em> et parcourir les différents champs du certificat (Figure 4, 5 et 6)</p>
 </li>
 </ol>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 1</div>
-<p><span class="image"><img src="./images/img-firefox-1-redim.png" alt="Image Firefox 1"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-firefox-1-redim.png" alt="Image Firefox 1">
 </div>
-<div class="paragraph">
-<div class="title">Fig. 2</div>
-<p><span class="image"><img src="./images/img-firefox-2-redim.png" alt="Image Firefox 2"></span></p>
+<div class="title">Fig. 1 </div>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 3</div>
-<p><span class="image"><img src="./images/img-firefox-3-redim.png" alt="Image Firefox 3"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-firefox-2-redim.png" alt="Image Firefox 2">
 </div>
-<div class="paragraph">
-<div class="title">Fig. 4</div>
-<p><span class="image"><img src="./images/img-firefox-4-redim.png" alt="Image Firefox 4"></span></p>
+<div class="title">Fig. 2 </div>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 5</div>
-<p><span class="image"><img src="./images/img-firefox-5-redim.png" alt="Image Firefox 5"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-firefox-3-redim.png" alt="Image Firefox 3">
 </div>
-<div class="paragraph">
-<div class="title">Fig. 6</div>
-<p><span class="image"><img src="./images/img-firefox-6-redim.png" alt="Image Firefox 6"></span></p>
+<div class="title">Fig. 3 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-firefox-4-redim.png" alt="Image Firefox 4">
+</div>
+<div class="title">Fig. 4 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-firefox-5-redim.png" alt="Image Firefox 5">
+</div>
+<div class="title">Fig. 5 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-firefox-6-redim.png" alt="Image Firefox 6">
+</div>
+<div class="title">Fig. 6 </div>
 </div>
 <div class="paragraph">
 <p>Nous nous intéresserons à la partie supérieure (<em>Hiérarchie des certificats</em>) plus tard.</p>
@@ -696,13 +715,17 @@ Dans la pratique la situation se complique souvent avec des certificats croisés
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 7&#160;: Sujet du certificat</div>
-<p><span class="image"><img src="./images/img-crt-1-redim.png" alt="Image certificat : sujet"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-crt-1-redim.png" alt="Image certificat : sujet">
 </div>
-<div class="paragraph">
-<div class="title">Fig. 8&#160;: Émetteur du certificat</div>
-<p><span class="image"><img src="./images/img-crt-2-redim.png" alt="Image certificat : émetteur"></span></p>
+<div class="title">Fig. 7 : Sujet du certificat </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-crt-2-redim.png" alt="Image certificat : émetteur">
+</div>
+<div class="title">Fig. 8 : Émetteur du certificat </div>
 </div>
 <div class="paragraph">
 <p>Pour signer, l&#8217;émetteur utilise sa clé privée. La vérification de la signature est faite avec sa clé publique.
@@ -751,12 +774,13 @@ Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et p
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>L&#8217;émetteur calcule le hash (noté <em>M</em>) de la valeur <em>tbsCertificate</em> du sujet, soit \$M=hash("tbsCertificate")\$</p>
+<p>L&#8217;émetteur calcule le hash (noté <em>M</em>) de la valeur <em>tbsCertificate</em> du sujet, soit <em>M&#160;=&#160;hash("tbsCertificate")</em></p>
 </li>
 <li>
-<p>Il calcule la signature (notée <em>S</em>) avec la formule \$S \equiv M^d ("mod " n)\$
+<p>Il calcule la signature
 <span class="footnote">[<a id="_footnoteref_2" class="footnote" href="#_footnote_2" title="View footnote.">2</a>]</span>
-<span class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnote_3" title="View footnote.">3</a>]</span></p>
+<span class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnote_3" title="View footnote.">3</a>]</span>
+(notée <em>S</em>) avec la formule <em>S&#160;=&#160;M<sup>d</sup> mod n</em></p>
 </li>
 </ol>
 </div>
@@ -766,13 +790,13 @@ Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et p
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Le vérificateur calcule \$M \equiv S^e ("mod " n)\$</p>
+<p>Le vérificateur calcule <em>M&#160;=&#160;S<sup>e</sup>&#160;mod&#160;n</em></p>
 </li>
 <li>
-<p>Il calcule \$M'=hash("tbsCertificate")\$</p>
+<p>Il calcule <em>M'&#160;=&#160;hash("tbsCertificate")</em></p>
 </li>
 <li>
-<p>Si on a l&#8217;égalité \$M=M'\$, la signature est vérifiée</p>
+<p>Si on a l&#8217;égalité <em>M&#160;=&#160;M'</em>, la signature est vérifiée</p>
 </li>
 </ol>
 </div>
@@ -791,7 +815,7 @@ Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et p
 <p>Linux&#160;: <em>bc</em> est disponible par défaut sur la plupart des distributions.</p>
 </li>
 <li>
-<p>Windows&#160;: les binaires sont accessibles à l&#8217;URL <a href="#6">[6]</a>.</p>
+<p>Windows&#160;: les binaires sont accessibles à l&#8217;URL&#160;<a href="#6">[6]</a>.</p>
 </li>
 </ul>
 </div>
@@ -869,14 +893,14 @@ Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et p
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Exécuter au préalable
-</p><p class="tableblock"><strong><code>ibase = 2 * 8</code></strong> <span class="footnote" id="_footnote_ibase16">[<a id="_footnoteref_5" class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</span>
+</p><p class="tableblock"><code>ibase = 2 * 8</code> <span class="footnote" id="_footnote_ibase16">[<a id="_footnoteref_5" class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</span>
 </p><p class="tableblock">Exemple&#160;:
-</p><p class="tableblock"><strong><code>ibase = 2 * 8</code></strong>
-</p><p class="tableblock"><strong><code>var = ABEF0E0</code></strong>
+</p><p class="tableblock"><code>ibase = 2 * 8</code>
+</p><p class="tableblock"><code>var = ABEF0E0</code>
 </p><p class="tableblock"><em>(Attention les caractères hexadécimaux doivent être en majuscule.)</em></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Saisir l&#8217;entier précédé de <em>0x</em>
 </p><p class="tableblock">Exemple&#160;:
-</p><p class="tableblock"><strong><code>&gt;&gt;&gt; var = 0xabef0e0</code></strong>
+</p><p class="tableblock"><code>&gt;&gt;&gt; var = 0xabef0e0</code>
 <span class="footnote">[<a id="_footnoteref_6" class="footnote" href="#_footnote_6" title="View footnote.">6</a>]</span></p></td>
 </tr>
 <tr>
@@ -884,16 +908,16 @@ Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et p
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Exécuter au préalable
-</p><p class="tableblock"><strong><code>obase = 2 * 8</code></strong>
+</p><p class="tableblock"><code>obase = 2 * 8</code>
 <span class="footnoteref">[<a class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</span>
 </p><p class="tableblock">Exemple&#160;:
-</p><p class="tableblock"><strong><code>obase = 2 * 8</code></strong>
-</p><p class="tableblock"><strong><code>2 ^ (2 ^ 4) + 1</code></strong>
+</p><p class="tableblock"><code>obase = 2 * 8</code>
+</p><p class="tableblock"><code>2 ^ (2 ^ 4) + 1</code>
 <span class="footnote">[<a id="_footnoteref_7" class="footnote" href="#_footnote_7" title="View footnote.">7</a>]</span>
 </p><p class="tableblock"><code>10001</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Interpoler avec <em>%x</em>
 </p><p class="tableblock">Exemple&#160;:
-</p><p class="tableblock"><strong><code>&gt;&gt;&gt; '%x' % (2 <strong> (2 </strong> 4) + 1)</code></strong>
+</p><p class="tableblock"><code>>>> '%x' % (2 ** (2 ** 4) + 1)</code>
 </p><p class="tableblock"><code>'10001'</code></p></td>
 </tr>
 </tbody>
@@ -926,13 +950,17 @@ Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et p
 <div class="paragraph">
 <p>Voir figures 9 et 10.</p>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 9&#160;: Signature dans le navigateur</div>
-<p><span class="image"><img src="./images/img-cle-1-redim.png" alt="Image signature dans navigateur"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-cle-1-redim.png" alt="Image signature dans navigateur">
 </div>
-<div class="paragraph">
-<div class="title">Fig. 10&#160;: Fichier val.b</div>
-<p><span class="image"><img src="./images/img-cle-2-redim.png" alt="Image signature dans éditeur"></span></p>
+<div class="title">Fig. 9 : Signature dans le navigateur </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-cle-2-redim.png" alt="Image signature dans éditeur">
+</div>
+<div class="title">Fig. 10 : Fichier val.b </div>
 </div>
 <div class="paragraph">
 <p>L&#8217;instruction <em>ibase = 2 * 8</em> ordonne à bc de lire les nombres en hexadécimal.
@@ -968,7 +996,7 @@ Si ibase est déjà égal à 16 et que l&#8217;on exécute <em>ibase = 16</em>, 
 <div class="content">
 <div class="listingblock">
 <div class="content">
-<pre>\$ echo "obase=16; 65537" | bc
+<pre>$ echo "obase=16; 65537" | bc
 10001</pre>
 </div>
 </div>
@@ -979,7 +1007,7 @@ Si ibase est déjà égal à 16 et que l&#8217;on exécute <em>ibase = 16</em>, 
 <div class="content">
 <div class="listingblock">
 <div class="content">
-<pre>\$ echo obase=16; 65537 | bc.exe
+<pre>$ echo obase=16; 65537 | bc.exe
 10001</pre>
 </div>
 </div>
@@ -996,7 +1024,7 @@ Si ibase est déjà égal à 16 et que l&#8217;on exécute <em>ibase = 16</em>, 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ tr '[:lower:]' '[:upper:]' &lt; fichier_entrée &gt; fichier_sortie</pre>
+<pre>$ tr '[:lower:]' '[:upper:]' &lt; fichier_entrée &gt; fichier_sortie</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1011,7 +1039,7 @@ Si ibase est déjà égal à 16 et que l&#8217;on exécute <em>ibase = 16</em>, 
 <p>Windows ne dispose pas par défaut d&#8217;outil pour passer du texte en majuscule. Il faut installer <em>GNUWin32</em> ou <em>cygwin</em>.</p>
 </div>
 <div class="paragraph">
-<p>L&#8217;éditeur de texte (natif) adéquat pour ce type de transformation est <strong><em>notepad++</em></strong>, disponible à cette URL <a href="#7">[7]</a>.</p>
+<p>L&#8217;éditeur de texte (natif) adéquat pour ce type de transformation est <strong><em>notepad++</em></strong>, disponible à cette URL&#160;<a href="#7">[7]</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1049,9 +1077,11 @@ Il faut le faire en deux fois, une fois pour le modulo de 256 octets (variable <
 <div class="paragraph">
 <p>Ne pas oublier de passer les caractères hexadécimaux en majuscule.</p>
 </div>
-<div class="paragraph">
-<div class="title">Clé publique dans le navigateur</div>
-<p><span class="image"><img src="./images/img-cle-3-redim.png" alt="Image clé dans navigateur"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-cle-3-redim.png" alt="Image clé dans navigateur">
+</div>
+<div class="title">Fig. 11 : Clé publique dans le navigateur </div>
 </div>
 <div class="paragraph">
 <p>A l&#8217;arrivée, <strong><em>val.b</em></strong> contient trois variables, s, n et e.</p>
@@ -1078,8 +1108,8 @@ e=10001</pre>
 <p>Pour ceux qui utilisent bc comme moi, il faut écrire la fonction.</p>
 </div>
 <div class="paragraph">
-<p>La fonction <em>powmod</em> met en oeuvre l&#8217;algorithme d&#8217;exponentiation rapide, décrit à cette URL <a href="#8">[8]</a>.
-En fait nous sommes dans un contexte modulaire et d&#8217;après Wikipédia le nom exact de l&#8217;algorithme est <em>exponentiation modulaire</em>. Un article y est consacrée <a href="#9">[9]</a>.
+<p>La fonction <em>powmod</em> met en oeuvre l&#8217;algorithme d&#8217;exponentiation rapide, décrit à cette URL&#160;<a href="#8">[8]</a>.
+En fait nous sommes dans un contexte modulaire et d&#8217;après Wikipédia le nom exact de l&#8217;algorithme est <em>exponentiation modulaire</em>. Un article y est consacrée&#160;<a href="#9">[9]</a>.
 Les deux algorithmes font appel au même principe, mais le second exploite le contexte modulaire pour que les nombres manipulés n&#8217;atteignent pas une taille démesurée. C&#8217;est le second algorithme (<em>exponentiation modulaire</em>) dont nous avons besoin pour la suite.</p>
 </div>
 <div class="paragraph">
@@ -1116,7 +1146,7 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ BC_LINE_LENGTH=0 bc powmod.b val.b</pre>
+<pre>$ BC_LINE_LENGTH=0 bc powmod.b val.b</pre>
 </div>
 </div>
 <div class="olist arabic">
@@ -1148,9 +1178,11 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
 <p>Rappelons que c&#8217;est <em>S</em> (variable <em>s</em> dans <em>val.b</em>) qui doit être élevé à la puissance <em>e</em>, modulo <em>n</em>.
 Lors de la définition d&#8217;obase, ibase vaut 16 (résultat du script <em>val.b</em> chargé au démarrage) donc obase=16 ne fonctionnerait pas.</p>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 11&#160;: Calcul pour vérifier la signature RSA</div>
-<p><span class="image"><img src="./images/img-powmod-redim.png" alt="Image résultat powmod"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-powmod-redim.png" alt="Image résultat powmod">
+</div>
+<div class="title">Fig. 12 : Calcul pour vérifier la signature RSA </div>
 </div>
 <div class="admonitionblock important">
 <table>
@@ -1160,14 +1192,14 @@ Lors de la définition d&#8217;obase, ibase vaut 16 (résultat du script <em>val
 </td>
 <td class="content">
 Au démarrage de bc, ibase est égal à 16 du fait du chargement de <em>val.b</em>. Si vous exécutez obase = 16, obase sera égal à&#8230;&#8203; 22 !
-C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&#8217;utiliser <em>2&#160; * &#160;8</em> comme indiqué. Vous pouvez aussi exécuter <em>obase = 10</em> (ibase étant égal à 16), mais c&#8217;est moins clair, et vous devez être certain qu&#8217;ibase vaut bien 16 au moment d&#8217;exécuter <em>obase = 10</em>, pour passer l&#8217;affichage des nombres en hexadécimal
-(<em>2 * 8</em> fonctionne toujours quelle que soit la valeur d&#8217;ibase, y compris pour les valeurs inférieures ou égales à 7).
+C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&#8217;utiliser <em>2&#160;*&#160;8</em> comme indiqué. Vous pouvez aussi exécuter <em>obase = 10</em> (ibase étant égal à 16), mais c&#8217;est moins clair, et vous devez être certain qu&#8217;ibase vaut bien 16 au moment d&#8217;exécuter <em>obase = 10</em>, pour passer l&#8217;affichage des nombres en hexadécimal
+(<em>2&#160;*&#160;8</em> fonctionne toujours quelle que soit la valeur d&#8217;ibase, y compris pour les valeurs inférieures ou égales à 7).
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Le résultat (figure 11) avec tous ces <em>F</em> prouve avec une quasi certitude que le calcul s&#8217;est bien passé.
+<p>Le résultat (figure 12) avec tous ces <em>F</em> prouve avec une quasi certitude que le calcul s&#8217;est bien passé.
 Les <em>F</em> correspondent au 'padding' standard effectué pour une signature RSA, la valeur qui suit (à partir de <strong><code>303130</code></strong>) est le hash de tbsCertificate "emballé".</p>
 </div>
 <div class="paragraph">
@@ -1200,9 +1232,11 @@ Les <em>F</em> correspondent au 'padding' standard effectué pour une signature 
 <div class="paragraph">
 <p>Faisons un copier-coller de <em>M</em> (en hexadécimal) à partir de l&#8217;octet qui suit l&#8217;octet nul, et enregistrons le résultat dans le fichier <strong><em>m.hex</em></strong>.</p>
 </div>
-<div class="paragraph">
-<div class="title">m.hex</div>
-<p><span class="image"><img src="./images/img-m.hex-redim.png" alt="Image m.hex"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-m.hex-redim.png" alt="Image m.hex">
+</div>
+<div class="title">Fig. 13 : m.hex </div>
 </div>
 <div class="listingblock">
 <div class="title">Contenu de m.hex</div>
@@ -1224,7 +1258,7 @@ Les <em>F</em> correspondent au 'padding' standard effectué pour une signature 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ xxd -r -p m.hex &gt; m.der</pre>
+<pre>$ xxd -r -p m.hex &gt; m.der</pre>
 </div>
 </div>
 </div>
@@ -1235,13 +1269,17 @@ Les <em>F</em> correspondent au 'padding' standard effectué pour une signature 
 <div class="paragraph">
 <p>Le plus simple est d&#8217;utiliser <em>notepad++</em> et d&#8217;enregistrer le fichier transformé avec le nom <em>m.der</em>.</p>
 </div>
-<div class="paragraph">
-<div class="title">Avant</div>
-<p><span class="image"><img src="./images/img-notepadpp-1-redim.png" alt="Image notepad++ 1"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-notepadpp-1-redim.png" alt="Image notepad++ 1">
 </div>
-<div class="paragraph">
-<div class="title">Après (on a enregistré le contenu binaire sous le nouveau nom <strong>m.der</strong>)</div>
-<p><span class="image"><img src="./images/img-notepadpp-2-redim.png" alt="Image notepad++ 2"></span></p>
+<div class="title">Fig. 14 : Avant la conversion hexadécimal -> binaire </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-notepadpp-2-redim.png" alt="Image notepad++ 2">
+</div>
+<div class="title">Fig. 15 : Après la conversion hexadécimal -> binaire </div>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -1272,9 +1310,11 @@ Les <em>F</em> correspondent au 'padding' standard effectué pour une signature 
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<div class="title">Contenu du fichier binaire m.der</div>
-<p><span class="image"><img src="./images/img-m.der-redim.png" alt="Image m.der"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-m.der-redim.png" alt="Image m.der">
+</div>
+<div class="title">Fig. 16 : Contenu du fichier binaire m.der </div>
 </div>
 </div>
 <div class="sect4">
@@ -1289,10 +1329,10 @@ Les <em>F</em> correspondent au 'padding' standard effectué pour une signature 
 <p>Par la suite nous utiliserons également <em>dder</em> et <em>pkfile</em>, deux utilitaires créés par l&#8217;auteur de cet article pour afficher et extraire plus facilement ce type de données.</p>
 </div>
 <div class="paragraph">
-<p><em>dder</em> est disponible à l&#8217;URL <a href="#10">[10]</a>.</p>
+<p><em>dder</em> est disponible à l&#8217;URL&#160;<a href="#10">[10]</a>.</p>
 </div>
 <div class="paragraph">
-<p><em>pkfile</em> est disponible à l&#8217;URL <a href="#11">[11]</a>.</p>
+<p><em>pkfile</em> est disponible à l&#8217;URL&#160;<a href="#11">[11]</a>.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1301,7 +1341,7 @@ Les <em>F</em> correspondent au 'padding' standard effectué pour une signature 
 </li>
 <li>
 <p>Sous Windows il faut trouver un binaire à télécharger.
-Le plus simple est de télécharger la version GNUWin32, disponible à cette URL <a href="#12">[12]</a>.</p>
+Le plus simple est de télécharger la version GNUWin32, disponible à cette URL&#160;<a href="#12">[12]</a>.</p>
 <div class="paragraph">
 <p>La version proposée au téléchargement (en février 2016) date de 2008. Des binaires plus récents sont disponibles sur Internet.
 Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.</p>
@@ -1323,18 +1363,20 @@ Pour faire les manipulations décrites dans ce document, la version de GNUWin32 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ openssl asn1parse -inform der -in m.der</pre>
+<pre>$ openssl asn1parse -inform der -in m.der</pre>
 </div>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 12</div>
-<p><span class="image"><img src="./images/img-m.der-openssl-redim.png" alt="Image m.der avec openssl"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-m.der-openssl-redim.png" alt="Image m.der avec openssl">
+</div>
+<div class="title">Fig. 17 </div>
 </div>
 <div class="paragraph">
 <p>Nous verrons dans le chapitre suivant la syntaxe ASN.1 plus en détail.</p>
 </div>
 <div class="paragraph">
-<p>Sur la figure 12 <em>openssl</em> nous donne deux informations&#160;:</p>
+<p>La commande <em>openssl</em> (figure 17) nous donne deux informations&#160;:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1342,7 +1384,7 @@ Pour faire les manipulations décrites dans ce document, la version de GNUWin32 
 <p>L&#8217;algorithme de hash est SHA-256, ce que l&#8217;on savait déjà d&#8217;après le contenu de <em>signatureAlgorithm</em> (deuxième partie de la structure en trois parties du certificat).</p>
 </li>
 <li>
-<p>Nous voyons la valeur du hash (le bloc <em>prim: OCTET STRING</em>) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).</p>
+<p>Nous voyons la valeur du hash (le bloc <code>prim: OCTET STRING</code>) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).</p>
 </li>
 </ul>
 </div>
@@ -1362,7 +1404,7 @@ Pour faire les manipulations décrites dans ce document, la version de GNUWin32 
 <div class="sect3">
 <h4 id="_calcul_de_em_m_em_2">3.2.7. Calcul de <em>M'</em></h4>
 <div class="paragraph">
-<p>Nous allons calculer M' en deux étapes&#160;:</p>
+<p>Nous allons calculer <em>M'</em> en deux étapes&#160;:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -1425,8 +1467,7 @@ La forme "longueur indéfinie" apporte un quatrième élément, "end-of-contents
 </dd>
 <dt class="hdlist1">Encodage <em>constructed</em></dt>
 <dd>
-<p>La donnée est elle-même une structure qui suit la typologie <strong>T</strong>-<strong>L</strong>-<strong>V</strong>, et ici, cette structure est elle-même définie en ASN.1
-<span class="footnote">[<a id="_footnoteref_14" class="footnote" href="#_footnote_14" title="View footnote.">14</a>]</span>.</p>
+<p>La donnée est elle-même une structure qui suit la typologie <strong>T</strong>-<strong>L</strong>-<strong>V</strong>, et ici, cette structure est elle-même définie en ASN.1&#160;<span class="footnote">[<a id="_footnoteref_14" class="footnote" href="#_footnote_14" title="View footnote.">14</a>]</span>.</p>
 </dd>
 <dt class="hdlist1">Structure hiérarchique</dt>
 <dd>
@@ -1453,15 +1494,17 @@ La forme "longueur indéfinie" apporte un quatrième élément, "end-of-contents
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ dder -width 8 -recursive "|  " m.der</pre>
+<pre>$ dder -width 8 -recursive "|  " m.der</pre>
 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-dder-redim.png" alt="Image lecture m.der avec dder">
+</div>
+<div class="title">Fig. 18 </div>
 </div>
 <div class="paragraph">
-<div class="title">Fig. 13</div>
-<p><span class="image"><img src="./images/img-dder-redim.png" alt="Image lecture m.der avec dder"></span></p>
-</div>
-<div class="paragraph">
-<p>La copie d&#8217;écran de la figure 12 a été faite sous Windows pour changer un peu.</p>
+<p>La copie d&#8217;écran de la figure 18 a été faite sous Windows pour changer un peu.</p>
 </div>
 <div class="paragraph">
 <p>La description de la valeur indique <em>-cons</em> ou <em>-prim</em>, pour <em>constructed</em> ou <em>primitive</em>.
@@ -1482,11 +1525,13 @@ Chaque fois que le tag indique une valeur <em>constructed</em> (ici, il s&#8217;
 <div class="content">
 <div class="paragraph">
 <p>Afficher le certificat comme vu précédemment, puis afficher l&#8217;onglet <em>Détails</em> et cliquer sur le bouton <em>Exporter</em>.
-Ensuite sélectionner <em>Certificat X.509 (DER)</em></p>
+Ensuite sélectionner <em>Certificat X.509 (DER)</em>.</p>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 14</div>
-<p><span class="image"><img src="./images/img-certsave-ff-redim.png" alt="Enregistrement certificat depuis Firefox"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-certsave-ff-redim.png" alt="Enregistrement certificat depuis Firefox">
+</div>
+<div class="title">Fig. 19 </div>
 </div>
 </div>
 </div>
@@ -1494,11 +1539,14 @@ Ensuite sélectionner <em>Certificat X.509 (DER)</em></p>
 <div class="title">Internet Explorer et Chrome</div>
 <div class="content">
 <div class="paragraph">
-<p>Afficher le certificat, puis cliquer sur le bouton <em>Copier dans un fichier&#8230;&#8203;</em>. Ensuite sélectionner <em>X.509 binaire encodé DER</em></p>
+<p>Afficher le certificat, puis cliquer sur le bouton <em>Copier dans un fichier&#8230;&#8203;</em>.
+Ensuite sélectionner <em>X.509 binaire encodé DER</em>.</p>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 15</div>
-<p><span class="image"><img src="./images/img-certsave-ie-redim.png" alt="Enregistrement certificat depuis IE et Chrome"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-certsave-ie-redim.png" alt="Enregistrement certificat depuis IE et Chrome">
+</div>
+<div class="title">Fig. 20 </div>
 </div>
 </div>
 </div>
@@ -1538,16 +1586,20 @@ Ensuite sélectionner <em>Certificat X.509 (DER)</em></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ openssl x509 -in letsencryptorg.cer -outform der -out letsencryptorg.der</pre>
+<pre>$ openssl x509 -in letsencryptorg.cer -outform der -out letsencryptorg.der</pre>
 </div>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 16</div>
-<p><span class="image"><img src="./images/img-pem-redim.png" alt="Exemple encodage PEM"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-pem-redim.png" alt="Exemple encodage PEM">
 </div>
-<div class="paragraph">
-<div class="title">Fig. 17</div>
-<p><span class="image"><img src="./images/img-convpemder-redim.png" alt="Exemple conversion PEM vers DER"></span></p>
+<div class="title">Fig. 21 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-convpemder-redim.png" alt="Exemple conversion PEM vers DER">
+</div>
+<div class="title">Fig. 22 </div>
 </div>
 <div class="paragraph">
 <p>Vous pouvez faire cette conversion "à la main" en enlevant la première et la dernière ligne et en faisant une conversion BASE64&#160;&#8594;&#160;binaire avec des outils comme <em>base64</em> (Linux) ou <em>notepad++</em> (Windows).</p>
@@ -1585,7 +1637,7 @@ Ensuite sélectionner <em>Certificat X.509 (DER)</em></p>
 <p>À la main</p>
 </li>
 <li>
-<p>À l&#8217;aide de l&#8217;utilitaire <em>pkfile</em>. <em>pkfile</em> est disponible à cette URL <a href="#11">[11]</a>.</p>
+<p>À l&#8217;aide de l&#8217;utilitaire <em>pkfile</em>. <em>pkfile</em> est disponible à cette URL&#160;<a href="#11">[11]</a>.</p>
 </li>
 </ol>
 </div>
@@ -1598,7 +1650,7 @@ Ensuite sélectionner <em>Certificat X.509 (DER)</em></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ dder -recursive "|  " -hex letsencryptorg.der &gt; d</pre>
+<pre>$ dder -recursive "|  " -hex letsencryptorg.der &gt; d</pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1617,7 +1669,7 @@ Ensuite sélectionner <em>Certificat X.509 (DER)</em></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ dder -recursive "|  " -hex letsencryptorg.cer &gt; d</pre>
+<pre>$ dder -recursive "|  " -hex letsencryptorg.cer &gt; d</pre>
 </div>
 </div>
 </td>
@@ -1631,13 +1683,17 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 <div class="paragraph">
 <p>Supprimer les deux premières lignes et un certain nombre de lignes à la fin pour que seul demeure le contenu de tbsCertificate. Ci-dessous, le texte à conserver est le texte sélectionné (les lignes au milieu ont été supprimées pour condenser l&#8217;image).</p>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 18</div>
-<p><span class="image"><img src="./images/img-extracttbs-alt1-1.png" alt="Image extraction tbsCertificate alternative 1 - 1"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-extracttbs-alt1-1.png" alt="Image extraction tbsCertificate alternative 1 - 1">
 </div>
-<div class="paragraph">
-<div class="title">Fig. 19</div>
-<p><span class="image"><img src="./images/img-extracttbs-alt1-2-redim.png" alt="Image extraction tbsCertificate alternative 1 - 2"></span></p>
+<div class="title">Fig. 23 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-extracttbs-alt1-2-redim.png" alt="Image extraction tbsCertificate alternative 1 - 2">
+</div>
+<div class="title">Fig. 24 </div>
 </div>
 <div class="paragraph">
 <p>Ensuite&#160;:</p>
@@ -1658,12 +1714,14 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 20</div>
-<p><span class="image"><img src="./images/img-extracttbs-alt1-3-redim.png" alt="Image extraction tbsCertificate alternative 1 - 3"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-extracttbs-alt1-3-redim.png" alt="Image extraction tbsCertificate alternative 1 - 3">
+</div>
+<div class="title">Fig. 25 </div>
 </div>
 <div class="paragraph">
-<p>On retrouve (figure 20) une sous-partie du fichier <em>letsencryptorg.der</em>, codée en hexadécimal, qui commence par <strong><code>308205ea</code></strong> et se termine par <strong><code>2e6f7267</code></strong>.</p>
+<p>On retrouve (figure 25) une sous-partie du fichier <em>letsencryptorg.der</em>, codée en hexadécimal, qui commence par <strong><code>308205ea</code></strong> et se termine par <strong><code>2e6f7267</code></strong>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1683,11 +1741,13 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 <p>Il faut ensuite convertir le contenu "codé hexadécimal" en binaire comme cela a été vu précédemment (commande <em>xxd -r -p</em> sous Linux, avec <em>notepad++</em> sous Windows).</p>
 </div>
 <div class="paragraph">
-<p>Au final on obtient le fichier <em>tbs.der</em> comme montré sur la figure 21.</p>
+<p>Au final on obtient le fichier <em>tbs.der</em> comme montré sur la figure 26.</p>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 21</div>
-<p><span class="image"><img src="./images/img-extracttbs-alt1-4-redim.png" alt="Image extraction tbsCertificate alternative 1 - 4"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-extracttbs-alt1-4-redim.png" alt="Image extraction tbsCertificate alternative 1 - 4">
+</div>
+<div class="title">Fig. 26 </div>
 </div>
 <div class="paragraph">
 <div class="title">Extraction de tbsCertificate&#160;: alernative 2 (à l&#8217;aide de <em>pkfile</em>)</div>
@@ -1695,27 +1755,31 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ pkfile letsencryptorg.der -l 2</pre>
+<pre>$ pkfile letsencryptorg.der -l 2</pre>
 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-extracttbs-alt2-1-redim.png" alt="Image extraction tbsCertificate alternative 2 - 1">
+</div>
+<div class="title">Fig. 27 </div>
 </div>
 <div class="paragraph">
-<div class="title">Fig. 22</div>
-<p><span class="image"><img src="./images/img-extracttbs-alt2-1-redim.png" alt="Image extraction tbsCertificate alternative 2 - 1"></span></p>
-</div>
-<div class="paragraph">
-<p>Le résultat visible sur la figure 22 nous montre que le tbsCertificate correspond à la valeur <em>SEQUENCE</em> de 1518 octets (4 octets d&#8217;en-tête, 1514 octets de données). <em>pkfile</em> donne à cette valeur les coordonnées 1.1.</p>
+<p>Le résultat visible sur la figure 27 nous montre que le tbsCertificate correspond à la valeur <em>SEQUENCE</em> de 1518 octets (4 octets d&#8217;en-tête, 1514 octets de données). <em>pkfile</em> donne à cette valeur les coordonnées 1.1.</p>
 </div>
 <div class="paragraph">
 <p>Nous enregistrons cette valeur en binaire dans le fichier <em>tbs2.der</em> en exécutant la commande</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ pkfile letsencryptorg.der -n 1.1 -x -o tbs2.der</pre>
+<pre>$ pkfile letsencryptorg.der -n 1.1 -x -o tbs2.der</pre>
 </div>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 23</div>
-<p><span class="image"><img src="./images/img-extracttbs-alt2-2.png" alt="Image extraction tbsCertificate alternative 2 - 2"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-extracttbs-alt2-2.png" alt="Image extraction tbsCertificate alternative 2 - 2">
+</div>
+<div class="title">Fig. 28 </div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1746,12 +1810,14 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ sha256sum tbs.der</pre>
+<pre>$ sha256sum tbs.der</pre>
 </div>
 </div>
-<div class="paragraph">
-<div class="title">Fig. 20</div>
-<p><span class="image"><img src="./images/img-calchash-1-redim.png" alt="Calcul hash Linux"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-calchash-1-redim.png" alt="Calcul hash Linux">
+</div>
+<div class="title">Fig. 29 </div>
 </div>
 </div>
 </div>
@@ -1764,8 +1830,7 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 <div class="ulist">
 <ul>
 <li>
-<p>Utiliser <em>pkfile</em>, qui permet de calculer différents hash
-<span class="footnote">[<a id="_footnoteref_15" class="footnote" href="#_footnote_15" title="View footnote.">15</a>]</span>
+<p>Utiliser <em>pkfile</em>, qui permet de calculer différents hash<span class="footnote">[<a id="_footnoteref_15" class="footnote" href="#_footnote_15" title="View footnote.">15</a>]</span>
 .</p>
 </li>
 <li>
@@ -1781,16 +1846,20 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>\$ pkfile --sha256 tbs.der</pre>
+<pre>$ pkfile --sha256 tbs.der</pre>
 </div>
 </div>
-<div class="paragraph">
-<div class="title">Fig 21</div>
-<p><span class="image"><img src="./images/img-calchash-2.png" alt="Calcul hash Windows, 2"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-calchash-2.png" alt="Calcul hash Windows, 2">
 </div>
-<div class="paragraph">
-<div class="title">Fig 22</div>
-<p><span class="image"><img src="./images/img-calchash-3.png" alt="Calcul hash Windows, 3"></span></p>
+<div class="title">Fig. 30 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-calchash-3.png" alt="Calcul hash Windows, 3">
+</div>
+<div class="title">Fig. 31 </div>
 </div>
 </div>
 </div>
@@ -1876,6 +1945,7 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 </li>
 </ol>
 </div>
+<div style="page-break-after: always;"></div>
 </div>
 </div>
 </div>
@@ -1946,7 +2016,7 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 <a href="#_footnoteref_4">4</a>. Lorsque <em>bc</em> est lancé avec l&#8217;option <strong><em>-l</em></strong>, des fonctions mathématiques sont chargées au démarrage et <em>scale</em> vaut 20. Nous ne nous servirons pas de cette option dans ce document et <em>scale</em> sera toujours égal à zéro.
 </div>
 <div class="footnote" id="_footnote_5">
-<a href="#_footnoteref_5">5</a>. <em>2 * 8</em> produit toujours 16 (décimal). Si <em>ibase = 16</em> est exécuté alors qu&#8217;ibase vaut déjà 16, le résultat sera lu en hexadécimal et vaudra 22.
+<a href="#_footnoteref_5">5</a>. <em>2 * 8</em> produit toujours 16 (décimal). Si <em>16</em> est lu alors qu&#8217;ibase vaut déjà 16, le résultat sera lu en hexadécimal et vaudra 22.
 </div>
 <div class="footnote" id="_footnote_6">
 <a href="#_footnoteref_6">6</a>. <em>python</em> peut lire les nombres hexadécimaux indifféremment en majuscule et minuscule. <em>bc</em> exige des majuscules.
@@ -1981,7 +2051,8 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-02-27 18:08:53 CET
+Version 0.5<br>
+Last updated 2016-02-29 17:07:34 CET
 </div>
 </div>
 </body>
