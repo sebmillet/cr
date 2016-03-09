@@ -16,7 +16,7 @@
 Cet article décrit les calculs à réaliser pour vérifier des signatures RSA et ECDSA, dans le cas des certificats x509. Ces certificats sont couramment utilisés et servent notamment à la sécurisation https.
 
 * _RSA_{nbsp}: ce cas sera traité avec le certificat d'un serveur https.
-* _ECDSA_{nbsp}: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l'occasion, afin de se familiariser avec les calculs qu'implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (Certificat Électronique Visible). Ce dernier cas sort du cadre x509 qui est l'objet principal de cet article, le format pour un tel certificat étant 2D-Doc.
+* _ECDSA_{nbsp}: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l'occasion, afin de se familiariser avec les calculs qu'implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (Certificat Électronique Visible) footnote:[Ce dernier cas sort du cadre x509.]
 
 Au fil du document nous ferons appel aux outils suivants{nbsp}:
 
@@ -136,9 +136,8 @@ Dans la partie tbsCertificate de _letsencrypt.org_, intéressons-nous à deux é
 
 L'émetteur et le sujet ont également le pays (**C**) et l'organisation (**O**) définis dans leur nom, ainsi que d'autres éléments.
 Le "nom simple" ou "nom court" du certificat est son CN. Le standard x509 ne définit pas cette notion de "nom simple" ou "nom court", nous l'employons ici pour préciser que dans la pratique, le CN est le véritable nom du certificat, les autres éléments donnant des informations annexes.
-Parfois, seul le CN est affiché pour désigner un certificat.
 
-Cela dit, le nom du certificat (au sens du standard x509) est constitué de _la totlité des éléments qui le composent_, et non pas seulement du CN.
+Cela dit, le nom (au sens du standard x509) est constitué du DN (_**D**istinguished **N**ame_), il s'agit de la _la totalité des éléments qui le composent_ (et non pas seulement le CN).
 
 Le lien hiérarchique est toujours établi entre un émetteur et un sujet.
 L'émetteur est celui qui signe le certificat, le sujet est celui qui est signé. Voir figures 7 et 8.
@@ -148,6 +147,27 @@ Dans notre exemple, on voit que le certificat _TrustID Server CA A52_ est lui-m�
 
 [NOTE]
 Dans la pratique la situation se complique souvent avec des certificats croisés. Quoi qu'il en soit, la structure de base des liens qui relient les certificats est hiérarchique.
+
+.Quelques précisions
+****
+* Pour qu'un certificat joue le rôle émetteur, il doit être une autorité de certification ou CA (_**C**ertificate **A**uthority_), il s'agit de l'une des nombreuses options que l'on peut trouver dans un certificat.
+* En plus des éléments permettant d'identifier le sujet du certificat, la partie tbsCertificate contient sa _clé publique_. C'est précisément le rôle du certificat{nbsp}: _certifier_ la correspondance entre une entité (un DN) et une clé publique.
+* L'émetteur (qui est une autorité de certification) a toujours un numéro d'identification de clé (_Subject Key Identifier_). Cet identifiant, qui doit être par construction un entier, doit être enregistré dans les certificats émis comme numéro de clé d'autorité de certification (_Authority Key Identifier_). Cette logique permet de gérer facilement les cas où une autorité de certification possède plusieurs clés.
+** En résumé, quand un émetteur signe un sujet, on doit avoir égalité entre ces différents éléments
++
+[options="header", cols="4,1,4"]
+|====
+^|Dans le certificat émetteur ^|Lien ^|Dans le certificat sujet
+|Subject DN
+footnote:[Ici on a un peu simplifié les choses pour ne pas alourdir le texte. En fait l'émetteur est identifié par son DN mais aussi par un _Serial Number_, nécessaire dans les cas où une même entité (DN) est associée à différentes clés. Donc le lien hiérarchique est établi avec le couple (DN, Serial Number), qui correspond à un couple (DN, key) de manière unique. Le DN seul ne serait pas suffisant. Les identifiants de clé correspondent (de manière bi-univoque) à un couple (DN, key).]
+^|=
+|Issuer DN
+|Subject Key Identifier
+^|=
+|Authority Key Identifier
+|====
+** La RFC 5280 (<<4>>) impose l'emploi d'identifiants de clé lors de l'émission de certificats mais la section _4.2.1.2_ indique aussi que les applications ne sont pas obligées de vérifier les identifiants de clé lors de la validation d'une chaîne de certification. Conclusion{nbsp}? Il n'y en a pas.
+****
 
 [caption="Fig. 7 : Sujet du certificat", title=" "]
 image::img-crt-1-redim.png["Image certificat : sujet"]
@@ -174,7 +194,7 @@ Nous allons maintenant passer à la vérification de la signature RSA.
 * L'entité qui signe le certificat (l'émetteur du certificat) a pour clé RSA *(n, e)* (**n** est le modulo, **e** est l'exposant) et **d**.
 Le couple *(n, e)* est la clé publique, **d** est la clé privée.
 
-La page Wikipédia consacrée au système RSA{nbsp}<<4>> explique le lien entre _(n, e)_ et _d_, et nous indique le calcul à effectuer pour _chiffrer_.
+La page Wikipédia consacrée au système RSA{nbsp}<<5>> explique le lien entre _(n, e)_ et _d_, et nous indique le calcul à effectuer pour _chiffrer_.
 Pour _signer_, le calcul inverse le rôle de l'exposant privé et public, et pour _vérifier_ la signature, le rôle des exposants privé et public est encore inversé (par rapport à la signature).
 
 Dans notre exemple le tbsCertificate est celui de _letsencrypt.org_, tandis que la clé RSA (clé publique _(n, e)_ et clé privée _d_) est celle de _TrustID Server CA A52_.
@@ -198,10 +218,10 @@ footnote:[Ce calcul est le même que pour déchiffrer un message destiné au pro
 
 ==== Choix d'un programme de calcul
 
-Nous avons besoin d'une "calculatrice" qui calcule sur des nombres entiers arbitrairement grands, sans perte de précision. Dans la suite de ce document, c'est _bc_ qui sera utilisé{nbsp}<<5>>.
+Nous avons besoin d'une "calculatrice" qui calcule sur des nombres entiers arbitrairement grands, sans perte de précision. Dans la suite de ce document, c'est _bc_ qui sera utilisé{nbsp}<<6>>.
 
 * Linux{nbsp}: _bc_ est disponible par défaut sur la plupart des distributions.
-* Windows{nbsp}: les binaires sont accessibles à l'URL{nbsp}<<6>>.
+* Windows{nbsp}: les binaires sont accessibles à l'URL{nbsp}<<7>>.
 
 [NOTE]
 .Le choix de bc
@@ -338,7 +358,7 @@ Un éditeur suffisamment avancé comme _vim_ ou _emacs_ le permet aussi.
 ====
 Windows ne dispose pas par défaut d'outil pour passer du texte en majuscule. Il faut installer _GNUWin32_ ou _cygwin_.
 
-L'éditeur de texte (natif) adéquat pour ce type de transformation est *_notepad++_*, disponible à cette URL{nbsp}<<7>>.
+L'éditeur de texte (natif) adéquat pour ce type de transformation est *_notepad++_*, disponible à cette URL{nbsp}<<8>>.
 
 [NOTE]
 _vim_ et _emacs_ sont disponibles sous Windows.
@@ -378,8 +398,8 @@ Les amateurs de _python_ ont encore un avantage à ce stade. L'équivalent de la
 
 Pour ceux qui utilisent bc comme moi, il faut écrire la fonction.
 
-La fonction _powmod_ met en oeuvre l'algorithme d'exponentiation rapide, décrit à cette URL{nbsp}<<8>>.
-En fait nous sommes dans un contexte modulaire et d'après Wikipédia le nom exact de l'algorithme est _exponentiation modulaire_. Un article y est consacrée{nbsp}<<9>>.
+La fonction _powmod_ met en oeuvre l'algorithme d'exponentiation rapide, décrit à cette URL{nbsp}<<9>>.
+En fait nous sommes dans un contexte modulaire et d'après Wikipédia le nom exact de l'algorithme est _exponentiation modulaire_. Un article y est consacrée{nbsp}<<10>>.
 Les deux algorithmes font appel au même principe, mais le second exploite le contexte modulaire pour que les nombres manipulés n'atteignent pas une taille démesurée. C'est le second algorithme (_exponentiation modulaire_) dont nous avons besoin pour la suite.
 
 Sur Internet, on peut trouver la fonction _powmod_ dans de nombreux scripts _bc_ à télécharger. À noter qu'elle porte parfois d'autres noms, _mpower_ par exemple.
@@ -494,15 +514,15 @@ Pour afficher le contenu binaire (qui se trouve être encodé en DER) nous allon
 
 Par la suite nous utiliserons également _dder_ et _pkfile_, deux utilitaires créés par l'auteur de cet article pour afficher et extraire plus facilement ce type de données.
 
-_dder_ est disponible à l'URL{nbsp}<<10>>.
+_dder_ est disponible à l'URL{nbsp}<<11>>.
 
-_pkfile_ est disponible à l'URL{nbsp}<<11>>.
+_pkfile_ est disponible à l'URL{nbsp}<<12>>.
 
 .Exécutable openssl
 
 * Sous Linux ce programme est disponible par défaut.
 * Sous Windows il faut trouver un binaire à télécharger.
-Le plus simple est de télécharger la version GNUWin32, disponible à cette URL{nbsp}<<12>>.
+Le plus simple est de télécharger la version GNUWin32, disponible à cette URL{nbsp}<<13>>.
 +
 La version proposée au téléchargement (en février 2016) date de 2008. Des binaires plus récents sont disponibles sur Internet.
 Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.
@@ -661,7 +681,7 @@ Les outils _dder_ et _pkfile_ (_pkfile_ est présenté plus loin) peuvent lire i
 Il y a deux solutions pour ce faire
 
 . À la main
-. À l'aide de l'utilitaire _pkfile_. _pkfile_ est disponible à cette URL{nbsp}<<11>>.
+. À l'aide de l'utilitaire _pkfile_. _pkfile_ est disponible à cette URL{nbsp}<<12>>.
 
 .Extraction de tbsCertificate{nbsp}: alernative 1 (à la main)
 
@@ -767,8 +787,8 @@ Lels outils de calcul de hash ne sont pas disponibles par défaut. Voici quelque
 
 * Utiliser _pkfile_, qui permet de calculer différents hashfootnote:[_pkfile_ peut le faire aussi sous Linux, mais dans ce système il est plus logique d'utiliser les programmes déjà installés. La fonctionnalité de calcul de hash a été ajoutée à _pkfile_ pour simplifier les manipulations sous Windows.]
 .
-* Installer les outils _GNUWin32_, disponibles à cette URL{nbsp}<<12>>.
-* 7-ZIP ajoute des menus contextuels dans l'explorateur pour calculer différents hashs, dont SHA-256. 7-ZIP est disponible à cette URL{nbsp}<<13>>.
+* Installer les outils _GNUWin32_, disponibles à cette URL{nbsp}<<13>>.
+* 7-ZIP ajoute des menus contextuels dans l'explorateur pour calculer différents hashs, dont SHA-256. 7-ZIP est disponible à cette URL{nbsp}<<14>>.
 
 Exemple avec _pkfile_, exécuter
 ----
@@ -811,22 +831,158 @@ La _signature_ a été vérifiée mais le certificat lui-même n'a pas été val
 
 <<<
 
+== Vérification de signature ECDSA
+
+=== Cryptographie à courbes elliptiques
+
+Ce document se concentre sur les problématiques de calcul effectif et de formats de fichiers.
+Nous n'allons pas expliquer ici toute la cryptographie à base de courbes elliptiques, nous allons simplement en résumer les grandes lignes, donner les formules applicables et quelques définitions.
+
+==== Les deux familles de courbes elliptiques
+
+Les courbes sur _F~2^m^~_ (_binary field_)::
+Cette notation est un raccourci. On a _F~2^n^~ = F~2~[x]/(p(x))_ où _p(x)_ est un polynôme irréductible de degré _n_ (source{nbsp}: <<15>>). Les "nombres" manipulés sont des polynômes sur _F~2~_ et les opérations sont faites modulo _p(x)_. L'équation de la courbe (source{nbsp}: <<16>>) est
++
+_y^2^ + xy = x^3^ + ax^2^ + b_
++
+Les opérations sur _F~2^m^~_ portent sur des polynômes et leur arithmétique est distincte de l'arithmétique usuelle sur les nombres entiers. Par exemple quel que soit _A_ de _F~2^m^~_, on a _A{nbsp}+{nbsp}A{nbsp}={nbsp}0_ (soit _A{nbsp}={nbsp}-A_ pour tout _A_).
+
+Les courbes sur _F~p~_ (_prime field_)::
+_p_ est un nombre premier. On a _F~p~ = Z/pZ_ (source{nbsp}: <<17>>). Les opérations sont faites modulo _p_. L'équation de la courbe est
++
+_y^2^ (mod p) = x^3^ + ax + b (mod p)_
+
+==== Les paramètres de domaine
+
+Ces paramètres définissent les caractéristiques de la courbe. Une clé est définie pour une courbe et une seule, la courbe étant entièrement déterminée par ses paramètres de domaine. On parle aussi de paramètres de la courbe.
+
+Source{nbsp}: <<16>>.
+
+* Sur _F~2^m^~_, les paramètres sont (_m_, _f(x)_, _a_, _b_, _G_, _n_, _h_)
+** _m_, entier qui définit _F~2^m^~_.
+** _f(x)_, polynôme irréductible de degré _m_.
+** _a_ et _b_, les paramètres de l'équation _y^2^ + xy = x^3^ + ax^2^ + b_.
+** _G_, le générateur du groupe noté _E(F~2^m^~)_ (_G_ est un point de la courbe).
+** _n_ est l'ordre de la courbe.
+** _h_ est le cofacteur, c'est le nombre d'éléments de _E(F~2^m^~)_ divisé par _n_.
+
+* Sur _F~p~_, les paramètres sont (_p_, _a_, _b_, _G_, _n_, _h_)
+** _p_, nombre premier.
+** _a_ et _b_, les paramètres de l'équation _y^2^ (mod p) = x^3^ + ax + b (mod p)_.
+** _G_, le générateur du groupe noté _E(F~p~)_ (_G_ est un point de la courbe).
+** _n_ est l'ordre de la courbe.
+** _h_ est le cofacteur, c'est le nombre d'éléments de _E(F~p~)_ divisé par _n_.
+
+.Les courbes nommées
+
+Toute information pratique sur les courbes elliptiques (clé privée ou publique, signature...) n'est exploitable qu'avec les paramètres de domaine de la courbe elliptique utilisée.
+Les paramètres de domaine peuvent être donnés de deux manières{nbsp}: tels quels (les différents éléments vus précédemment et qui définissent une courbe, tels que _a_, _b_, _G_, etc.), ou bien sous la forme d'une _courbe nommée_.
+
+_openssl_ peut lister les courbes nommées{nbsp}:
+
+ $ openssl ecparam -list_curves
+   secp112r1 : SECG/WTLS curve over a 112 bit prime field
+   secp112r2 : SECG curve over a 112 bit prime field
+   [...]
+   brainpoolP512r1: RFC 5639 curve over a 512 bit prime field
+   brainpoolP512t1: RFC 5639 curve over a 512 bit prime field
+
+La commande suivante permet d'afficher les détails d'une courbe, exemple avec _secp256r1_{nbsp}:
+
+ $ openssl ecparam -name secp256r1 -noout -text
+ using curve name prime256v1 instead of secp256r1
+ ASN1 OID: prime256v1
+ NIST CURVE: P-256
+
+_openssl_ nous avertit que _secp256r1_ (définition "SECG"{nbsp}: <<18>>) est en fait la courbe _NIST P-256_ (définie ici <<19>>), qui porte le nom _prime256v1_ dans le standard _X9.62_.
+
+Tout ça pour dire quoi{nbsp}? Rien, à part que l'on peut se féliciter de vivre à l'heure d'Internet pour s'y retrouver dans la jungle des documents de normalisation.
+
+Et les paramètres de domaine{nbsp}? Il faut demander à _openssl_ d'afficher la courbe sous forme explicite{nbsp}:
+
+ $ openssl ecparam -name secp256r1 -noout -text -param_enc explicit
+ using curve name prime256v1 instead of secp256r1
+ Field Type: prime-field
+ Prime:
+     00:ff:ff:ff:ff:00:00:00:01:00:00:00:00:00:00:
+     00:00:00:00:00:00:ff:ff:ff:ff:ff:ff:ff:ff:ff:
+     ff:ff:ff
+ A:
+     00:ff:ff:ff:ff:00:00:00:01:00:00:00:00:00:00:
+     00:00:00:00:00:00:ff:ff:ff:ff:ff:ff:ff:ff:ff:
+     ff:ff:fc
+ B:
+     5a:c6:35:d8:aa:3a:93:e7:b3:eb:bd:55:76:98:86:
+     bc:65:1d:06:b0:cc:53:b0:f6:3b:ce:3c:3e:27:d2:
+     60:4b
+ Generator (uncompressed):
+     04:6b:17:d1:f2:e1:2c:42:47:f8:bc:e6:e5:63:a4:
+     40:f2:77:03:7d:81:2d:eb:33:a0:f4:a1:39:45:d8:
+     98:c2:96:4f:e3:42:e2:fe:1a:7f:9b:8e:e7:eb:4a:
+     7c:0f:9e:16:2b:ce:33:57:6b:31:5e:ce:cb:b6:40:
+     68:37:bf:51:f5
+ Order:
+     00:ff:ff:ff:ff:00:00:00:00:ff:ff:ff:ff:ff:ff:
+     ff:ff:bc:e6:fa:ad:a7:17:9e:84:f3:b9:ca:c2:fc:
+     63:25:51
+ Cofactor:  1 (0x1)
+ Seed:
+     c4:9d:36:08:86:e7:04:93:6a:66:78:e1:13:9d:26:
+     b7:81:9f:7e:90
+
+Tous ces paramètres ont été vus plus haut, sauf _Seed_. Qu'en est-il{nbsp}?
+_Seed_ est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n'importe qui, selon une spécification _X9.62_. Cela garantit qu'ils n'ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. _Seed_ est à l'origine des paramètres de la courbe mais il n'en fait pas partie.
+
+.Dans la pratique
+
+La RFC 5480 (<<20>>) interdit expressément l'usage de paramètres explicites dans le standard x509, seules les courbes nommées peuvent y être utilisées.
+
+Dans la suite nous allons calculer sur la courbe _prime256v1_. Les paramètres de cette courbe sont donnés ici <<18>>, sous le nom _secp256r1_.
+
+Assez recopié de documents de mathématiques trouvés sur Internet, ces équations nous serviront peu, c'était pour présenter les deux familles.
+Nous allons maintenant nous intéresser aux courbes sur _F~p~_.
+
+Ce tutorial est très bien fait <<18>>.
+Le document suivant donne les paramètres des courbes{nbsp}<<19>>.
+Enfin le document brainpool définit les paramètres de certaines courbes{nbsp}<<20>>.
+
+==== La courbe prime256v1
+
+Récupérons les paramètres (depuis _openssl_ ou depuis ce document{nbsp}<<18>>) de la courbe et enregistrons-les dans le fichier _secp256r1.b_.
+
+Pour représenter un point de la courbe nous utilisons la convention _point[0] = abcisse du point_ et _point[1] = ordonnée du point_.
+
+.secp256r1.b
+----
+include::secp256r1.b[]
+----
+
 == Bibliography
 
 * *[[[1]]]* Présentation de l'ASN.1{nbsp}: http://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx
 * *[[[2]]]* Document X.690 (format PDF){nbsp}: https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
 * *[[[3]]]* Article Wikipédia consacré au X.690{nbsp}: https://en.wikipedia.org/wiki/X.690
-* *[[[4]]]* Article Wikipédia consacré au RSA{nbsp}: https://fr.wikipedia.org/wiki/Chiffrement_RSA
-* *[[[5]]]* Page d'accueil de _bc_{nbsp}: https://www.gnu.org/software/bc/
-* *[[[6]]]* _bc_ pour Windows{nbsp}: http://gnuwin32.sourceforge.net/packages/bc.htm
+* *[[[4]]]* RFC 5280 (certificats x509 v3){nbsp}: https://tools.ietf.org/html/rfc5280
+* *[[[5]]]* Article Wikipédia consacré au RSA{nbsp}: https://fr.wikipedia.org/wiki/Chiffrement_RSA
+* *[[[6]]]* Page d'accueil de _bc_{nbsp}: https://www.gnu.org/software/bc/
+* *[[[7]]]* _bc_ pour Windows{nbsp}: http://gnuwin32.sourceforge.net/packages/bc.htm
 +
 _bc_ a besoin du fichier _readline5.dll_ pour s'exécuter. Vous pouvez le trouver à cette URL{nbsp}: http://gnuwin32.sourceforge.net/packages/readline.htm
 
-* *[[[7]]]* Le site de notepad++ {nbsp}: https://notepad-plus-plus.org/fr
-* *[[[8]]]* Article Wikipédia sur l'algorithme d'exponentiation rapide{nbsp}: https://fr.wikipedia.org/wiki/Exponentiation_rapide
-* *[[[9]]]* Article Wikipédia sur l'exponentiation modulaire{nbsp}: https://fr.wikipedia.org/wiki/Exponentiation_modulaire
-* *[[[10]]]* Obtenir _dder_{nbsp}: http://dder.sourceforge.net
-* *[[[11]]]* Obtenir _pkfile_{nbsp}: http://pkfile.sourceforge.net
-* *[[[12]]]* GNUWin32{nbsp}: http://gnuwin32.sourceforge.net/packages/openssl.htm
-* *[[[13]]]* Télécharger 7-ZIP{nbsp}: http://www.7-zip.org/download.html
+* *[[[8]]]* Le site de notepad++ {nbsp}: https://notepad-plus-plus.org/fr
+* *[[[9]]]* Article Wikipédia sur l'algorithme d'exponentiation rapide{nbsp}: https://fr.wikipedia.org/wiki/Exponentiation_rapide
+* *[[[10]]]* Article Wikipédia sur l'exponentiation modulaire{nbsp}: https://fr.wikipedia.org/wiki/Exponentiation_modulaire
+* *[[[11]]]* Obtenir _dder_{nbsp}: http://dder.sourceforge.net
+* *[[[12]]]* Obtenir _pkfile_{nbsp}: http://pkfile.sourceforge.net
+* *[[[13]]]* GNUWin32{nbsp}: http://gnuwin32.sourceforge.net/packages/openssl.htm
+* *[[[14]]]* Télécharger 7-ZIP{nbsp}: http://www.7-zip.org/download.html
+* *[[[15]]]* Peter Seibt, Andreea Dragut Cours de cryptographie Chapitre V{nbsp}: http://www.dil.univ-mrs.fr/~jfp/master/m03/CompresChap5AES.pdf
+* *[[[16]]]* An introduction to elliptic curve cryptography{nbsp}: http://www.embedded.com/design/safety-and-security/4396040/An-Introduction-to-Elliptic-Curve-Cryptography
+* *[[[17]]]* Corps finis{nbsp}: http://iml.univ-mrs.fr/~rodier/Cours/RappelCorps%20finis.pdf
+* *[[[18]]]* SEC 2: Recommended Elliptic Curve Domain Parameters{nbsp}: http://www.secg.org/SEC2-Ver-1.0.pdf
+* *[[[19]]]* RECOMMENDED ELLIPTIC CURVES FOR FEDERAL GOVERNMENT USE{nbsp}: http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf
+* *[[[20]]]* Elliptic Curve Cryptography Subject Public Key Information{nbsp}: https://tools.ietf.org/html/rfc5480
+
+* *[[[99]]]* ECC Tutorial (en anglais){nbsp}: http://www.johannes-bauer.com/compsci/ecc
+* *[[[98]]]* Paramètres de domain brainpool{nbsp}: http://www.ecc-brainpool.org/download/Domain-parameters.pdf
 
