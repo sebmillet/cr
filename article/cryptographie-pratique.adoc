@@ -898,7 +898,7 @@ _openssl_ nous avertit que _secp256r1_ (définition "SECG"{nbsp}: <<18>>) est en
 
 Tout ça pour dire quoi{nbsp}? Rien, à part que l'on peut se féliciter de vivre à l'heure d'Internet pour s'y retrouver dans la jungle des documents de normalisation.
 
-Et les paramètres de domaine{nbsp}? Il faut demander à _openssl_ d'afficher la courbe sous forme explicite{nbsp}:
+Et les paramètres de domaine{nbsp}? Il faut demander à _openssl_ d'afficher les paramètres de la courbe sous forme explicite{nbsp}:
 
  $ openssl ecparam -name secp256r1 -noout -text -param_enc explicit
  using curve name prime256v1 instead of secp256r1
@@ -931,7 +931,7 @@ Et les paramètres de domaine{nbsp}? Il faut demander à _openssl_ d'afficher la
      b7:81:9f:7e:90
 
 Tous ces paramètres ont été vus plus haut, sauf _Seed_. Qu'en est-il{nbsp}?
-_Seed_ est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n'importe qui, selon une spécification _X9.62_. Cela garantit qu'ils n'ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. _Seed_ est à l'origine des paramètres de la courbe mais il n'en fait pas partie.
+_Seed_ est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n'importe qui, selon une spécification _X9.62_. Cela garantit qu'ils n'ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. _Seed_ est à l'origine des paramètres de la courbe mais il n'en fait pas partie. Le passage de _Seed_ aux paramètres utilise des fonctions de hachage à sens unique qui garantit que le choix ne s'est pas fait dans l'autre sens (détermination de paramètres ad hoc puis du _Seed_ correspondant).
 
 .Dans la pratique
 
@@ -956,6 +956,51 @@ Pour représenter un point de la courbe nous utilisons la convention _point[0] =
 ----
 include::secp256r1.b[]
 ----
+
+Au passage, on peut vérifier que le point G (de coordonénes g[0] pour G~x~ et g[1] pour G~y~ dans _secp256r1.b_) fait bien partie de la courbe{nbsp}:
+
+image::img-verif-prime256v1-redim.png["Vérification prime256v1"]
+
+==== L'arithmétique sur les courbes
+
+Les calculs sont presque tous faits footnote:[Dans la signature ECDSA certains calculs sont faits modulo _n_, l'ordre du groupe associé à la courbe. Dans ce cas nous le préciserons.]
+modulo _p_ et nous ne le préciserons plus par la suite.
+
+.Clés privée et publique
+
+La construction d'une paire de clés privée et publique consiste à
+
+. Choisir un entier _k_ inférieur à _p_
+. Calculer _Q = kG_ (voir ci-après la multiplication d'un point par un scalaire)
+
+Le point _Q_ est la clé publique, l'entier _k_ est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même "nature" (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.
+
+.Addition de deux points distincts
+
+La signification de l'addition de deux points est géométrique et on peut le voir ici{nbsp}<<21>>.
+
+Les formules qui en découlent sont les suivantes, pour _R{nbsp}={nbsp}P{nbsp}+{nbsp}Q_ de coordonnées (_r~x~_, _r~y~_), (_p~x~_, _p~y~_) et (_q~x~_, _q~y~_) respectivement, _P_ étant différent de _Q_{nbsp}:
+
+image::img-point-add.png["Addition de deux points"]
+
+.Addition d'un point avec lui-même
+
+Pour _P{nbsp}={nbsp}Q_, le calcul de _R{nbsp}={nbsp}P{nbsp}+{nbsp}P{nbsp}={nbsp}2P_ est (en reprenant les notations précédentes){nbsp}:
+
+image::img-point-dbl.png["Addition d'un point avec lui-même"]
+
+[IMPORTANT]
+Le symbole de fraction n'est pas la division euclidienne mais la multiplication par l'inverse modulo _p_.
+
+Avec les formules qui précèdent, on sait calculer _P{nbsp}{plus}{nbsp}P{nbsp}={nbsp}2P_, _P{nbsp}{plus}{nbsp}2P{nbsp}={nbsp}3P_, et ainsi de suite.
+On sait donc calculer _kP_, _k_ entier.
+
+.Multiplication par un entier _k_ de grande taille
+
+Les _k_ utilisés en pratique pouvant être très grands (de l'ordre de 2^256^ avec _prime256v1_), il n'est pas possible de calculer _kP_ en ajoutant _P_ à lui-même _k_ fois.
+
+Il faut utiliser l'algorithme d'exponentiation rapide vu précédemment{nbsp}<<9>>.
+Remplacer la multiplication d'entiers par l'addition de deux points et l'élévation à la puissance par la multiplication.
 
 == Bibliography
 
@@ -982,6 +1027,7 @@ _bc_ a besoin du fichier _readline5.dll_ pour s'exécuter. Vous pouvez le trouve
 * *[[[18]]]* SEC 2: Recommended Elliptic Curve Domain Parameters{nbsp}: http://www.secg.org/SEC2-Ver-1.0.pdf
 * *[[[19]]]* RECOMMENDED ELLIPTIC CURVES FOR FEDERAL GOVERNMENT USE{nbsp}: http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf
 * *[[[20]]]* Elliptic Curve Cryptography Subject Public Key Information{nbsp}: https://tools.ietf.org/html/rfc5480
+* *[[[21]]]* "Courbe elliptique" sur Wikipédia{nbsp}: https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes
 
 * *[[[99]]]* ECC Tutorial (en anglais){nbsp}: http://www.johannes-bauer.com/compsci/ecc
 * *[[[98]]]* Paramètres de domain brainpool{nbsp}: http://www.ecc-brainpool.org/download/Domain-parameters.pdf

@@ -459,6 +459,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_les_deux_familles_de_courbes_elliptiques">4.1.1. Les deux familles de courbes elliptiques</a></li>
 <li><a href="#_les_paramètres_de_domaine">4.1.2. Les paramètres de domaine</a></li>
 <li><a href="#_la_courbe_prime256v1">4.1.3. La courbe prime256v1</a></li>
+<li><a href="#_l_arithmétique_sur_les_courbes">4.1.4. L&#8217;arithmétique sur les courbes</a></li>
 </ul>
 </li>
 </ul>
@@ -2142,7 +2143,7 @@ NIST CURVE: P-256</pre>
 <p>Tout ça pour dire quoi&#160;? Rien, à part que l&#8217;on peut se féliciter de vivre à l&#8217;heure d&#8217;Internet pour s&#8217;y retrouver dans la jungle des documents de normalisation.</p>
 </div>
 <div class="paragraph">
-<p>Et les paramètres de domaine&#160;? Il faut demander à <em>openssl</em> d&#8217;afficher la courbe sous forme explicite&#160;:</p>
+<p>Et les paramètres de domaine&#160;? Il faut demander à <em>openssl</em> d&#8217;afficher les paramètres de la courbe sous forme explicite&#160;:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -2179,7 +2180,7 @@ Seed:
 </div>
 <div class="paragraph">
 <p>Tous ces paramètres ont été vus plus haut, sauf <em>Seed</em>. Qu&#8217;en est-il&#160;?
-<em>Seed</em> est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n&#8217;importe qui, selon une spécification <em>X9.62</em>. Cela garantit qu&#8217;ils n&#8217;ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. <em>Seed</em> est à l&#8217;origine des paramètres de la courbe mais il n&#8217;en fait pas partie.</p>
+<em>Seed</em> est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n&#8217;importe qui, selon une spécification <em>X9.62</em>. Cela garantit qu&#8217;ils n&#8217;ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. <em>Seed</em> est à l&#8217;origine des paramètres de la courbe mais il n&#8217;en fait pas partie. Le passage de <em>Seed</em> aux paramètres utilise des fonctions de hachage à sens unique qui garantit que le choix ne s&#8217;est pas fait dans l&#8217;autre sens (détermination de paramètres ad hoc puis du <em>Seed</em> correspondant).</p>
 </div>
 <div class="paragraph">
 <div class="title">Dans la pratique</div>
@@ -2220,6 +2221,83 @@ n=FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
 h=1
 ibase=save_ibase</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Au passage, on peut vérifier que le point G (de coordonénes g[0] pour G<sub>x</sub> et g[1] pour G<sub>y</sub> dans <em>secp256r1.b</em>) fait bien partie de la courbe&#160;:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-verif-prime256v1-redim.png" alt="Vérification prime256v1">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_l_arithmétique_sur_les_courbes">4.1.4. L&#8217;arithmétique sur les courbes</h4>
+<div class="paragraph">
+<p>Les calculs sont presque tous faits <span class="footnote">[<a id="_footnoteref_18" class="footnote" href="#_footnote_18" title="View footnote.">18</a>]</span>
+modulo <em>p</em> et nous ne le préciserons plus par la suite.</p>
+</div>
+<div class="paragraph">
+<div class="title">Clés privée et publique</div>
+<p>La construction d&#8217;une paire de clés privée et publique consiste à</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Choisir un entier <em>k</em> inférieur à <em>p</em></p>
+</li>
+<li>
+<p>Calculer <em>Q = kG</em> (voir ci-après la multiplication d&#8217;un point par un scalaire)</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Le point <em>Q</em> est la clé publique, l&#8217;entier <em>k</em> est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même "nature" (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.</p>
+</div>
+<div class="paragraph">
+<div class="title">Addition de deux points distincts</div>
+<p>La signification de l&#8217;addition de deux points est géométrique et on peut le voir ici&#160;<a href="#21">[21]</a>.</p>
+</div>
+<div class="paragraph">
+<p>Les formules qui en découlent sont les suivantes, pour <em>R&#160;=&#160;P&#160;+&#160;Q</em> de coordonnées (<em>r<sub>x</sub></em>, <em>r<sub>y</sub></em>), (<em>p<sub>x</sub></em>, <em>p<sub>y</sub></em>) et (<em>q<sub>x</sub></em>, <em>q<sub>y</sub></em>) respectivement, <em>P</em> étant différent de <em>Q</em>&#160;:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-point-add.png" alt="Addition de deux points">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Addition d&#8217;un point avec lui-même</div>
+<p>Pour <em>P&#160;=&#160;Q</em>, le calcul de <em>R&#160;=&#160;P&#160;+&#160;P&#160;=&#160;2P</em> est (en reprenant les notations précédentes)&#160;:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-point-dbl.png" alt="Addition d'un point avec lui-même">
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+Le symbole de fraction n&#8217;est pas la division euclidienne mais la multiplication par l&#8217;inverse modulo <em>p</em>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Avec les formules qui précèdent, on sait calculer <em>P&#160;&#43;&#160;P&#160;=&#160;2P</em>, <em>P&#160;&#43;&#160;2P&#160;=&#160;3P</em>, et ainsi de suite.
+On sait donc calculer <em>kP</em>, <em>k</em> entier.</p>
+</div>
+<div class="paragraph">
+<div class="title">Multiplication par un entier <em>k</em> de grande taille</div>
+<p>Les <em>k</em> utilisés en pratique pouvant être très grands (de l&#8217;ordre de 2<sup>256</sup> avec <em>prime256v1</em>), il n&#8217;est pas possible de calculer <em>kP</em> en ajoutant <em>P</em> à lui-même <em>k</em> fois.</p>
+</div>
+<div class="paragraph">
+<p>Il faut utiliser l&#8217;algorithme d&#8217;exponentiation rapide vu précédemment&#160;<a href="#9">[9]</a>.
+Remplacer la multiplication d&#8217;entiers par l&#8217;addition de deux points et l&#8217;élévation à la puissance par la multiplication.</p>
 </div>
 </div>
 </div>
@@ -2294,6 +2372,9 @@ ibase=save_ibase</pre>
 <p><strong><a id="20"></a>[20]</strong> Elliptic Curve Cryptography Subject Public Key Information&#160;: <a href="https://tools.ietf.org/html/rfc5480" class="bare">https://tools.ietf.org/html/rfc5480</a></p>
 </li>
 <li>
+<p><strong><a id="21"></a>[21]</strong> "Courbe elliptique" sur Wikipédia&#160;: <a href="https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes" class="bare">https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes</a></p>
+</li>
+<li>
 <p><strong><a id="99"></a>[99]</strong> ECC Tutorial (en anglais)&#160;: <a href="http://www.johannes-bauer.com/compsci/ecc" class="bare">http://www.johannes-bauer.com/compsci/ecc</a></p>
 </li>
 <li>
@@ -2357,11 +2438,14 @@ ibase=save_ibase</pre>
 <div class="footnote" id="_footnote_17">
 <a href="#_footnoteref_17">17</a>. <em>pkfile</em> peut le faire aussi sous Linux, mais dans ce système il est plus logique d&#8217;utiliser les programmes déjà installés. La fonctionnalité de calcul de hash a été ajoutée à <em>pkfile</em> pour simplifier les manipulations sous Windows.
 </div>
+<div class="footnote" id="_footnote_18">
+<a href="#_footnoteref_18">18</a>. Dans la signature ECDSA certains calculs sont faits modulo <em>n</em>, l&#8217;ordre du groupe associé à la courbe. Dans ce cas nous le préciserons.
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 0.5<br>
-Last updated 2016-03-09 21:56:23 CET
+Last updated 2016-03-10 22:26:39 CET
 </div>
 </div>
 </body>
