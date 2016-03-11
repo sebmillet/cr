@@ -931,39 +931,18 @@ Et les paramètres de domaine{nbsp}? Il faut demander à _openssl_ d'afficher le
      b7:81:9f:7e:90
 
 Tous ces paramètres ont été vus plus haut, sauf _Seed_. Qu'en est-il{nbsp}?
-_Seed_ est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n'importe qui, selon une spécification _X9.62_. Cela garantit qu'ils n'ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. _Seed_ est à l'origine des paramètres de la courbe mais il n'en fait pas partie. Le passage de _Seed_ aux paramètres utilise des fonctions de hachage à sens unique qui garantit que le choix ne s'est pas fait dans l'autre sens (détermination de paramètres ad hoc puis du _Seed_ correspondant).
+_Seed_ est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n'importe qui, selon une spécification _X9.62_. Cela garantit qu'ils n'ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. _Seed_ est à l'origine des paramètres de la courbe mais il n'en fait pas partie. Le passage de _Seed_ aux paramètres utilise une fonction de hachage à sens unique, ce qui garantit que le choix ne s'est pas fait dans l'autre sens (détermination de paramètres ad hoc puis du _Seed_ correspondant).
 
-.Dans la pratique
+.Le x509
 
 La RFC 5480 (<<20>>) interdit expressément l'usage de paramètres explicites dans le standard x509, seules les courbes nommées peuvent y être utilisées.
 
-Dans la suite nous allons calculer sur la courbe _prime256v1_. Les paramètres de cette courbe sont donnés ici <<18>>, sous le nom _secp256r1_.
+Nous allons maintenant nous intéresser aux courbes sur les corps premiers (_F~p~_).
+Les courbes binaires fonctionnent selon les mêmes principes mais les calculs sont faits sur des polynômes, et si l'on souhaite y mener des calculs avec _bc_ ou _python_, cela nécessite de coder spécifiquement leur arithmétique. Ce n'est pas l'objet de ce document et nous examinerons seulement les courbes sur _F~p~_.
 
-Assez recopié de documents de mathématiques trouvés sur Internet, ces équations nous serviront peu, c'était pour présenter les deux familles.
-Nous allons maintenant nous intéresser aux courbes sur _F~p~_.
+==== L'arithmétique des courbes sur _F~p~_
 
-Ce tutorial est très bien fait <<18>>.
-Le document suivant donne les paramètres des courbes{nbsp}<<19>>.
-Enfin le document brainpool définit les paramètres de certaines courbes{nbsp}<<20>>.
-
-==== La courbe prime256v1
-
-Récupérons les paramètres (depuis _openssl_ ou depuis ce document{nbsp}<<18>>) de la courbe et enregistrons-les dans le fichier _secp256r1.b_.
-
-Pour représenter un point de la courbe nous utilisons la convention _point[0] = abcisse du point_ et _point[1] = ordonnée du point_.
-
-.secp256r1.b
-----
-include::secp256r1.b[]
-----
-
-Au passage, on peut vérifier que le point G (de coordonénes g[0] pour G~x~ et g[1] pour G~y~ dans _secp256r1.b_) fait bien partie de la courbe{nbsp}:
-
-image::img-verif-prime256v1-redim.png["Vérification prime256v1"]
-
-==== L'arithmétique sur les courbes
-
-Les calculs sont presque tous faits footnote:[Dans la signature ECDSA certains calculs sont faits modulo _n_, l'ordre du groupe associé à la courbe. Dans ce cas nous le préciserons.]
+Les calculs sont presque tous faits footnote:[Dans la signature ECDSA certains calculs sont faits modulo _n_, l'ordre du groupe associé à la courbe. Cela sera signalé. À défaut, tous les calculs sont faits modulo _p_.]
 modulo _p_ et nous ne le préciserons plus par la suite.
 
 .Clés privée et publique
@@ -973,13 +952,13 @@ La construction d'une paire de clés privée et publique consiste à
 . Choisir un entier _k_ inférieur à _p_
 . Calculer _Q = kG_ (voir ci-après la multiplication d'un point par un scalaire)
 
-Le point _Q_ est la clé publique, l'entier _k_ est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même "nature" (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.
+Le point _Q_ est la clé publique, l'entier _k_ est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.
 
 .Addition de deux points distincts
 
 La signification de l'addition de deux points est géométrique et on peut le voir ici{nbsp}<<21>>.
 
-Les formules qui en découlent sont les suivantes, pour _R{nbsp}={nbsp}P{nbsp}+{nbsp}Q_ de coordonnées (_r~x~_, _r~y~_), (_p~x~_, _p~y~_) et (_q~x~_, _q~y~_) respectivement, _P_ étant différent de _Q_{nbsp}:
+Les formules qui en découlent sont les suivantes, pour _R{nbsp}={nbsp}P{nbsp}+{nbsp}Q_ de coordonnées (_r~x~_, _r~y~_), (_p~x~_, _p~y~_) et (_q~x~_, _q~y~_) respectivement, _P_ étant différent de _Q_ et non aligné verticalement (_p~x~_ est différent de _q~x~_){nbsp}:
 
 image::img-point-add.png["Addition de deux points"]
 
@@ -992,15 +971,40 @@ image::img-point-dbl.png["Addition d'un point avec lui-même"]
 [IMPORTANT]
 Le symbole de fraction n'est pas la division euclidienne mais la multiplication par l'inverse modulo _p_.
 
+.Multiplication d'un point par un entier naturel
+
 Avec les formules qui précèdent, on sait calculer _P{nbsp}{plus}{nbsp}P{nbsp}={nbsp}2P_, _P{nbsp}{plus}{nbsp}2P{nbsp}={nbsp}3P_, et ainsi de suite.
 On sait donc calculer _kP_, _k_ entier.
 
-.Multiplication par un entier _k_ de grande taille
+[NOTE]
+.Addition de deux points alignés verticalement
+======================================
+Si _P_ et _Q_ sont alignés verticalement ils sont opposés (cela découle du terme _y^2^_ de l'équation), on a donc _P{nbsp}={nbsp}-Q_ que l'on peut aussi écrire _P{nbsp}{plus}{nbsp}Q{nbsp}={nbsp}O_. _O_ est le "point à l'infini" de la courbe elliptique et il joue le même rôle que zéro dans l'addition des entiers. Ainsi on a _P{nbsp}{plus}{nbsp}O{nbsp}={nbsp}O{plus}P{nbsp}={nbsp}O_ quel que soit _P_ sur la courbe.
+======================================
 
-Les _k_ utilisés en pratique pouvant être très grands (de l'ordre de 2^256^ avec _prime256v1_), il n'est pas possible de calculer _kP_ en ajoutant _P_ à lui-même _k_ fois.
+.Multiplication par un entier _k_ très grand
 
-Il faut utiliser l'algorithme d'exponentiation rapide vu précédemment{nbsp}<<9>>.
-Remplacer la multiplication d'entiers par l'addition de deux points et l'élévation à la puissance par la multiplication.
+Les _k_ utilisés en pratique étant des grands nombres (de l'ordre de 2^256^ avec _prime256v1_), il n'est pas possible de calculer _kP_ en ajoutant _P_ à lui-même _k_ fois.
+
+Il faut utiliser l'algorithme d'exponentiation rapide vu précédemment{nbsp}: <<9>>.
+Remplacer la multiplication de deux entiers par l'addition de deux points et l'élévation à la puissance par la multiplication d'un point par un entier.
+
+==== La courbe prime256v1
+
+Récupérons les paramètres (depuis _openssl_ ou depuis ce document{nbsp}<<18>>) de la courbe et enregistrons-les dans le fichier _secp256r1.b_.
+
+Pour représenter un point de la courbe nous utilisons la convention _point[0] = abscisse du point_ et _point[1] = ordonnée du point_.
+
+.secp256r1.b
+----
+include::secp256r1.b[]
+----
+
+Au passage, on peut vérifier que le point G (de coordonénes g[0] pour G~x~ et g[1] pour G~y~ dans _secp256r1.b_) fait bien partie de la courbe{nbsp}:
+
+image::img-verif-prime256v1-redim.png["Vérification prime256v1"]
+
+
 
 == Bibliography
 
