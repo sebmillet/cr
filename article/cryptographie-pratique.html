@@ -458,8 +458,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#_les_deux_familles_de_courbes_elliptiques">4.1.1. Les deux familles de courbes elliptiques</a></li>
 <li><a href="#_les_paramètres_de_domaine">4.1.2. Les paramètres de domaine</a></li>
-<li><a href="#_la_courbe_prime256v1">4.1.3. La courbe prime256v1</a></li>
-<li><a href="#_l_arithmétique_sur_les_courbes">4.1.4. L&#8217;arithmétique sur les courbes</a></li>
+<li><a href="#_l_arithmétique_des_courbes_sur_em_f_sub_p_sub_em">4.1.3. L&#8217;arithmétique des courbes sur <em>F<sub>p</sub></em></a></li>
+<li><a href="#_représentation_d_un_point">4.1.4. Représentation d&#8217;un point</a></li>
+<li><a href="#_la_courbe_prime256v1_secp256r1">4.1.5. La courbe prime256v1 (secp256r1)</a></li>
 </ul>
 </li>
 </ul>
@@ -2180,61 +2181,21 @@ Seed:
 </div>
 <div class="paragraph">
 <p>Tous ces paramètres ont été vus plus haut, sauf <em>Seed</em>. Qu&#8217;en est-il&#160;?
-<em>Seed</em> est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n&#8217;importe qui, selon une spécification <em>X9.62</em>. Cela garantit qu&#8217;ils n&#8217;ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. <em>Seed</em> est à l&#8217;origine des paramètres de la courbe mais il n&#8217;en fait pas partie. Le passage de <em>Seed</em> aux paramètres utilise des fonctions de hachage à sens unique qui garantit que le choix ne s&#8217;est pas fait dans l&#8217;autre sens (détermination de paramètres ad hoc puis du <em>Seed</em> correspondant).</p>
+<em>Seed</em> est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n&#8217;importe qui, selon une spécification <em>X9.62</em>. Cela garantit qu&#8217;ils n&#8217;ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. <em>Seed</em> est à l&#8217;origine des paramètres de la courbe mais il n&#8217;en fait pas partie. Le passage de <em>Seed</em> aux paramètres utilise une fonction de hachage à sens unique, ce qui garantit que le choix ne s&#8217;est pas fait dans l&#8217;autre sens (détermination de paramètres ad hoc puis du <em>Seed</em> correspondant).</p>
 </div>
 <div class="paragraph">
-<div class="title">Dans la pratique</div>
+<div class="title">Le x509</div>
 <p>La RFC 5480 (<a href="#20">[20]</a>) interdit expressément l&#8217;usage de paramètres explicites dans le standard x509, seules les courbes nommées peuvent y être utilisées.</p>
 </div>
 <div class="paragraph">
-<p>Dans la suite nous allons calculer sur la courbe <em>prime256v1</em>. Les paramètres de cette courbe sont donnés ici <a href="#18">[18]</a>, sous le nom <em>secp256r1</em>.</p>
-</div>
-<div class="paragraph">
-<p>Assez recopié de documents de mathématiques trouvés sur Internet, ces équations nous serviront peu, c&#8217;était pour présenter les deux familles.
-Nous allons maintenant nous intéresser aux courbes sur <em>F<sub>p</sub></em>.</p>
-</div>
-<div class="paragraph">
-<p>Ce tutorial est très bien fait <a href="#18">[18]</a>.
-Le document suivant donne les paramètres des courbes&#160;<a href="#19">[19]</a>.
-Enfin le document brainpool définit les paramètres de certaines courbes&#160;<a href="#20">[20]</a>.</p>
+<p>Nous allons maintenant nous intéresser aux courbes sur les corps premiers (<em>F<sub>p</sub></em>).
+Les courbes binaires fonctionnent selon les mêmes principes mais les "nombres" manipulés sont des polynômes sur <em>F<sub>2</sub></em>, et si l&#8217;on souhaite y mener des calculs avec <em>bc</em> ou <em>python</em>, cela nécessite de coder spécifiquement leur arithmétique. Dans ce document nous ferons des calculs sur <em>F<sub>p</sub></em> uniquement.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_la_courbe_prime256v1">4.1.3. La courbe prime256v1</h4>
+<h4 id="_l_arithmétique_des_courbes_sur_em_f_sub_p_sub_em">4.1.3. L&#8217;arithmétique des courbes sur <em>F<sub>p</sub></em></h4>
 <div class="paragraph">
-<p>Récupérons les paramètres (depuis <em>openssl</em> ou depuis ce document&#160;<a href="#18">[18]</a>) de la courbe et enregistrons-les dans le fichier <em>secp256r1.b</em>.</p>
-</div>
-<div class="paragraph">
-<p>Pour représenter un point de la courbe nous utilisons la convention <em>point[0] = abcisse du point</em> et <em>point[1] = ordonnée du point</em>.</p>
-</div>
-<div class="listingblock">
-<div class="title">secp256r1.b</div>
-<div class="content">
-<pre>save_ibase=ibase
-ibase=2^4
-p=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
-a=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC
-b=5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B
-g[0]=6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296
-g[1]=4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5
-n=FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
-h=1
-ibase=save_ibase</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Au passage, on peut vérifier que le point G (de coordonénes g[0] pour G<sub>x</sub> et g[1] pour G<sub>y</sub> dans <em>secp256r1.b</em>) fait bien partie de la courbe&#160;:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/img-verif-prime256v1-redim.png" alt="Vérification prime256v1">
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_l_arithmétique_sur_les_courbes">4.1.4. L&#8217;arithmétique sur les courbes</h4>
-<div class="paragraph">
-<p>Les calculs sont presque tous faits <span class="footnote">[<a id="_footnoteref_18" class="footnote" href="#_footnote_18" title="View footnote.">18</a>]</span>
+<p>Les calculs sont faits <span class="footnote">[<a id="_footnoteref_18" class="footnote" href="#_footnote_18" title="View footnote.">18</a>]</span>
 modulo <em>p</em> et nous ne le préciserons plus par la suite.</p>
 </div>
 <div class="paragraph">
@@ -2252,14 +2213,14 @@ modulo <em>p</em> et nous ne le préciserons plus par la suite.</p>
 </ol>
 </div>
 <div class="paragraph">
-<p>Le point <em>Q</em> est la clé publique, l&#8217;entier <em>k</em> est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même "nature" (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.</p>
+<p>Le point <em>Q</em> est la clé publique, l&#8217;entier <em>k</em> est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.</p>
 </div>
 <div class="paragraph">
 <div class="title">Addition de deux points distincts</div>
 <p>La signification de l&#8217;addition de deux points est géométrique et on peut le voir ici&#160;<a href="#21">[21]</a>.</p>
 </div>
 <div class="paragraph">
-<p>Les formules qui en découlent sont les suivantes, pour <em>R&#160;=&#160;P&#160;+&#160;Q</em> de coordonnées (<em>r<sub>x</sub></em>, <em>r<sub>y</sub></em>), (<em>p<sub>x</sub></em>, <em>p<sub>y</sub></em>) et (<em>q<sub>x</sub></em>, <em>q<sub>y</sub></em>) respectivement, <em>P</em> étant différent de <em>Q</em>&#160;:</p>
+<p>Les formules qui en découlent sont les suivantes, pour <em>R&#160;=&#160;P&#160;+&#160;Q</em> de coordonnées (<em>r<sub>x</sub></em>, <em>r<sub>y</sub></em>), (<em>p<sub>x</sub></em>, <em>p<sub>y</sub></em>) et (<em>q<sub>x</sub></em>, <em>q<sub>y</sub></em>) respectivement, <em>P</em> étant non aligné verticalement avec <em>Q</em> (<em>p<sub>x</sub></em> est différent de <em>q<sub>x</sub></em>)&#160;:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2288,16 +2249,106 @@ Le symbole de fraction n&#8217;est pas la division euclidienne mais la multiplic
 </table>
 </div>
 <div class="paragraph">
+<div class="title">Multiplication d&#8217;un point par un entier naturel</div>
 <p>Avec les formules qui précèdent, on sait calculer <em>P&#160;&#43;&#160;P&#160;=&#160;2P</em>, <em>P&#160;&#43;&#160;2P&#160;=&#160;3P</em>, et ainsi de suite.
 On sait donc calculer <em>kP</em>, <em>k</em> entier.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Addition de deux points alignés verticalement</div>
 <div class="paragraph">
-<div class="title">Multiplication par un entier <em>k</em> de grande taille</div>
-<p>Les <em>k</em> utilisés en pratique pouvant être très grands (de l&#8217;ordre de 2<sup>256</sup> avec <em>prime256v1</em>), il n&#8217;est pas possible de calculer <em>kP</em> en ajoutant <em>P</em> à lui-même <em>k</em> fois.</p>
+<p>Si <em>P</em> et <em>Q</em> sont alignés verticalement ils sont opposés (cela découle du terme <em>y<sup>2</sup></em> de l&#8217;équation), on a donc <em>P&#160;=&#160;-Q</em> que l&#8217;on peut aussi écrire <em>P&#160;&#43;&#160;Q&#160;=&#160;O</em>. <em>O</em> est le "point à l&#8217;infini" de la courbe elliptique et il joue le même rôle que zéro dans l&#8217;addition des entiers. Ainsi on a <em>P&#160;&#43;&#160;O&#160;=&#160;O&#160;&#43;&#160;P&#160;=&#160;O</em> quel que soit <em>P</em> sur la courbe.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>Il faut utiliser l&#8217;algorithme d&#8217;exponentiation rapide vu précédemment&#160;<a href="#9">[9]</a>.
-Remplacer la multiplication d&#8217;entiers par l&#8217;addition de deux points et l&#8217;élévation à la puissance par la multiplication.</p>
+<div class="title">Multiplication par un entier <em>k</em> très grand</div>
+<p>Les <em>k</em> utilisés en pratique étant des grands nombres (de l&#8217;ordre de 2<sup>256</sup> avec <em>prime256v1</em>), il n&#8217;est pas possible de calculer <em>kP</em> en ajoutant <em>P</em> à lui-même <em>k</em> fois.</p>
+</div>
+<div class="paragraph">
+<p>Il faut utiliser l&#8217;algorithme d&#8217;exponentiation rapide vu précédemment&#160;: <a href="#9">[9]</a>.
+Remplacer la multiplication de deux entiers par l&#8217;addition de deux points et l&#8217;élévation à la puissance par la multiplication d&#8217;un point par un entier.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_représentation_d_un_point">4.1.4. Représentation d&#8217;un point</h4>
+<div class="paragraph">
+<p>Un point de la courbe d&#8217;abscisse <em>x</em> ne peut avoir que deux valeurs de <em>y</em>, notons les <em>y<sub>1</sub></em> et <em>y<sub>2</sub></em>.</p>
+</div>
+<div class="paragraph">
+<p>Ils sont opposés (<em>y<sub>1</sub>&#160;=&#160;-y<sub>2</sub></em>) et comme nous sommes dans l&#8217;arithmétique modulaire on peut ré-écrire cette égalité <em>y<sub>1</sub>&#160;&#43;&#160;y<sub>2</sub>&#160;=&#160;p</em>.</p>
+</div>
+<div class="paragraph">
+<p><em>p</em> étant impair, <em>y<sub>1</sub></em> et <em>y<sub>2</sub></em> n&#8217;ont pas même parité (l&#8217;un est pair, l&#8217;autre est impair).
+La RFC 5480<span class="footnote">[<a id="_footnoteref_19" class="footnote" href="#_footnote_19" title="View footnote.">19</a>]</span>
+permet de coder un point de deux manières, compressé ou non compressé.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Le format non compressé consiste à enregistrer les deux coordonnées intégralement.</p>
+</li>
+<li>
+<p>Le format compressé consiste à enregistrer <em>x</em> et la parité de <em>y</em>.
+Pour "décompresser" un point compressé (calculer <em>y</em> d&#8217;après <em>x</em> et l&#8217;information sur la parité de <em>y</em>) il faut calculer la racine carrée modulaire de <em>x<sup>3</sup>&#160;&#43;ax&#160;&#43;&#160;b</em>.
+L&#8217;algorithme qui le permet dans le cas général, et en un nombre borné d&#8217;étapes n&#8217;est pas trivial.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Le codage d&#8217;un point en x509 (c&#8217;est-à-dire, une clé publique) impose de commencer par un octet qui identifie la suite&#160;:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Premier octet = 02&#160;: le point est compressé, et <em>y</em> est pair. <em>x</em> est codé juste après 02.</p>
+</li>
+<li>
+<p>Premier octet = 03&#160;: le point est compressé, et <em>y</em> est impair. <em>x</em> est codé juste après 03.</p>
+</li>
+<li>
+<p>Premier octet = 04&#160;: le point est non compressé. <em>x</em> est codé juste après 04, et <em>y</em> est codé juste après <em>x</em>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_la_courbe_prime256v1_secp256r1">4.1.5. La courbe prime256v1 (secp256r1)</h4>
+<div class="paragraph">
+<p>Récupérons les paramètres (depuis <em>openssl</em> ou depuis ce document&#160;<a href="#18">[18]</a>) de la courbe et enregistrons-les dans le fichier <em>secp256r1.b</em>.</p>
+</div>
+<div class="paragraph">
+<p>Pour représenter un point de la courbe nous utilisons la convention <em>point[0] = abscisse du point</em> et <em>point[1] = ordonnée du point</em>.</p>
+</div>
+<div class="listingblock">
+<div class="title">secp256r1.b</div>
+<div class="content">
+<pre>save_ibase=ibase
+ibase=2^4
+p=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
+a=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC
+b=5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B
+g[0]=6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296
+g[1]=4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5
+n=FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
+h=1
+ibase=save_ibase</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Au passage, on peut vérifier que le point G (de coordonénes g[0] pour G<sub>x</sub> et g[1] pour G<sub>y</sub> dans <em>secp256r1.b</em>) fait bien partie de la courbe&#160;:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-verif-prime256v1-redim.png" alt="Vérification prime256v1">
+</div>
 </div>
 </div>
 </div>
@@ -2439,13 +2490,16 @@ Remplacer la multiplication d&#8217;entiers par l&#8217;addition de deux points 
 <a href="#_footnoteref_17">17</a>. <em>pkfile</em> peut le faire aussi sous Linux, mais dans ce système il est plus logique d&#8217;utiliser les programmes déjà installés. La fonctionnalité de calcul de hash a été ajoutée à <em>pkfile</em> pour simplifier les manipulations sous Windows.
 </div>
 <div class="footnote" id="_footnote_18">
-<a href="#_footnoteref_18">18</a>. Dans la signature ECDSA certains calculs sont faits modulo <em>n</em>, l&#8217;ordre du groupe associé à la courbe. Dans ce cas nous le préciserons.
+<a href="#_footnoteref_18">18</a>. Dans la signature ECDSA certains calculs sont faits modulo <em>n</em>, l&#8217;ordre du groupe associé à la courbe. Cela sera signalé. À défaut, tous les calculs sont faits modulo <em>p</em>.
+</div>
+<div class="footnote" id="_footnote_19">
+<a href="#_footnoteref_19">19</a>. En fait la RFC renvoie au document "SEC 1: Elliptic Curve Cryptography" pour les détails.
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 0.5<br>
-Last updated 2016-03-10 22:26:39 CET
+Last updated 2016-03-11 23:04:07 CET
 </div>
 </div>
 </body>

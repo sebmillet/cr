@@ -938,11 +938,11 @@ _Seed_ est un nombre arbitraire à partir duquel les autres paramètres de la co
 La RFC 5480 (<<20>>) interdit expressément l'usage de paramètres explicites dans le standard x509, seules les courbes nommées peuvent y être utilisées.
 
 Nous allons maintenant nous intéresser aux courbes sur les corps premiers (_F~p~_).
-Les courbes binaires fonctionnent selon les mêmes principes mais les calculs sont faits sur des polynômes, et si l'on souhaite y mener des calculs avec _bc_ ou _python_, cela nécessite de coder spécifiquement leur arithmétique. Ce n'est pas l'objet de ce document et nous examinerons seulement les courbes sur _F~p~_.
+Les courbes binaires fonctionnent selon les mêmes principes mais les "nombres" manipulés sont des polynômes sur _F~2~_, et si l'on souhaite y mener des calculs avec _bc_ ou _python_, cela nécessite de coder spécifiquement leur arithmétique. Dans ce document nous ferons des calculs sur _F~p~_ uniquement.
 
 ==== L'arithmétique des courbes sur _F~p~_
 
-Les calculs sont presque tous faits footnote:[Dans la signature ECDSA certains calculs sont faits modulo _n_, l'ordre du groupe associé à la courbe. Cela sera signalé. À défaut, tous les calculs sont faits modulo _p_.]
+Les calculs sont faits footnote:[Dans la signature ECDSA certains calculs sont faits modulo _n_, l'ordre du groupe associé à la courbe. Cela sera signalé. À défaut, tous les calculs sont faits modulo _p_.]
 modulo _p_ et nous ne le préciserons plus par la suite.
 
 .Clés privée et publique
@@ -958,7 +958,7 @@ Le point _Q_ est la clé publique, l'entier _k_ est la clé privée. Ainsi contr
 
 La signification de l'addition de deux points est géométrique et on peut le voir ici{nbsp}<<21>>.
 
-Les formules qui en découlent sont les suivantes, pour _R{nbsp}={nbsp}P{nbsp}+{nbsp}Q_ de coordonnées (_r~x~_, _r~y~_), (_p~x~_, _p~y~_) et (_q~x~_, _q~y~_) respectivement, _P_ étant différent de _Q_ et non aligné verticalement (_p~x~_ est différent de _q~x~_){nbsp}:
+Les formules qui en découlent sont les suivantes, pour _R{nbsp}={nbsp}P{nbsp}+{nbsp}Q_ de coordonnées (_r~x~_, _r~y~_), (_p~x~_, _p~y~_) et (_q~x~_, _q~y~_) respectivement, _P_ étant non aligné verticalement avec _Q_ (_p~x~_ est différent de _q~x~_){nbsp}:
 
 image::img-point-add.png["Addition de deux points"]
 
@@ -979,7 +979,7 @@ On sait donc calculer _kP_, _k_ entier.
 [NOTE]
 .Addition de deux points alignés verticalement
 ======================================
-Si _P_ et _Q_ sont alignés verticalement ils sont opposés (cela découle du terme _y^2^_ de l'équation), on a donc _P{nbsp}={nbsp}-Q_ que l'on peut aussi écrire _P{nbsp}{plus}{nbsp}Q{nbsp}={nbsp}O_. _O_ est le "point à l'infini" de la courbe elliptique et il joue le même rôle que zéro dans l'addition des entiers. Ainsi on a _P{nbsp}{plus}{nbsp}O{nbsp}={nbsp}O{plus}P{nbsp}={nbsp}O_ quel que soit _P_ sur la courbe.
+Si _P_ et _Q_ sont alignés verticalement ils sont opposés (cela découle du terme _y^2^_ de l'équation), on a donc _P{nbsp}={nbsp}-Q_ que l'on peut aussi écrire _P{nbsp}{plus}{nbsp}Q{nbsp}={nbsp}O_. _O_ est le "point à l'infini" de la courbe elliptique et il joue le même rôle que zéro dans l'addition des entiers. Ainsi on a _P{nbsp}{plus}{nbsp}O{nbsp}={nbsp}O{nbsp}{plus}{nbsp}P{nbsp}={nbsp}O_ quel que soit _P_ sur la courbe.
 ======================================
 
 .Multiplication par un entier _k_ très grand
@@ -989,7 +989,29 @@ Les _k_ utilisés en pratique étant des grands nombres (de l'ordre de 2^256^ av
 Il faut utiliser l'algorithme d'exponentiation rapide vu précédemment{nbsp}: <<9>>.
 Remplacer la multiplication de deux entiers par l'addition de deux points et l'élévation à la puissance par la multiplication d'un point par un entier.
 
-==== La courbe prime256v1
+==== Représentation d'un point
+
+Un point de la courbe d'abscisse _x_ ne peut avoir que deux valeurs de _y_, notons les _y~1~_ et _y~2~_.
+
+Ils sont opposés (_y~1~{nbsp}={nbsp}-y~2~_) et comme nous sommes dans l'arithmétique modulaire on peut ré-écrire cette égalité _y~1~{nbsp}{plus}{nbsp}y~2~{nbsp}={nbsp}p_.
+
+_p_ étant impair, _y~1~_ et _y~2~_ n'ont pas même parité (l'un est pair, l'autre est impair).
+La RFC 5480footnote:[En fait la RFC renvoie au document "SEC 1: Elliptic Curve Cryptography" pour les détails.]
+permet de coder un point de deux manières, compressé ou non compressé.
+
+. Le format non compressé consiste à enregistrer les deux coordonnées intégralement.
+
+. Le format compressé consiste à enregistrer _x_ et la parité de _y_.
+Pour "décompresser" un point compressé (calculer _y_ d'après _x_ et l'information sur la parité de _y_) il faut calculer la racine carrée modulaire de _x^3^{nbsp}{plus}ax{nbsp}{plus}{nbsp}b_.
+L'algorithme qui le permet dans le cas général, et en un nombre borné d'étapes n'est pas trivial.
+
+Le codage d'un point en x509 (c'est-à-dire, une clé publique) impose de commencer par un octet qui identifie la suite{nbsp}:
+
+* Premier octet = 02{nbsp}: le point est compressé, et _y_ est pair. _x_ est codé juste après 02.
+* Premier octet = 03{nbsp}: le point est compressé, et _y_ est impair. _x_ est codé juste après 03.
+* Premier octet = 04{nbsp}: le point est non compressé. _x_ est codé juste après 04, et _y_ est codé juste après _x_.
+
+==== La courbe prime256v1 (secp256r1)
 
 Récupérons les paramètres (depuis _openssl_ ou depuis ce document{nbsp}<<18>>) de la courbe et enregistrons-les dans le fichier _secp256r1.b_.
 
@@ -1003,8 +1025,6 @@ include::secp256r1.b[]
 Au passage, on peut vérifier que le point G (de coordonénes g[0] pour G~x~ et g[1] pour G~y~ dans _secp256r1.b_) fait bien partie de la courbe{nbsp}:
 
 image::img-verif-prime256v1-redim.png["Vérification prime256v1"]
-
-
 
 == Bibliography
 
