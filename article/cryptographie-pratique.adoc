@@ -405,6 +405,7 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
 Sur Internet, on peut trouver la fonction _powmod_ dans de nombreux scripts _bc_ à télécharger. À noter qu'elle porte parfois d'autres noms, _mpower_ par exemple.
 
 .powmod.b
+[source, bc]
 ----
 include::powmod.b[]
 ----
@@ -931,6 +932,7 @@ Et les paramètres de domaine{nbsp}? Il faut demander à _openssl_ d'afficher le
      b7:81:9f:7e:90
 
 Tous ces paramètres ont été vus plus haut, sauf _Seed_. Qu'en est-il{nbsp}?
+
 _Seed_ est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n'importe qui, selon une spécification _X9.62_. Cela garantit qu'ils n'ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. _Seed_ est à l'origine des paramètres de la courbe mais il n'en fait pas partie. Le passage de _Seed_ aux paramètres utilise une fonction de hachage à sens unique, ce qui garantit que le choix ne s'est pas fait dans l'autre sens (détermination de paramètres ad hoc puis du _Seed_ correspondant).
 
 .Le x509
@@ -954,11 +956,11 @@ La construction d'une paire de clés privée et publique consiste à
 
 Le point _Q_ est la clé publique, l'entier _k_ est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.
 
-.Addition de deux points distincts
+.Addition de deux points distincts (et non alignés verticalement)
 
 La signification de l'addition de deux points est géométrique et on peut le voir ici{nbsp}<<21>>.
 
-Les formules qui en découlent sont les suivantes, pour _R{nbsp}={nbsp}P{nbsp}+{nbsp}Q_ de coordonnées (_r~x~_, _r~y~_), (_p~x~_, _p~y~_) et (_q~x~_, _q~y~_) respectivement, _P_ étant non aligné verticalement avec _Q_ (_p~x~_ est différent de _q~x~_){nbsp}:
+Les formules qui en découlent sont les suivantes, pour _R{nbsp}={nbsp}P{nbsp}+{nbsp}Q_ de coordonnées (_r~x~_, _r~y~_), (_p~x~_, _p~y~_) et (_q~x~_, _q~y~_) respectivement, _P_ étant différent de Q et non aligné verticalement avec _Q_ (_p~x~_ est différent de _q~x~_){nbsp}:
 
 image::img-point-add.png["Addition de deux points"]
 
@@ -989,42 +991,91 @@ Les _k_ utilisés en pratique étant des grands nombres (de l'ordre de 2^256^ av
 Il faut utiliser l'algorithme d'exponentiation rapide vu précédemment{nbsp}: <<9>>.
 Remplacer la multiplication de deux entiers par l'addition de deux points et l'élévation à la puissance par la multiplication d'un point par un entier.
 
-==== Représentation d'un point
+==== Fonctions de calcul sur _F~p~_ avec le programme _bc_
 
-Un point de la courbe d'abscisse _x_ ne peut avoir que deux valeurs de _y_, notons les _y~1~_ et _y~2~_.
+Nous allons maintenant écrire les fonctions de calcul d'après les formules qui précèdent.
 
-Ils sont opposés (_y~1~{nbsp}={nbsp}-y~2~_) et comme nous sommes dans l'arithmétique modulaire on peut ré-écrire cette égalité _y~1~{nbsp}{plus}{nbsp}y~2~{nbsp}={nbsp}p_.
+Un point est représenté par un tableau et la convention du script est la suivante{nbsp}:
 
-_p_ étant impair, _y~1~_ et _y~2~_ n'ont pas même parité (l'un est pair, l'autre est impair).
-La RFC 5480footnote:[En fait la RFC renvoie au document "SEC 1: Elliptic Curve Cryptography" pour les détails.]
-permet de coder un point de deux manières, compressé ou non compressé.
+* Le point à l'infini est codé par _point[2]_ différent de zéro
+* Sinon (si _point[2]_ est nul), _point[0]_ est la coordonnée _x_ et _point[1]_ est la coordonnée _y_.
 
-. Le format non compressé consiste à enregistrer les deux coordonnées intégralement.
+Le calcul de l'inverse modulo utilise l'_algorithme d'Euclide étendu_ <<22>>.
 
-. Le format compressé consiste à enregistrer _x_ et la parité de _y_.
-Pour "décompresser" un point compressé (calculer _y_ d'après _x_ et l'information sur la parité de _y_) il faut calculer la racine carrée modulaire de _x^3^{nbsp}{plus}ax{nbsp}{plus}{nbsp}b_.
-L'algorithme qui le permet dans le cas général, et en un nombre borné d'étapes n'est pas trivial.
+Vous remarquerez que ce script contient la fonction _powmod_ utilisée pour le RSA (nous n'en avons pas besoin pour les calculs à venir){nbsp}.
 
-Le codage d'un point en x509 (c'est-à-dire, une clé publique) impose de commencer par un octet qui identifie la suite{nbsp}:
+.crypto.b
+[source, bc]
+----
+include::crypto.b[]
+----
 
-* Premier octet = 02{nbsp}: le point est compressé, et _y_ est pair. _x_ est codé juste après 02.
-* Premier octet = 03{nbsp}: le point est compressé, et _y_ est impair. _x_ est codé juste après 03.
-* Premier octet = 04{nbsp}: le point est non compressé. _x_ est codé juste après 04, et _y_ est codé juste après _x_.
+[NOTE]
+.Optimisation et robustesse
+======================================
+Sur Internet on trouve des scripts qui appliquent la première formule (addition de deux points distincts) et la deuxième (doubler un point) sans vérifier les cas "P et Q alignés verticalement" ou "Point à l'infini".
+
+Dans la pratique ce n'est pas un souci car les nombres manipulés avec des clés x509 ne conduisent jamais à ces cas limites.
+La fonction  _ec_mul_ pourrait ainsi être plus efficace, en appelant directement les fonctions ec_add_core et ec_dbl_core (dans la fonction ec_mul).
+======================================
+
+==== Représentation d'un point dans le standard x509
+
+Un point de la courbe d'abscisse _x_ donnée ne peut avoir que deux valeurs de _y_ (du fait du terme _y^2^_ des équations).
+
+Le standard X9.62 définit la méthode pour désigner quel _y_ est le bon, en utilisant un seul bit d'information. Ainsi l'enregistrement de _x_ et du bit d'information pour retrouver le bon _y_ suffisent à coder un point, et cette forme est dite _compressée_. Comme il est en plus possible de mélanger les formes (compressée et non compressée), un point peut être codé de trois manières{nbsp}:
+
+La forme non compressée::
+Enregistrement des deux coordonnées
+
+La forme compressée::
+Enregistrement de _x_ et du bit d'information relatif à _y_
+
+La forme hybride::
+Enregistrement de _x_, _y_ et du bit d'information relatif à _y_
+
+Sur _F~p~_ on a _y~1~{nbsp}={nbsp}-y~2~_ (car non seulement _y_ y apparaît sous la forme _y^2^_, mais en plus, il est isolé à gauche du signe _égal_) et comme nous sommes dans l'arithmétique modulaire on peut ré-écrire cette égalité _y~1~{nbsp}{plus}{nbsp}y~2~{nbsp}={nbsp}p_.
+_p_ étant impair, _y~1~_ et _y~2~_ n'ont pas même parité. Le bit d'information est le dernier bit de _y_ (sa parité). On comprend aisément que la forme hybride ne présente aucun intérêt sur _F~p~_, puisqu'un simple examen de _y_ donne le bit d'information à employer dans la forme compressée. La forme hybride apporte un plus sur _F~2^m^~_ où le bit d'information doit être calculé.
+
+Le standard x509 (ici la RFC 5480) permet de coder un point soit sous forme compressée, soit sous forme non compressée. La RFC 5480 interdit expressément la forme hybride définie par le standard X9.62.
+
+Selon le standard X9.62 en vigueur dans la RFC 5480 (nous ne mentionnons donc pas ici la forme hybride, interdite par la RFC 5480) les formes compressée et non compressée sont codées ainsifootnote:[Le standard X9.62 définit _00_ comme seul octet pour coder le point à l'infini. La RFC 5480 interdit toute autre valeur que _02_, _03_ et _04_, et interdit donc _00_. C'est logique car on ne voit pas dans quel but le point à l'infini serait enregistré dans le cadre x509. Dans le standard x509, un point est une clé publique.]{nbsp}:
+
+* Premier octet = _02_{nbsp}: le point est compressé, et _y_ est pair. _x_ est codé juste après 02.
+* Premier octet = _03_{nbsp}: le point est compressé, et _y_ est impair. _x_ est codé juste après 03.
+* Premier octet = _04_{nbsp}: le point est non compressé. _x_ est codé juste après 04, et _y_ est codé juste après _x_. Comme _x_ et _y_ ont même taille, il n'y a pas besoin de délimiteur pour retrouver la position à laquelle on passe de _x_ à _y_.
 
 ==== La courbe prime256v1 (secp256r1)
 
+.Les paramètres de la courbe prime256v1
+
 Récupérons les paramètres (depuis _openssl_ ou depuis ce document{nbsp}<<18>>) de la courbe et enregistrons-les dans le fichier _secp256r1.b_.
 
-Pour représenter un point de la courbe nous utilisons la convention _point[0] = abscisse du point_ et _point[1] = ordonnée du point_.
+Pour représenter un point de la courbe nous utilisons la convention _point[0] = abscisse du point_ et _point[1] = ordonnée du point_. Le point à l'infini est représenté par _point[2] = 1_ (_point[2] = 0_ pour tout autre point).
 
 .secp256r1.b
+[source, bc]
 ----
 include::secp256r1.b[]
 ----
 
-Au passage, on peut vérifier que le point G (de coordonénes g[0] pour G~x~ et g[1] pour G~y~ dans _secp256r1.b_) fait bien partie de la courbe{nbsp}:
+Au passage, on peut vérifier que le point G (donc de coordonénes g[0] pour G~x~ et g[1] pour G~y~ dans _secp256r1.b_) fait bien partie de la courbe{nbsp}:
 
 image::img-verif-prime256v1-redim.png["Vérification prime256v1"]
+
+.Création d'une paire de clé privée et publique sur prime256v1
+
+Exécuter
+
+ $ openssl ecparam -name prime256v1 -genkey -out k.pem
+
+Examiner le résultat avec
+
+ $ openssl ec -in k.pem -noout -text
+
+image::img-key-redim.png["ECC key"]
+
+Par défaut, _openssl_ enregistre les clés publiques sous forme non compressée, ce que l'on peut voir au _04_ qui démarre la suite d'octets en-dessous de "pub:".
 
 == Bibliography
 
@@ -1052,6 +1103,8 @@ _bc_ a besoin du fichier _readline5.dll_ pour s'exécuter. Vous pouvez le trouve
 * *[[[19]]]* RECOMMENDED ELLIPTIC CURVES FOR FEDERAL GOVERNMENT USE{nbsp}: http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf
 * *[[[20]]]* Elliptic Curve Cryptography Subject Public Key Information{nbsp}: https://tools.ietf.org/html/rfc5480
 * *[[[21]]]* "Courbe elliptique" sur Wikipédia{nbsp}: https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes
+* *[[[22]]]* Article Wikipédia sur l'inverse modulaire{nbsp}: https://fr.wikipedia.org/wiki/Inverse_modulaire
+* *[[[23]]]* Conception d'algorithmes et applications (LI325) COURS 10{nbsp}: http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf
 
 * *[[[99]]]* ECC Tutorial (en anglais){nbsp}: http://www.johannes-bauer.com/compsci/ecc
 * *[[[98]]]* Paramètres de domain brainpool{nbsp}: http://www.ecc-brainpool.org/download/Domain-parameters.pdf

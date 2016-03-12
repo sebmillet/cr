@@ -459,8 +459,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_les_deux_familles_de_courbes_elliptiques">4.1.1. Les deux familles de courbes elliptiques</a></li>
 <li><a href="#_les_paramètres_de_domaine">4.1.2. Les paramètres de domaine</a></li>
 <li><a href="#_l_arithmétique_des_courbes_sur_em_f_sub_p_sub_em">4.1.3. L&#8217;arithmétique des courbes sur <em>F<sub>p</sub></em></a></li>
-<li><a href="#_représentation_d_un_point">4.1.4. Représentation d&#8217;un point</a></li>
-<li><a href="#_la_courbe_prime256v1_secp256r1">4.1.5. La courbe prime256v1 (secp256r1)</a></li>
+<li><a href="#_fonctions_de_calcul_sur_em_f_sub_p_sub_em_avec_le_programme_em_bc_em">4.1.4. Fonctions de calcul sur <em>F<sub>p</sub></em> avec le programme <em>bc</em></a></li>
+<li><a href="#_représentation_d_un_point_dans_le_standard_x509">4.1.5. Représentation d&#8217;un point dans le standard x509</a></li>
+<li><a href="#_la_courbe_prime256v1_secp256r1">4.1.6. La courbe prime256v1 (secp256r1)</a></li>
 </ul>
 </li>
 </ul>
@@ -1185,7 +1186,7 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
 <div class="listingblock">
 <div class="title">powmod.b</div>
 <div class="content">
-<pre>define powmod(a, b, c) {
+<pre class="highlight"><code class="language-bc" data-lang="bc">define powmod(a, b, c) {
 	auto p, r
 	p = a
 	r = 1
@@ -1195,7 +1196,7 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
 		b /= 2
 	}
 	return r
-}</pre>
+}</code></pre>
 </div>
 </div>
 </div>
@@ -2180,8 +2181,10 @@ Seed:
 </div>
 </div>
 <div class="paragraph">
-<p>Tous ces paramètres ont été vus plus haut, sauf <em>Seed</em>. Qu&#8217;en est-il&#160;?
-<em>Seed</em> est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n&#8217;importe qui, selon une spécification <em>X9.62</em>. Cela garantit qu&#8217;ils n&#8217;ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. <em>Seed</em> est à l&#8217;origine des paramètres de la courbe mais il n&#8217;en fait pas partie. Le passage de <em>Seed</em> aux paramètres utilise une fonction de hachage à sens unique, ce qui garantit que le choix ne s&#8217;est pas fait dans l&#8217;autre sens (détermination de paramètres ad hoc puis du <em>Seed</em> correspondant).</p>
+<p>Tous ces paramètres ont été vus plus haut, sauf <em>Seed</em>. Qu&#8217;en est-il&#160;?</p>
+</div>
+<div class="paragraph">
+<p><em>Seed</em> est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n&#8217;importe qui, selon une spécification <em>X9.62</em>. Cela garantit qu&#8217;ils n&#8217;ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. <em>Seed</em> est à l&#8217;origine des paramètres de la courbe mais il n&#8217;en fait pas partie. Le passage de <em>Seed</em> aux paramètres utilise une fonction de hachage à sens unique, ce qui garantit que le choix ne s&#8217;est pas fait dans l&#8217;autre sens (détermination de paramètres ad hoc puis du <em>Seed</em> correspondant).</p>
 </div>
 <div class="paragraph">
 <div class="title">Le x509</div>
@@ -2216,11 +2219,11 @@ modulo <em>p</em> et nous ne le préciserons plus par la suite.</p>
 <p>Le point <em>Q</em> est la clé publique, l&#8217;entier <em>k</em> est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.</p>
 </div>
 <div class="paragraph">
-<div class="title">Addition de deux points distincts</div>
+<div class="title">Addition de deux points distincts (et non alignés verticalement)</div>
 <p>La signification de l&#8217;addition de deux points est géométrique et on peut le voir ici&#160;<a href="#21">[21]</a>.</p>
 </div>
 <div class="paragraph">
-<p>Les formules qui en découlent sont les suivantes, pour <em>R&#160;=&#160;P&#160;+&#160;Q</em> de coordonnées (<em>r<sub>x</sub></em>, <em>r<sub>y</sub></em>), (<em>p<sub>x</sub></em>, <em>p<sub>y</sub></em>) et (<em>q<sub>x</sub></em>, <em>q<sub>y</sub></em>) respectivement, <em>P</em> étant non aligné verticalement avec <em>Q</em> (<em>p<sub>x</sub></em> est différent de <em>q<sub>x</sub></em>)&#160;:</p>
+<p>Les formules qui en découlent sont les suivantes, pour <em>R&#160;=&#160;P&#160;+&#160;Q</em> de coordonnées (<em>r<sub>x</sub></em>, <em>r<sub>y</sub></em>), (<em>p<sub>x</sub></em>, <em>p<sub>y</sub></em>) et (<em>q<sub>x</sub></em>, <em>q<sub>y</sub></em>) respectivement, <em>P</em> étant différent de Q et non aligné verticalement avec <em>Q</em> (<em>p<sub>x</sub></em> est différent de <em>q<sub>x</sub></em>)&#160;:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2278,77 +2281,300 @@ Remplacer la multiplication de deux entiers par l&#8217;addition de deux points 
 </div>
 </div>
 <div class="sect3">
-<h4 id="_représentation_d_un_point">4.1.4. Représentation d&#8217;un point</h4>
+<h4 id="_fonctions_de_calcul_sur_em_f_sub_p_sub_em_avec_le_programme_em_bc_em">4.1.4. Fonctions de calcul sur <em>F<sub>p</sub></em> avec le programme <em>bc</em></h4>
 <div class="paragraph">
-<p>Un point de la courbe d&#8217;abscisse <em>x</em> ne peut avoir que deux valeurs de <em>y</em>, notons les <em>y<sub>1</sub></em> et <em>y<sub>2</sub></em>.</p>
+<p>Nous allons maintenant écrire les fonctions de calcul d&#8217;après les formules qui précèdent.</p>
 </div>
 <div class="paragraph">
-<p>Ils sont opposés (<em>y<sub>1</sub>&#160;=&#160;-y<sub>2</sub></em>) et comme nous sommes dans l&#8217;arithmétique modulaire on peut ré-écrire cette égalité <em>y<sub>1</sub>&#160;&#43;&#160;y<sub>2</sub>&#160;=&#160;p</em>.</p>
-</div>
-<div class="paragraph">
-<p><em>p</em> étant impair, <em>y<sub>1</sub></em> et <em>y<sub>2</sub></em> n&#8217;ont pas même parité (l&#8217;un est pair, l&#8217;autre est impair).
-La RFC 5480<span class="footnote">[<a id="_footnoteref_19" class="footnote" href="#_footnote_19" title="View footnote.">19</a>]</span>
-permet de coder un point de deux manières, compressé ou non compressé.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Le format non compressé consiste à enregistrer les deux coordonnées intégralement.</p>
-</li>
-<li>
-<p>Le format compressé consiste à enregistrer <em>x</em> et la parité de <em>y</em>.
-Pour "décompresser" un point compressé (calculer <em>y</em> d&#8217;après <em>x</em> et l&#8217;information sur la parité de <em>y</em>) il faut calculer la racine carrée modulaire de <em>x<sup>3</sup>&#160;&#43;ax&#160;&#43;&#160;b</em>.
-L&#8217;algorithme qui le permet dans le cas général, et en un nombre borné d&#8217;étapes n&#8217;est pas trivial.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Le codage d&#8217;un point en x509 (c&#8217;est-à-dire, une clé publique) impose de commencer par un octet qui identifie la suite&#160;:</p>
+<p>Un point est représenté par un tableau et la convention du script est la suivante&#160;:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Premier octet = 02&#160;: le point est compressé, et <em>y</em> est pair. <em>x</em> est codé juste après 02.</p>
+<p>Le point à l&#8217;infini est codé par <em>point[2]</em> différent de zéro</p>
 </li>
 <li>
-<p>Premier octet = 03&#160;: le point est compressé, et <em>y</em> est impair. <em>x</em> est codé juste après 03.</p>
+<p>Sinon (si <em>point[2]</em> est nul), <em>point[0]</em> est la coordonnée <em>x</em> et <em>point[1]</em> est la coordonnée <em>y</em>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Le calcul de l&#8217;inverse modulo utilise l'<em>algorithme d&#8217;Euclide étendu</em> <a href="#22">[22]</a>.</p>
+</div>
+<div class="paragraph">
+<p>Vous remarquerez que ce script contient la fonction <em>powmod</em> utilisée pour le RSA (nous n&#8217;en avons pas besoin pour les calculs à venir)&#160;.</p>
+</div>
+<div class="listingblock">
+<div class="title">crypto.b</div>
+<div class="content">
+<pre class="highlight"><code class="language-bc" data-lang="bc">	/* Calculate the invert of a modulo n */
+define invmod(a, n) {
+	auto aa, bb, r, t, anc_t, nou_t, negflag
+	aa = n
+	negflag = 0
+	if (a &lt; 0) {
+		negflag = 1
+		a %= n
+		if (a &lt; 0) a += n
+	}
+	bb = a
+	r = 1
+	t = 1
+	anc_t = 0
+	while (1) {
+		q = aa / bb
+		anc_r = r
+		r = aa - bb * q
+
+		nou_t = anc_t - q * t
+		if (nou_t &gt;= 0) nou_t %= n
+		if (nou_t &lt; 0) nou_t = n - (-nou_t % n)
+		anc_t = t
+		t = nou_t
+
+		aa = bb
+		bb = r
+		if (r &lt;= 1) break;
+	}
+
+	if (r != 1) {
+			/*
+			   No invert can be returned =&gt; error
+			   Alternate solution: return -1
+
+			   I find triggering an error best: the calculation stops
+			   immediately instead of continuing with meaningless values
+			*/
+		return 1 % 0
+	} else {
+		if (negflag) t -= n
+		return t
+	}
+}
+
+/*
+	The well-known powmod function, sometimes referred to in bc scripts
+	as "mpower".
+*/
+define powmod(a, b, c) {
+	auto p, r
+	p = a
+	r = 1
+	while (b &gt; 0) {
+		if (b % 2) r = (r * p) % c
+		p = (p * p) % c
+		b /= 2
+	}
+	return r
+}
+
+/*
+	The EC functions below use the following conventions.
+
+	- The point at infinity has non null element of index 2 (array[2]!=0),
+	  for any other point, array[2] is zero.
+
+	- If array[2] is zero, array[0] is the x coordinate and
+	  array[1] is the y coordinate.
+
+*/
+
+/*
+	ECC addition of p and q, p[0] being different from q[0]
+*/
+define void ec_add_core(*r[], p[], q[], m) {
+	auto s
+	s = ((p[1] - q[1]) * invmod(p[0] - q[0], m)) % m
+	r[0] = (s^2 - p[0] - q[0]) % m
+	r[1] = (s * (p[0] - r[0]) - p[1]) % m
+	r[2] = 0
+}
+
+/*
+   ECC point doubling
+*/
+define void ec_dbl_core(*r[], p[], a, m) {
+	auto s
+	s = ((3 * p[0]^2 + a) * invmod(2 * p[1], m)) % m
+	r[0] = (s^2 - 2 * p[0]) % m
+	r[1] = (s * (p[0] - r[0]) - p[1]) % m
+	r[2] = 0
+}
+
+/*
+	ECC addition of p and q for any value of p and q
+*/
+define void ec_add(*r[], p[], q[], a, m) {
+	if (p[2]) { r[0] = q[0]; r[1] = q[1]; r[2] = q[2]; return }
+	if (q[2]) { r[0] = p[0]; r[1] = p[1]; r[2] = p[2]; return }
+	if (p[0] == q[0]) {
+		if (p[1] != q[1]) {
+			r[2] = 1  /* We don't verify whether p[1]==-q[1] as it should... */
+		} else {
+			if (p[2]) {
+				r[2] = 1
+				return
+			}
+			ec_dbl_core(r[], p[], a, m)
+		}
+	} else {
+		ec_add_core(r[], p[], q[], m)
+	}
+}
+
+/*
+   ECC scalar point multiplication
+*/
+define void ec_mul(*r[], p[], k, a, m) {
+	auto tmp[]
+	r[2] = 1
+	if (p[2]) return
+	while (k &gt; 0) {
+		if ((k % 2) == 1) {
+			ec_add(r[], r[], p[], a, m)
+		}
+			/*
+			 * ec_dbl(p[], p[], a, m) does not work with bc,
+			 * need to use a temporary array.
+			 */
+		ec_add(tmp[], p[], p[], a, m)
+		p[0]=tmp[0]
+		p[1]=tmp[1]
+		p[2]=tmp[2]
+		k /= 2
+	}
+	if (!r[2]) {
+		if (r[0] &lt; 0) r[0] += m
+		if (r[1] &lt; 0) r[1] += m
+	}
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Optimisation et robustesse</div>
+<div class="paragraph">
+<p>Sur Internet on trouve des scripts qui appliquent la première formule (addition de deux points distincts) et la deuxième (doubler un point) sans vérifier les cas "P et Q alignés verticalement" ou "Point à l&#8217;infini".</p>
+</div>
+<div class="paragraph">
+<p>Dans la pratique ce n&#8217;est pas un souci car les nombres manipulés avec des clés x509 ne conduisent jamais à ces cas limites.
+La fonction  <em>ec_mul</em> pourrait ainsi être plus efficace, en appelant directement les fonctions ec_add_core et ec_dbl_core (dans la fonction ec_mul).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_représentation_d_un_point_dans_le_standard_x509">4.1.5. Représentation d&#8217;un point dans le standard x509</h4>
+<div class="paragraph">
+<p>Un point de la courbe d&#8217;abscisse <em>x</em> donnée ne peut avoir que deux valeurs de <em>y</em> (du fait du terme <em>y<sup>2</sup></em> des équations).</p>
+</div>
+<div class="paragraph">
+<p>Le standard X9.62 définit la méthode pour désigner quel <em>y</em> est le bon, en utilisant un seul bit d&#8217;information. Ainsi l&#8217;enregistrement de <em>x</em> et du bit d&#8217;information pour retrouver le bon <em>y</em> suffisent à coder un point, et cette forme est dite <em>compressée</em>. Comme il est en plus possible de mélanger les formes (compressée et non compressée), un point peut être codé de trois manières&#160;:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">La forme non compressée</dt>
+<dd>
+<p>Enregistrement des deux coordonnées</p>
+</dd>
+<dt class="hdlist1">La forme compressée</dt>
+<dd>
+<p>Enregistrement de <em>x</em> et du bit d&#8217;information relatif à <em>y</em></p>
+</dd>
+<dt class="hdlist1">La forme hybride</dt>
+<dd>
+<p>Enregistrement de <em>x</em>, <em>y</em> et du bit d&#8217;information relatif à <em>y</em></p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Sur <em>F<sub>p</sub></em> on a <em>y<sub>1</sub>&#160;=&#160;-y<sub>2</sub></em> (car non seulement <em>y</em> y apparaît sous la forme <em>y<sup>2</sup></em>, mais en plus, il est isolé à gauche du signe <em>égal</em>) et comme nous sommes dans l&#8217;arithmétique modulaire on peut ré-écrire cette égalité <em>y<sub>1</sub>&#160;&#43;&#160;y<sub>2</sub>&#160;=&#160;p</em>.
+<em>p</em> étant impair, <em>y<sub>1</sub></em> et <em>y<sub>2</sub></em> n&#8217;ont pas même parité. Le bit d&#8217;information est le dernier bit de <em>y</em> (sa parité). On comprend aisément que la forme hybride ne présente aucun intérêt sur <em>F<sub>p</sub></em>, puisqu&#8217;un simple examen de <em>y</em> donne le bit d&#8217;information à employer dans la forme compressée. La forme hybride apporte un plus sur <em>F<sub>2<sup>m</sup></sub></em> où le bit d&#8217;information doit être calculé.</p>
+</div>
+<div class="paragraph">
+<p>Le standard x509 (ici la RFC 5480) permet de coder un point soit sous forme compressée, soit sous forme non compressée. La RFC 5480 interdit expressément la forme hybride définie par le standard X9.62.</p>
+</div>
+<div class="paragraph">
+<p>Selon le standard X9.62 en vigueur dans la RFC 5480 (nous ne mentionnons donc pas ici la forme hybride, interdite par la RFC 5480) les formes compressée et non compressée sont codées ainsi<span class="footnote">[<a id="_footnoteref_19" class="footnote" href="#_footnote_19" title="View footnote.">19</a>]</span>&#160;:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Premier octet = <em>02</em>&#160;: le point est compressé, et <em>y</em> est pair. <em>x</em> est codé juste après 02.</p>
 </li>
 <li>
-<p>Premier octet = 04&#160;: le point est non compressé. <em>x</em> est codé juste après 04, et <em>y</em> est codé juste après <em>x</em>.</p>
+<p>Premier octet = <em>03</em>&#160;: le point est compressé, et <em>y</em> est impair. <em>x</em> est codé juste après 03.</p>
+</li>
+<li>
+<p>Premier octet = <em>04</em>&#160;: le point est non compressé. <em>x</em> est codé juste après 04, et <em>y</em> est codé juste après <em>x</em>. Comme <em>x</em> et <em>y</em> ont même taille, il n&#8217;y a pas besoin de délimiteur pour retrouver la position à laquelle on passe de <em>x</em> à <em>y</em>.</p>
 </li>
 </ul>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_la_courbe_prime256v1_secp256r1">4.1.5. La courbe prime256v1 (secp256r1)</h4>
+<h4 id="_la_courbe_prime256v1_secp256r1">4.1.6. La courbe prime256v1 (secp256r1)</h4>
 <div class="paragraph">
+<div class="title">Les paramètres de la courbe prime256v1</div>
 <p>Récupérons les paramètres (depuis <em>openssl</em> ou depuis ce document&#160;<a href="#18">[18]</a>) de la courbe et enregistrons-les dans le fichier <em>secp256r1.b</em>.</p>
 </div>
 <div class="paragraph">
-<p>Pour représenter un point de la courbe nous utilisons la convention <em>point[0] = abscisse du point</em> et <em>point[1] = ordonnée du point</em>.</p>
+<p>Pour représenter un point de la courbe nous utilisons la convention <em>point[0] = abscisse du point</em> et <em>point[1] = ordonnée du point</em>. Le point à l&#8217;infini est représenté par <em>point[2] = 1</em> (<em>point[2] = 0</em> pour tout autre point).</p>
 </div>
 <div class="listingblock">
 <div class="title">secp256r1.b</div>
 <div class="content">
-<pre>save_ibase=ibase
+<pre class="highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
 ibase=2^4
 p=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
 a=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC
 b=5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B
 g[0]=6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296
 g[1]=4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5
+g[2]=0
 n=FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
 h=1
-ibase=save_ibase</pre>
+ibase=save_ibase</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Au passage, on peut vérifier que le point G (de coordonénes g[0] pour G<sub>x</sub> et g[1] pour G<sub>y</sub> dans <em>secp256r1.b</em>) fait bien partie de la courbe&#160;:</p>
+<p>Au passage, on peut vérifier que le point G (donc de coordonénes g[0] pour G<sub>x</sub> et g[1] pour G<sub>y</sub> dans <em>secp256r1.b</em>) fait bien partie de la courbe&#160;:</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="./images/img-verif-prime256v1-redim.png" alt="Vérification prime256v1">
 </div>
+</div>
+<div class="paragraph">
+<div class="title">Création d&#8217;une paire de clé privée et publique sur prime256v1</div>
+<p>Exécuter</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ openssl ecparam -name prime256v1 -genkey -out k.pem</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Examiner le résultat avec</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ openssl ec -in k.pem -noout -text</pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-key-redim.png" alt="ECC key">
+</div>
+</div>
+<div class="paragraph">
+<p>Par défaut, <em>openssl</em> enregistre les clés publiques sous forme non compressée, ce que l&#8217;on peut voir au <em>04</em> qui démarre la suite d&#8217;octets en-dessous de "pub:".</p>
 </div>
 </div>
 </div>
@@ -2426,6 +2652,12 @@ ibase=save_ibase</pre>
 <p><strong><a id="21"></a>[21]</strong> "Courbe elliptique" sur Wikipédia&#160;: <a href="https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes" class="bare">https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes</a></p>
 </li>
 <li>
+<p><strong><a id="22"></a>[22]</strong> Article Wikipédia sur l&#8217;inverse modulaire&#160;: <a href="https://fr.wikipedia.org/wiki/Inverse_modulaire" class="bare">https://fr.wikipedia.org/wiki/Inverse_modulaire</a></p>
+</li>
+<li>
+<p><strong><a id="23"></a>[23]</strong> Conception d&#8217;algorithmes et applications (LI325) COURS 10&#160;: <a href="http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf" class="bare">http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf</a></p>
+</li>
+<li>
 <p><strong><a id="99"></a>[99]</strong> ECC Tutorial (en anglais)&#160;: <a href="http://www.johannes-bauer.com/compsci/ecc" class="bare">http://www.johannes-bauer.com/compsci/ecc</a></p>
 </li>
 <li>
@@ -2493,13 +2725,13 @@ ibase=save_ibase</pre>
 <a href="#_footnoteref_18">18</a>. Dans la signature ECDSA certains calculs sont faits modulo <em>n</em>, l&#8217;ordre du groupe associé à la courbe. Cela sera signalé. À défaut, tous les calculs sont faits modulo <em>p</em>.
 </div>
 <div class="footnote" id="_footnote_19">
-<a href="#_footnoteref_19">19</a>. En fait la RFC renvoie au document "SEC 1: Elliptic Curve Cryptography" pour les détails.
+<a href="#_footnoteref_19">19</a>. Le standard X9.62 définit <em>00</em> comme seul octet pour coder le point à l&#8217;infini. La RFC 5480 interdit toute autre valeur que <em>02</em>, <em>03</em> et <em>04</em>, et interdit donc <em>00</em>. C&#8217;est logique car on ne voit pas dans quel but le point à l&#8217;infini serait enregistré dans le cadre x509. Dans le standard x509, un point est une clé publique.
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 0.5<br>
-Last updated 2016-03-11 23:04:07 CET
+Last updated 2016-03-12 15:16:03 CET
 </div>
 </div>
 </body>
