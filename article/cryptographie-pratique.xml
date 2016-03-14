@@ -6,14 +6,14 @@
 <article lang="en">
 <articleinfo>
     <title>Cryptographie pratique</title>
-    <date>February 29th, 2016; March 1st, 2016</date>
+    <date>February 29th, 2016</date>
     <author>
         <firstname>Sébastien</firstname>
         <surname>Millet</surname>
         <email>&lt;milletseb@laposte.net&gt;</email>
     </author>
     <authorinitials>SM</authorinitials>
-<revhistory><revision><revnumber>0.5; 0.6</revnumber><date>February 29th, 2016; March 1st, 2016</date><authorinitials>SM</authorinitials></revision></revhistory>
+<revhistory><revision><revnumber>0.5</revnumber><date>February 29th, 2016</date><authorinitials>SM</authorinitials></revision></revhistory>
 </articleinfo>
 <section id="_introduction">
 <title>Introduction</title>
@@ -26,7 +26,7 @@
 </listitem>
 <listitem>
 <simpara>
-<emphasis>ECDSA</emphasis>&#160;: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l&#8217;occasion, afin de se familiariser avec les calculs qu&#8217;implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (Certificat Électronique Visible). Ce dernier cas sort du cadre x509 qui est l&#8217;objet principal de cet article, le format pour un tel certificat étant 2D-Doc.
+<emphasis>ECDSA</emphasis>&#160;: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l&#8217;occasion, afin de se familiariser avec les calculs qu&#8217;implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (<emphasis><emphasis role="strong">C</emphasis>ertificat <emphasis role="strong">É</emphasis>lectronique <emphasis role="strong">V</emphasis>isible</emphasis>) <footnote><simpara>Ce dernier cas sort du cadre x509.</simpara></footnote>
 </simpara>
 </listitem>
 </itemizedlist>
@@ -34,22 +34,27 @@
 <itemizedlist>
 <listitem>
 <simpara>
-<literal>openssl</literal> pour travailler sur les certificats x509 en ligne de commande
+<emphasis>openssl</emphasis> pour travailler sur les certificats x509 en ligne de commande
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-<literal>python</literal>, <literal>bc</literal> ou <literal>zsbc</literal> pour faire des calculs avec des nombres entiers de grande taille
+<emphasis>pkfile</emphasis> pour extraire la partie signée d&#8217;un certificat et <emphasis>dder</emphasis> pour afficher certains contenus binaires
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-Conversion entre encodage <emphasis>PEM</emphasis> et encodage <emphasis>binaire</emphasis> (Linux&#160;: <literal>base64</literal>, Windows&#160;: <literal>notepad</literal>++)
+<emphasis>python</emphasis> ou <emphasis>bc</emphasis> pour faire des calculs avec des nombres entiers de grande taille
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-Édition du contenu de fichier binaire (Linux&#160;: <literal>gvim/xxd</literal>, Windows&#160;: <literal>notepad</literal>++)
+Conversion entre encodage <emphasis>PEM</emphasis> et encodage <emphasis>binaire</emphasis> (Linux&#160;: <emphasis>base64</emphasis>, Windows&#160;: <emphasis>notepad++</emphasis>)
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Édition de contenu de fichier binaire (Linux&#160;: <emphasis>gvim/xxd</emphasis>, Windows&#160;: <emphasis>notepad++</emphasis>)
 </simpara>
 </listitem>
 </itemizedlist>
@@ -223,14 +228,75 @@ L'<emphasis>émetteur</emphasis> du certificat a pour CN <emphasis>TrustID Serve
 </listitem>
 </itemizedlist>
 <simpara>L'émetteur et le sujet ont également le pays (<emphasis role="strong">C</emphasis>) et l&#8217;organisation (<emphasis role="strong">O</emphasis>) définis dans leur nom, ainsi que d&#8217;autres éléments.
-Le "nom simple" ou "nom court" du certificat est son CN. Le standard x509 ne définit pas cette notion de "nom simple" ou "nom court", nous l&#8217;employons ici pour préciser que dans la pratique, le CN est le véritable nom du certificat, les autres éléments donnant des informations annexes.
-Parfois, seul le CN est affiché pour désigner un certificat.</simpara>
-<simpara>Cela dit, le nom du certificat (au sens du standard x509) est constitué de <emphasis>la totlité des éléments qui le composent</emphasis>, et non pas seulement du CN.</simpara>
+Le "nom simple" ou "nom court" du certificat est son CN. Le standard x509 ne définit pas cette notion de "nom simple" ou "nom court", nous l&#8217;employons ici pour préciser que dans la pratique, le CN est le véritable nom du certificat, les autres éléments donnant des informations annexes.</simpara>
+<simpara>Cela dit, le nom (au sens du standard x509) est constitué du DN (<emphasis><emphasis role="strong">D</emphasis>istinguished <emphasis role="strong">N</emphasis>ame</emphasis>), il s&#8217;agit de la <emphasis>la totalité des éléments qui le composent</emphasis> (et non pas seulement le CN).</simpara>
 <simpara>Le lien hiérarchique est toujours établi entre un émetteur et un sujet.
 L'émetteur est celui qui signe le certificat, le sujet est celui qui est signé. Voir figures 7 et 8.</simpara>
 <simpara>Un certificat peut être à la fois émetteur (d&#8217;autres certificats sont signés par lui) et sujet (il est lui-même signé par un autre certificat), et cette chaîne forme une structure hiérarchique.
 Dans notre exemple, on voit que le certificat <emphasis>TrustID Server CA A52</emphasis> est lui-même signé par <emphasis>IdenTrust Commercial Root CA 1</emphasis>.</simpara>
-<note><simpara>Dans la pratique la situation se complique souvent avec des certificats croisés. Quoi qu&#8217;il en soit, la structure de base des liens qui relient les certificats est hiérarchique.</simpara></note>
+<note><simpara>Dans la pratique la situation peut se compliquer avec des certificats croisés. Quoi qu&#8217;il en soit, la structure de base des liens qui relient les certificats est hiérarchique.</simpara></note>
+<sidebar>
+<title>Quelques précisions</title>
+<itemizedlist>
+<listitem>
+<simpara>
+Pour qu&#8217;un certificat joue le rôle émetteur, il doit être une autorité de certification ou CA (<emphasis><emphasis role="strong">C</emphasis>ertificate <emphasis role="strong">A</emphasis>uthority</emphasis>), il s&#8217;agit de l&#8217;une des nombreuses options que l&#8217;on peut trouver dans un certificat.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+En plus des éléments permettant d&#8217;identifier le sujet du certificat, la partie tbsCertificate contient sa <emphasis>clé publique</emphasis>. C&#8217;est précisément le rôle du certificat&#160;: <emphasis>certifier</emphasis> la correspondance entre une entité (un DN) et une clé publique.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+L'émetteur (qui est une autorité de certification) a toujours un numéro d&#8217;identification de clé (<emphasis>Subject Key Identifier</emphasis>). Cet identifiant, qui doit être par construction un entier, doit être enregistré dans les certificats émis comme numéro de clé d&#8217;autorité de certification (<emphasis>Authority Key Identifier</emphasis>). Cette logique permet de gérer facilement les cas où une autorité de certification possède plusieurs clés.
+</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+En résumé, quand un émetteur signe un sujet, on doit avoir égalité entre ces différents éléments
+</simpara>
+<informaltable
+frame="all"
+rowsep="1" colsep="1"
+>
+<tgroup cols="3">
+<colspec colname="col_1" colwidth="44*"/>
+<colspec colname="col_2" colwidth="11*"/>
+<colspec colname="col_3" colwidth="44*"/>
+<thead>
+<row>
+<entry align="center" valign="top">Dans le certificat émetteur </entry>
+<entry align="center" valign="top">Lien </entry>
+<entry align="center" valign="top">Dans le certificat sujet</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara>Subject DN
+<footnote><simpara>Ici on a un peu simplifié les choses pour ne pas alourdir le texte. En fait l'émetteur est identifié par son DN mais aussi par un <emphasis>Serial Number</emphasis>, nécessaire dans les cas où une même entité (DN) est associée à différentes clés. Donc le lien hiérarchique est établi avec le couple (DN, Serial Number), qui correspond à un couple (DN, key) de manière unique. Le DN seul ne serait pas suffisant. Les identifiants de clé correspondent (de manière bi-univoque) à un couple (DN, key).</simpara></footnote></simpara></entry>
+<entry align="center" valign="top"><simpara>=</simpara></entry>
+<entry align="left" valign="top"><simpara>Issuer DN</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>Subject Key Identifier</simpara></entry>
+<entry align="center" valign="top"><simpara>=</simpara></entry>
+<entry align="left" valign="top"><simpara>Authority Key Identifier</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</listitem>
+<listitem>
+<simpara>
+La RFC 5280 (<xref linkend="4"/>) impose l&#8217;emploi d&#8217;identifiants de clé lors de l'émission de certificats mais la section <emphasis>4.2.1.2</emphasis> indique aussi que les applications ne sont pas obligées de vérifier les identifiants de clé lors de la validation d&#8217;une chaîne de certification. Conclusion&#160;? Il n&#8217;y en a pas.
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+</itemizedlist>
+</sidebar>
 <figure><title> </title>
 <mediaobject>
   <imageobject>
@@ -273,7 +339,7 @@ Le couple <emphasis role="strong">(n, e)</emphasis> est la clé publique, <empha
 </simpara>
 </listitem>
 </itemizedlist>
-<simpara>La page Wikipédia consacrée au système RSA&#160;<xref linkend="4"/> explique le lien entre <emphasis>(n, e)</emphasis> et <emphasis>d</emphasis>, et nous indique le calcul à effectuer pour <emphasis>chiffrer</emphasis>.
+<simpara>La page Wikipédia consacrée au système RSA&#160;<xref linkend="5"/> explique le lien entre <emphasis>(n, e)</emphasis> et <emphasis>d</emphasis>, et nous indique le calcul à effectuer pour <emphasis>chiffrer</emphasis>.
 Pour <emphasis>signer</emphasis>, le calcul inverse le rôle de l&#8217;exposant privé et public, et pour <emphasis>vérifier</emphasis> la signature, le rôle des exposants privé et public est encore inversé (par rapport à la signature).</simpara>
 <simpara>Dans notre exemple le tbsCertificate est celui de <emphasis>letsencrypt.org</emphasis>, tandis que la clé RSA (clé publique <emphasis>(n, e)</emphasis> et clé privée <emphasis>d</emphasis>) est celle de <emphasis>TrustID Server CA A52</emphasis>.</simpara>
 </sidebar>
@@ -320,7 +386,7 @@ Si on a l'égalité <emphasis>M&#160;=&#160;M'</emphasis>, la signature est vér
 <title>Vérification du certificat de letsencrypto.org</title>
 <section id="_choix_d_8217_un_programme_de_calcul">
 <title>Choix d&#8217;un programme de calcul</title>
-<simpara>Nous avons besoin d&#8217;une "calculatrice" qui calcule sur des nombres entiers arbitrairement grands, sans perte de précision. Dans la suite de ce document, c&#8217;est <emphasis>bc</emphasis> qui sera utilisé&#160;<xref linkend="5"/>.</simpara>
+<simpara>Nous avons besoin d&#8217;une "calculatrice" qui calcule sur des nombres entiers arbitrairement grands, sans perte de précision. Dans la suite de ce document, c&#8217;est <emphasis>bc</emphasis> qui sera utilisé&#160;<xref linkend="6"/>.</simpara>
 <itemizedlist>
 <listitem>
 <simpara>
@@ -329,7 +395,7 @@ Linux&#160;: <emphasis>bc</emphasis> est disponible par défaut sur la plupart d
 </listitem>
 <listitem>
 <simpara>
-Windows&#160;: les binaires sont accessibles à l&#8217;URL&#160;<xref linkend="6"/>.
+Windows&#160;: les binaires sont accessibles à l&#8217;URL&#160;<xref linkend="7"/>.
 </simpara>
 </listitem>
 </itemizedlist>
@@ -518,7 +584,7 @@ Avec <emphasis>bc</emphasis> il est impératif de passer les nombres hexadécima
 <example>
 <title>Windows</title>
 <simpara>Windows ne dispose pas par défaut d&#8217;outil pour passer du texte en majuscule. Il faut installer <emphasis>GNUWin32</emphasis> ou <emphasis>cygwin</emphasis>.</simpara>
-<simpara>L'éditeur de texte (natif) adéquat pour ce type de transformation est <emphasis role="strong"><emphasis>notepad++</emphasis></emphasis>, disponible à cette URL&#160;<xref linkend="7"/>.</simpara>
+<simpara>L'éditeur de texte (natif) adéquat pour ce type de transformation est <emphasis role="strong"><emphasis>notepad++</emphasis></emphasis>, disponible à cette URL&#160;<xref linkend="8"/>.</simpara>
 <note><simpara><emphasis>vim</emphasis> et <emphasis>emacs</emphasis> sont disponibles sous Windows.</simpara></note>
 </example>
 </sidebar>
@@ -550,25 +616,25 @@ Il faut le faire en deux fois, une fois pour le modulo de 256 octets (variable <
 </figure>
 <simpara>A l&#8217;arrivée, <emphasis role="strong"><emphasis>val.b</emphasis></emphasis> contient trois variables, s, n et e.</simpara>
 <formalpara><title>val.b</title><para>
-<screen>ibase=2*8
+<programlisting language="bc" linenumbering="unnumbered">ibase=2*8
 
 s=8049A7CE9627701FC4E520876B97271A8AEF34D13A5ECA776172BD7C9053DBEF9C8504E4C85629135D934D1F9C6FB09375189812B3475D5F0797F5D32BC9B11B12BC29733DCD40E57EB97BC819F21939764A4F2A270036906BAE5FD280D68DCC16428C0FCD3D213025BCFA10A6697529ED1A168E0D2CEFCB24A9C9A64C85F0BF8942B91F2CD1E92989F73EF9F2267BAB5535C3388C10C3C1D55DBC3A50A01A77CEDED612862D83A9B1A68A08B68DC35BE0F2E23E3BD9AFD4C0BA1537CFD694A5AF5D6CF8887861A9DCB89B9DE35AD3F255C251B0ECD54C2CF693DD5732EDF33939334BDB1E64C29636E0502E57914984BDA74C7E05AC948403D2BEBE051452F8
 
 n=9769D7999885023FE9264276E8F4733FA932442690782E78579119A05D762B49F9935A5D5ACE82F3C2D8E54C367A2B1D0DDBA6A7FE91127CED7201B78CA1C5DACC9DFE09FB57E214470FE89E918F942D8032939303F5287868BA7E0F42B4317A0514225333E4A3AD6C8FAFBE636BB2329FD917B9C9E0607C99D631E1E4A0B73FAFB232AC7E8C9CDC02EBE1BC1F149CBC91F7B2FB42F3E1202BCBBF8FF3B37063FAF7752802ABC5D4B0EDEA257F87CD371496833C40021BA09E19477FF3B0CCC52560B83512F151EB17DCFC5BA5D99BEF404CD77771E9FB458B7EF2E369B042661746903ACD463DF1B0096FDCFFEE3361CAFCC72E3CED5E0AD1BF221269804B23
 
-e=10001</screen>
+e=10001</programlisting>
 </para></formalpara>
 </section>
 <section id="_la_fonction_powmod">
 <title>La fonction powmod</title>
 <simpara>Les amateurs de <emphasis>python</emphasis> ont encore un avantage à ce stade. L'équivalent de la fonction <emphasis>powmod</emphasis> y est disponible sous forme d&#8217;un troisième paramètre (facultatif) à la fonction <emphasis>pow</emphasis>.</simpara>
 <simpara>Pour ceux qui utilisent bc comme moi, il faut écrire la fonction.</simpara>
-<simpara>La fonction <emphasis>powmod</emphasis> met en oeuvre l&#8217;algorithme d&#8217;exponentiation rapide, décrit à cette URL&#160;<xref linkend="8"/>.
-En fait nous sommes dans un contexte modulaire et d&#8217;après Wikipédia le nom exact de l&#8217;algorithme est <emphasis>exponentiation modulaire</emphasis>. Un article y est consacrée&#160;<xref linkend="9"/>.
+<simpara>La fonction <emphasis>powmod</emphasis> met en oeuvre l&#8217;algorithme d&#8217;exponentiation rapide, décrit à cette URL&#160;<xref linkend="9"/>.
+En fait nous sommes dans un contexte modulaire et d&#8217;après Wikipédia le nom exact de l&#8217;algorithme est <emphasis>exponentiation modulaire</emphasis>. Un article y est consacrée&#160;<xref linkend="10"/>.
 Les deux algorithmes font appel au même principe, mais le second exploite le contexte modulaire pour que les nombres manipulés n&#8217;atteignent pas une taille démesurée. C&#8217;est le second algorithme (<emphasis>exponentiation modulaire</emphasis>) dont nous avons besoin pour la suite.</simpara>
 <simpara>Sur Internet, on peut trouver la fonction <emphasis>powmod</emphasis> dans de nombreux scripts <emphasis>bc</emphasis> à télécharger. À noter qu&#8217;elle porte parfois d&#8217;autres noms, <emphasis>mpower</emphasis> par exemple.</simpara>
 <formalpara><title>powmod.b</title><para>
-<screen>define powmod(a, b, c) {
+<programlisting language="bc" linenumbering="unnumbered">define powmod(a, b, c) {
         auto p, r
         p = a
         r = 1
@@ -578,7 +644,7 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
                 b /= 2
         }
         return r
-}</screen>
+}</programlisting>
 </para></formalpara>
 </section>
 <section id="_calcul_de_emphasis_m_emphasis">
@@ -721,8 +787,8 @@ Examen du contenu binaire avec la commande <emphasis>openssl asn1parse</emphasis
 <title>openssl</title>
 <simpara>Pour afficher le contenu binaire (qui se trouve être encodé en DER) nous allons utiliser l&#8217;exécutable en ligne de commande fourni avec la librairie openssl. Cet outil s&#8217;appelle <emphasis>openssl</emphasis>.</simpara>
 <simpara>Par la suite nous utiliserons également <emphasis>dder</emphasis> et <emphasis>pkfile</emphasis>, deux utilitaires créés par l&#8217;auteur de cet article pour afficher et extraire plus facilement ce type de données.</simpara>
-<simpara><emphasis>dder</emphasis> est disponible à l&#8217;URL&#160;<xref linkend="10"/>.</simpara>
-<simpara><emphasis>pkfile</emphasis> est disponible à l&#8217;URL&#160;<xref linkend="11"/>.</simpara>
+<simpara><emphasis>dder</emphasis> est disponible à l&#8217;URL&#160;<xref linkend="11"/>.</simpara>
+<simpara><emphasis>pkfile</emphasis> est disponible à l&#8217;URL&#160;<xref linkend="12"/>.</simpara>
 <itemizedlist><title>Exécutable openssl</title>
 <listitem>
 <simpara>
@@ -732,7 +798,7 @@ Sous Linux ce programme est disponible par défaut.
 <listitem>
 <simpara>
 Sous Windows il faut trouver un binaire à télécharger.
-Le plus simple est de télécharger la version GNUWin32, disponible à cette URL&#160;<xref linkend="12"/>.
+Le plus simple est de télécharger la version GNUWin32, disponible à cette URL&#160;<xref linkend="13"/>.
 </simpara>
 <simpara>La version proposée au téléchargement (en février 2016) date de 2008. Des binaires plus récents sont disponibles sur Internet.
 Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.</simpara>
@@ -766,7 +832,7 @@ L&#8217;algorithme de hash est SHA-256, ce que l&#8217;on savait déjà d&#8217;
 </listitem>
 <listitem>
 <simpara>
-Nous voyons la valeur du hash (le bloc <literal>prim: OCTET STRING</literal>) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).
+Nous voyons la valeur du hash (le bloc <emphasis role="strong"><literal>prim: OCTET STRING</literal></emphasis>) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).
 </simpara>
 </listitem>
 </itemizedlist>
@@ -986,7 +1052,7 @@ La ligne ajoutée à la fin commence par <emphasis role="strong"><literal>-----E
 </listitem>
 <listitem>
 <simpara>
-À l&#8217;aide de l&#8217;utilitaire <emphasis>pkfile</emphasis>. <emphasis>pkfile</emphasis> est disponible à cette URL&#160;<xref linkend="11"/>.
+À l&#8217;aide de l&#8217;utilitaire <emphasis>pkfile</emphasis>. <emphasis>pkfile</emphasis> est disponible à cette URL&#160;<xref linkend="12"/>.
 </simpara>
 </listitem>
 </orderedlist>
@@ -1117,12 +1183,12 @@ Utiliser <emphasis>pkfile</emphasis>, qui permet de calculer différents hash<fo
 </listitem>
 <listitem>
 <simpara>
-Installer les outils <emphasis>GNUWin32</emphasis>, disponibles à cette URL&#160;<xref linkend="12"/>.
+Installer les outils <emphasis>GNUWin32</emphasis>, disponibles à cette URL&#160;<xref linkend="13"/>.
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-7-ZIP ajoute des menus contextuels dans l&#8217;explorateur pour calculer différents hashs, dont SHA-256. 7-ZIP est disponible à cette URL&#160;<xref linkend="13"/>.
+7-ZIP ajoute des menus contextuels dans l&#8217;explorateur pour calculer différents hashs, dont SHA-256. 7-ZIP est disponible à cette URL&#160;<xref linkend="14"/>.
 </simpara>
 </listitem>
 </itemizedlist>
@@ -1242,6 +1308,551 @@ Le navigateur vérifie si les certificats rencontrés ont été révoqués à l&
 <simpara><?asciidoc-pagebreak?></simpara>
 </section>
 </section>
+<section id="_vérification_de_signature_ecdsa">
+<title>Vérification de signature ECDSA</title>
+<section id="_cryptographie_à_courbes_elliptiques">
+<title>Cryptographie à courbes elliptiques</title>
+<simpara>Ce document se concentre sur les problématiques de calcul effectif et de formats de fichiers.
+Nous n&#8217;allons pas expliquer ici toute la cryptographie à base de courbes elliptiques, nous allons simplement en résumer les grandes lignes, donner les formules applicables et quelques définitions.</simpara>
+<section id="_les_deux_familles_de_courbes_elliptiques">
+<title>Les deux familles de courbes elliptiques</title>
+<variablelist>
+<varlistentry>
+<term>
+Les courbes sur <emphasis>F<subscript>2<superscript>m</superscript></subscript></emphasis> (<emphasis>binary field</emphasis>)
+</term>
+<listitem>
+<simpara>
+Cette notation est un raccourci. On a <emphasis>F<subscript>2<superscript>n</superscript></subscript> = F<subscript>2</subscript>[x]/(p(x))</emphasis> où <emphasis>p(x)</emphasis> est un polynôme irréductible de degré <emphasis>n</emphasis> (source&#160;: <xref linkend="15"/>). Les "nombres" manipulés sont des polynômes sur <emphasis>F<subscript>2</subscript></emphasis> et les opérations sont faites modulo <emphasis>p(x)</emphasis>. L'équation de la courbe (source&#160;: <xref linkend="16"/>) est
+</simpara>
+<simpara><emphasis>y<superscript>2</superscript> + xy = x<superscript>3</superscript> + ax<superscript>2</superscript> + b</emphasis></simpara>
+<simpara>Les opérations sur <emphasis>F<subscript>2<superscript>m</superscript></subscript></emphasis> portent sur des polynômes et leur arithmétique est distincte de l&#8217;arithmétique usuelle sur les nombres entiers. Par exemple quel que soit <emphasis>A</emphasis> de <emphasis>F<subscript>2<superscript>m</superscript></subscript></emphasis>, on a <emphasis>A&#160;+&#160;A&#160;=&#160;0</emphasis> (soit <emphasis>A&#160;=&#160;-A</emphasis> pour tout <emphasis>A</emphasis>).</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+Les courbes sur <emphasis>F<subscript>p</subscript></emphasis> (<emphasis>prime field</emphasis>)
+</term>
+<listitem>
+<simpara>
+<emphasis>p</emphasis> est un nombre premier. On a <emphasis>F<subscript>p</subscript> = Z/pZ</emphasis> (source&#160;: <xref linkend="17"/>). Les opérations sont faites modulo <emphasis>p</emphasis>. L'équation de la courbe est (source&#160;: <xref linkend="16"/>)
+</simpara>
+<simpara><emphasis>y<superscript>2</superscript> = x<superscript>3</superscript> + ax + b</emphasis></simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+</section>
+<section id="_les_paramètres_de_domaine">
+<title>Les paramètres de domaine</title>
+<simpara>Ces paramètres définissent les caractéristiques de la courbe. Une clé est définie pour une courbe et une seule, la courbe étant entièrement déterminée par ses paramètres de domaine. On parle aussi de paramètres de la courbe.</simpara>
+<simpara>Source&#160;: <xref linkend="16"/>.</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Sur <emphasis>F<subscript>2<superscript>m</superscript></subscript></emphasis>, les paramètres sont (<emphasis>m</emphasis>, <emphasis>f(x)</emphasis>, <emphasis>a</emphasis>, <emphasis>b</emphasis>, <emphasis>G</emphasis>, <emphasis>n</emphasis>, <emphasis>h</emphasis>)
+</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+<emphasis>m</emphasis>, entier qui définit <emphasis>F<subscript>2<superscript>m</superscript></subscript></emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>f(x)</emphasis>, polynôme irréductible de degré <emphasis>m</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>a</emphasis> et <emphasis>b</emphasis>, les paramètres de l'équation <emphasis>y<superscript>2</superscript> + xy = x<superscript>3</superscript> + ax<superscript>2</superscript> + b</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>G</emphasis>, le générateur du groupe noté <emphasis>E(F<subscript>2<superscript>m</superscript></subscript>)</emphasis> (<emphasis>G</emphasis> est donc un point de la courbe).
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>n</emphasis> est l&#8217;ordre du groupe généré par <emphasis>G</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>h</emphasis> est le cofacteur, c&#8217;est le nombre d'éléments de <emphasis>E(F<subscript>2<superscript>m</superscript></subscript>)</emphasis> divisé par <emphasis>n</emphasis>.
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+<listitem>
+<simpara>
+Sur <emphasis>F<subscript>p</subscript></emphasis>, les paramètres sont (<emphasis>p</emphasis>, <emphasis>a</emphasis>, <emphasis>b</emphasis>, <emphasis>G</emphasis>, <emphasis>n</emphasis>, <emphasis>h</emphasis>)
+</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+<emphasis>p</emphasis>, nombre premier.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>a</emphasis> et <emphasis>b</emphasis>, les paramètres de l'équation <emphasis>y<superscript>2</superscript> (mod p) = x<superscript>3</superscript> + ax + b (mod p)</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>G</emphasis>, le générateur du groupe noté <emphasis>E(F<subscript>p</subscript>)</emphasis> (<emphasis>G</emphasis> est donc un point de la courbe).
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>n</emphasis> est l&#8217;ordre du groupe généré par <emphasis>G</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>h</emphasis> est le cofacteur, c&#8217;est le nombre d'éléments de <emphasis>E(F<subscript>p</subscript>)</emphasis> divisé par <emphasis>n</emphasis>.
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+</itemizedlist>
+<formalpara><title>Les courbes nommées</title><para>Toute information pratique sur les courbes elliptiques (clé privée ou publique, signature&#8230;) n&#8217;est exploitable qu&#8217;avec les paramètres de domaine de la courbe elliptique utilisée.
+Les paramètres de domaine peuvent être donnés de deux manières&#160;: tels quels (les différents éléments vus précédemment et qui définissent une courbe, tels que <emphasis>a</emphasis>, <emphasis>b</emphasis>, <emphasis>G</emphasis>, etc.), ou bien sous la forme d&#8217;une <emphasis>courbe nommée</emphasis>.</para></formalpara>
+<simpara><emphasis>openssl</emphasis> peut lister les courbes nommées&#160;:</simpara>
+<literallayout class="monospaced">$ openssl ecparam -list_curves
+  secp112r1 : SECG/WTLS curve over a 112 bit prime field
+  secp112r2 : SECG curve over a 112 bit prime field
+  [...]
+  brainpoolP512r1: RFC 5639 curve over a 512 bit prime field
+  brainpoolP512t1: RFC 5639 curve over a 512 bit prime field</literallayout>
+<simpara>La commande suivante permet d&#8217;afficher les détails d&#8217;une courbe, exemple avec <emphasis>secp256r1</emphasis>&#160;:</simpara>
+<literallayout class="monospaced">$ openssl ecparam -name secp256r1 -noout -text
+using curve name prime256v1 instead of secp256r1
+ASN1 OID: prime256v1
+NIST CURVE: P-256</literallayout>
+<simpara><emphasis>openssl</emphasis> nous avertit que <emphasis>secp256r1</emphasis> (définition "SECG"&#160;: <xref linkend="18"/>) est en fait la courbe <emphasis>NIST P-256</emphasis> (définie ici <xref linkend="19"/>), qui porte le nom <emphasis>prime256v1</emphasis> dans le standard <emphasis>X9.62</emphasis>.</simpara>
+<simpara>Tout ça pour dire quoi&#160;? Rien, à part que l&#8217;on peut se féliciter de vivre à l&#8217;heure d&#8217;Internet pour s&#8217;y retrouver dans la jungle des documents de normalisation.</simpara>
+<simpara>Et les paramètres de domaine&#160;? Il faut demander à <emphasis>openssl</emphasis> d&#8217;afficher les paramètres de la courbe sous forme explicite&#160;:</simpara>
+<literallayout class="monospaced">$ openssl ecparam -name secp256r1 -noout -text -param_enc explicit
+using curve name prime256v1 instead of secp256r1
+Field Type: prime-field
+Prime:
+    00:ff:ff:ff:ff:00:00:00:01:00:00:00:00:00:00:
+    00:00:00:00:00:00:ff:ff:ff:ff:ff:ff:ff:ff:ff:
+    ff:ff:ff
+A:
+    00:ff:ff:ff:ff:00:00:00:01:00:00:00:00:00:00:
+    00:00:00:00:00:00:ff:ff:ff:ff:ff:ff:ff:ff:ff:
+    ff:ff:fc
+B:
+    5a:c6:35:d8:aa:3a:93:e7:b3:eb:bd:55:76:98:86:
+    bc:65:1d:06:b0:cc:53:b0:f6:3b:ce:3c:3e:27:d2:
+    60:4b
+Generator (uncompressed):
+    04:6b:17:d1:f2:e1:2c:42:47:f8:bc:e6:e5:63:a4:
+    40:f2:77:03:7d:81:2d:eb:33:a0:f4:a1:39:45:d8:
+    98:c2:96:4f:e3:42:e2:fe:1a:7f:9b:8e:e7:eb:4a:
+    7c:0f:9e:16:2b:ce:33:57:6b:31:5e:ce:cb:b6:40:
+    68:37:bf:51:f5
+Order:
+    00:ff:ff:ff:ff:00:00:00:00:ff:ff:ff:ff:ff:ff:
+    ff:ff:bc:e6:fa:ad:a7:17:9e:84:f3:b9:ca:c2:fc:
+    63:25:51
+Cofactor:  1 (0x1)
+Seed:
+    c4:9d:36:08:86:e7:04:93:6a:66:78:e1:13:9d:26:
+    b7:81:9f:7e:90</literallayout>
+<simpara>Tous ces paramètres ont été vus plus haut, sauf <emphasis>Seed</emphasis>. Qu&#8217;en est-il&#160;?</simpara>
+<simpara><emphasis>Seed</emphasis> est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n&#8217;importe qui, selon une spécification <emphasis>X9.62</emphasis>. Cela garantit qu&#8217;ils n&#8217;ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. <emphasis>Seed</emphasis> est à l&#8217;origine des paramètres de la courbe mais il n&#8217;en fait pas partie. Le passage de <emphasis>Seed</emphasis> aux paramètres utilise une fonction de hachage à sens unique, ce qui garantit que le choix ne s&#8217;est pas fait dans l&#8217;autre sens (détermination de paramètres ad hoc puis du <emphasis>Seed</emphasis> correspondant).</simpara>
+<formalpara><title>Le x509</title><para>La RFC 5480 (<xref linkend="20"/>) interdit expressément l&#8217;usage de paramètres explicites dans le standard x509, seules les courbes nommées peuvent y être utilisées.</para></formalpara>
+<simpara>Nous allons maintenant nous intéresser aux courbes sur les corps premiers (<emphasis>F<subscript>p</subscript></emphasis>).
+Les courbes binaires fonctionnent selon les mêmes principes mais les "nombres" manipulés sont des polynômes sur <emphasis>F<subscript>2</subscript></emphasis>, et si l&#8217;on souhaite y mener des calculs avec <emphasis>bc</emphasis> ou <emphasis>python</emphasis>, cela nécessite de coder spécifiquement leur arithmétique. Dans ce document nous ferons des calculs sur <emphasis>F<subscript>p</subscript></emphasis> uniquement.</simpara>
+</section>
+<section id="_l_8217_arithmétique_des_courbes_sur_emphasis_f_subscript_p_subscript_emphasis">
+<title>L&#8217;arithmétique des courbes sur <emphasis>F<subscript>p</subscript></emphasis></title>
+<simpara>Les calculs sont faits modulo <emphasis>p</emphasis> et nous ne le préciserons plus par la suite&#160;<footnote><simpara>Dans la signature ECDSA certains calculs sont faits modulo <emphasis>n</emphasis>, l&#8217;ordre du groupe associé à la courbe. Cela sera signalé. À défaut, tous les calculs sont faits modulo <emphasis>p</emphasis>.</simpara></footnote>.</simpara>
+<formalpara><title>Clés privée et publique</title><para>La construction d&#8217;une paire de clés privée et publique consiste à</para></formalpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Choisir un entier <emphasis>k</emphasis> inférieur à <emphasis>p</emphasis>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Calculer <emphasis>Q = kG</emphasis> où <emphasis>G</emphasis> est l&#8217;un des paramètres de domaine de la courbe (voir ci-après la multiplication d&#8217;un point par un scalaire)
+</simpara>
+</listitem>
+</orderedlist>
+<simpara>Le point <emphasis>Q</emphasis> est la clé publique, l&#8217;entier <emphasis>k</emphasis> est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.</simpara>
+<formalpara><title>Addition de deux points distincts (et non alignés verticalement)</title><para>La signification de l&#8217;addition de deux points est géométrique et on peut le voir ici&#160;<xref linkend="21"/>.</para></formalpara>
+<simpara>Les formules qui en découlent sont les suivantes, pour <emphasis>R&#160;=&#160;P&#160;+&#160;Q</emphasis> de coordonnées (<emphasis>r<subscript>x</subscript></emphasis>, <emphasis>r<subscript>y</subscript></emphasis>), (<emphasis>p<subscript>x</subscript></emphasis>, <emphasis>p<subscript>y</subscript></emphasis>) et (<emphasis>q<subscript>x</subscript></emphasis>, <emphasis>q<subscript>y</subscript></emphasis>) respectivement, <emphasis>P</emphasis> étant différent de Q et non aligné verticalement avec <emphasis>Q</emphasis>&#160;:</simpara>
+<informalfigure>
+<mediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-point-add.png"/>
+  </imageobject>
+  <textobject><phrase>Addition de deux points</phrase></textobject>
+</mediaobject>
+</informalfigure>
+<formalpara><title>Addition d&#8217;un point avec lui-même</title><para>Pour <emphasis>P&#160;=&#160;Q</emphasis>, le calcul de <emphasis>R&#160;=&#160;P&#160;+&#160;P&#160;=&#160;2P</emphasis> est (en reprenant les notations précédentes)&#160;:</para></formalpara>
+<informalfigure>
+<mediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-point-dbl.png"/>
+  </imageobject>
+  <textobject><phrase>Addition d'un point avec lui-même</phrase></textobject>
+</mediaobject>
+</informalfigure>
+<important><simpara>Le symbole de fraction n&#8217;est pas la division euclidienne mais la multiplication par l&#8217;inverse modulo <emphasis>p</emphasis>.</simpara></important>
+<formalpara><title>Multiplication d&#8217;un point par un entier naturel</title><para>Avec les formules qui précèdent, on sait calculer <emphasis>P&#160;&#43;&#160;P&#160;=&#160;2P</emphasis>, <emphasis>P&#160;&#43;&#160;2P&#160;=&#160;3P</emphasis>, et ainsi de suite.
+On sait donc calculer <emphasis>kP</emphasis>, <emphasis>k</emphasis> entier.</para></formalpara>
+<note>
+<title>Addition de deux points alignés verticalement</title>
+<simpara>Si <emphasis>P</emphasis> et <emphasis>Q</emphasis> sont alignés verticalement ils sont opposés (cela découle du terme <emphasis>y<superscript>2</superscript></emphasis> de l'équation), on a donc <emphasis>P&#160;=&#160;-Q</emphasis> que l&#8217;on peut aussi écrire <emphasis>P&#160;&#43;&#160;Q&#160;=&#160;O</emphasis>. <emphasis>O</emphasis> est le "point à l&#8217;infini" de la courbe elliptique et il joue le même rôle que zéro dans l&#8217;addition des entiers. Ainsi on a <emphasis>P&#160;&#43;&#160;O&#160;=&#160;O&#160;&#43;&#160;P&#160;=&#160;O</emphasis> quel que soit <emphasis>P</emphasis> sur la courbe.</simpara>
+</note>
+<formalpara><title>Multiplication par un entier <emphasis>k</emphasis> très grand</title><para>Les <emphasis>k</emphasis> utilisés en pratique étant des grands nombres (de l&#8217;ordre de 2<superscript>256</superscript> avec <emphasis>prime256v1</emphasis>), il n&#8217;est pas possible de calculer <emphasis>kP</emphasis> en ajoutant <emphasis>P</emphasis> à lui-même <emphasis>k</emphasis> fois.</para></formalpara>
+<simpara>Il faut utiliser l&#8217;algorithme d&#8217;exponentiation rapide vu précédemment&#160;: <xref linkend="9"/>.
+Remplacer la multiplication de deux entiers par l&#8217;addition de deux points et l'élévation à la puissance par la multiplication d&#8217;un point par un entier.</simpara>
+</section>
+<section id="_fonctions_de_calcul_sur_emphasis_f_subscript_p_subscript_emphasis_avec_le_programme_emphasis_bc_emphasis">
+<title>Fonctions de calcul sur <emphasis>F<subscript>p</subscript></emphasis> avec le programme <emphasis>bc</emphasis></title>
+<simpara>Nous allons maintenant écrire les fonctions de calcul d&#8217;après les formules qui précèdent.</simpara>
+<simpara>Un point est représenté par un tableau et la convention du script est la suivante&#160;:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Le point à l&#8217;infini est codé par <emphasis>point[2]</emphasis> différent de zéro
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Sinon (si <emphasis>point[2]</emphasis> est nul), <emphasis>point[0]</emphasis> est la coordonnée <emphasis>x</emphasis> et <emphasis>point[1]</emphasis> est la coordonnée <emphasis>y</emphasis>.
+</simpara>
+</listitem>
+</itemizedlist>
+<simpara>Le calcul de l&#8217;inverse modulaire utilise l'<emphasis>algorithme d&#8217;Euclide étendu</emphasis> <xref linkend="22"/>.</simpara>
+<note><simpara>Ce script contient la fonction <emphasis>powmod</emphasis> utilisée précédemment, pour le RSA. Nous n&#8217;en avons pas besoin pour les calculs ECDSA.</simpara></note>
+<important>
+<title>L&#8217;opérateur modulo</title>
+<simpara>L&#8217;opérateur <emphasis>%</emphasis> (<emphasis>modulo</emphasis>) ne fonctionne pas à l&#8217;identique d&#8217;un langage à l&#8217;autre ou d&#8217;une librairie à l&#8217;autre.</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+<emphasis>bc</emphasis> renvoie un nombre dont le signe est le signe du premier argument.
+Ainsi <emphasis>(-5)&#160;%&#160;3</emphasis> renvoie <emphasis>-2</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis>python</emphasis> renvoie toujours une valeur positive. <emphasis>(-5)&#160;%&#160;3</emphasis> renvoie <emphasis>1</emphasis>.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+La librairie <emphasis>libgmp</emphasis> (<emphasis>GNU Multiple Precision Arithmetic Library</emphasis>) renvoie toujours une valeur positive. <emphasis>(-5)&#160;%&#160;3</emphasis> renvoie <emphasis>1</emphasis>.
+</simpara>
+</listitem>
+</itemizedlist>
+<simpara>Cela ne change pas la nature des calculs effectués mais doit parfois être pris en compte. Ainsi la fonction <emphasis>invmod</emphasis> (définie dans <emphasis>crypto.b</emphasis> ci-dessous) ne peut pas fonctionner avec des nombres négatifs et elle commence par "normaliser" le premier argument pour qu&#8217;il soit compris entre <emphasis>0</emphasis> et <emphasis>n&#160;-&#160;1</emphasis>.</simpara>
+</important>
+<formalpara><title>crypto.b</title><para>
+<programlisting language="bc" linenumbering="unnumbered">        /* Calculate the invert of a modulo n */
+define invmod(a, n) {
+        auto aa, bb, r, t, anc_t, nou_t, negflag
+        aa = n
+        negflag = 0
+        if (a &lt; 0) {
+                negflag = 1
+                a %= n
+                if (a &lt; 0) a += n
+        }
+        bb = a
+        r = 1
+        t = 1
+        anc_t = 0
+        while (1) {
+                q = aa / bb
+                anc_r = r
+                r = aa - bb * q
+
+                nou_t = anc_t - q * t
+                if (nou_t &gt;= 0) nou_t %= n
+                if (nou_t &lt; 0) nou_t = n - (-nou_t % n)
+                anc_t = t
+                t = nou_t
+
+                aa = bb
+                bb = r
+                if (r &lt;= 1) break;
+        }
+
+        if (r != 1) {
+                        /*
+                           No invert can be returned =&gt; error
+                           Alternate solution: return -1
+
+                           I find triggering an error best: the calculation stops
+                           immediately instead of continuing with meaningless values
+                        */
+                return 1 % 0
+        } else {
+                if (negflag) t -= n
+                return t
+        }
+}
+
+/*
+        The well-known powmod function, sometimes referred to in bc scripts
+        as "mpower".
+*/
+define powmod(a, b, c) {
+        auto p, r
+        p = a
+        r = 1
+        while (b &gt; 0) {
+                if (b % 2) r = (r * p) % c
+                p = (p * p) % c
+                b /= 2
+        }
+        return r
+}
+
+/*
+        The EC functions below use the following conventions.
+
+        - The point at infinity has non null element of index 2 (array[2]!=0),
+          for any other point, array[2] is zero.
+
+        - If array[2] is zero, array[0] is the x coordinate and
+          array[1] is the y coordinate.
+
+*/
+
+/*
+        ECC addition of p and q, p[0] being different from q[0]
+*/
+define void ec_add_core(*r[], p[], q[], m) {
+        auto s
+        s = ((p[1] - q[1]) * invmod(p[0] - q[0], m)) % m
+        r[0] = (s^2 - p[0] - q[0]) % m
+        r[1] = (s * (p[0] - r[0]) - p[1]) % m
+        r[2] = 0
+}
+
+/*
+   ECC point doubling
+*/
+define void ec_dbl_core(*r[], p[], a, m) {
+        auto s
+        s = ((3 * p[0]^2 + a) * invmod(2 * p[1], m)) % m
+        r[0] = (s^2 - 2 * p[0]) % m
+        r[1] = (s * (p[0] - r[0]) - p[1]) % m
+        r[2] = 0
+}
+
+/*
+        ECC addition of p and q for any value of p and q
+*/
+define void ec_add(*r[], p[], q[], a, m) {
+        if (p[2]) { r[0] = q[0]; r[1] = q[1]; r[2] = q[2]; return }
+        if (q[2]) { r[0] = p[0]; r[1] = p[1]; r[2] = p[2]; return }
+        if (p[0] == q[0]) {
+                if (p[1] != q[1]) {
+                        r[2] = 1  /* We don't verify whether p[1]==-q[1] as it should... */
+                } else {
+                        if (p[2]) {
+                                r[2] = 1
+                                return
+                        }
+                        ec_dbl_core(r[], p[], a, m)
+                }
+        } else {
+                ec_add_core(r[], p[], q[], m)
+        }
+}
+
+/*
+   ECC scalar point multiplication
+*/
+define void ec_mul(*r[], p[], k, a, m) {
+        auto tmp[]
+        r[2] = 1
+        if (p[2]) return
+        while (k &gt; 0) {
+                if ((k % 2) == 1) {
+                        ec_add(r[], r[], p[], a, m)
+                }
+                        /*
+                         * ec_dbl(p[], p[], a, m) does not work with bc,
+                         * need to use a temporary array.
+                         */
+                ec_add(tmp[], p[], p[], a, m)
+                p[0]=tmp[0]
+                p[1]=tmp[1]
+                p[2]=tmp[2]
+                k /= 2
+        }
+        if (!r[2]) {
+                if (r[0] &lt; 0) r[0] += m
+                if (r[1] &lt; 0) r[1] += m
+        }
+}</programlisting>
+</para></formalpara>
+<note>
+<title>Optimisation et robustesse</title>
+<simpara>Sur Internet on trouve des scripts qui appliquent la première formule (addition de deux points distincts) et la deuxième (doubler un point) sans vérifier les cas "P et Q alignés verticalement" ou "Point à l&#8217;infini".</simpara>
+<simpara>Dans la pratique ce n&#8217;est pas un souci car les nombres manipulés avec des clés x509 ne conduisent jamais à ces cas limites.
+La fonction <emphasis>ec_mul</emphasis> pourrait ainsi être plus efficace, en appelant directement les fonctions ec_add_core et ec_dbl_core.</simpara>
+</note>
+</section>
+<section id="_représentation_d_8217_un_point_dans_le_standard_x509">
+<title>Représentation d&#8217;un point dans le standard x509</title>
+<simpara>Un point de la courbe d&#8217;abscisse <emphasis>x</emphasis> donnée ne peut avoir que deux valeurs de <emphasis>y</emphasis> (du fait du terme <emphasis>y<superscript>2</superscript></emphasis> des équations).</simpara>
+<simpara>Le standard X9.62 définit la méthode pour désigner quel <emphasis>y</emphasis> est le bon, en utilisant un seul bit d&#8217;information. Ainsi l&#8217;enregistrement de <emphasis>x</emphasis> et du bit d&#8217;information pour retrouver le bon <emphasis>y</emphasis> suffisent à coder un point, et cette forme est dite <emphasis>compressée</emphasis>. Comme il est en plus possible de mélanger les formes (compressée et non compressée), un point peut être codé de trois manières&#160;:</simpara>
+<variablelist>
+<varlistentry>
+<term>
+La forme non compressée
+</term>
+<listitem>
+<simpara>
+Enregistrement des deux coordonnées
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+La forme compressée
+</term>
+<listitem>
+<simpara>
+Enregistrement de <emphasis>x</emphasis> et du bit d&#8217;information relatif à <emphasis>y</emphasis>
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+La forme hybride
+</term>
+<listitem>
+<simpara>
+Enregistrement de <emphasis>x</emphasis>, <emphasis>y</emphasis> et du bit d&#8217;information relatif à <emphasis>y</emphasis>
+</simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+<simpara>Sur <emphasis>F<subscript>p</subscript></emphasis> on a <emphasis>y<subscript>1</subscript>&#160;=&#160;-y<subscript>2</subscript></emphasis> (car non seulement <emphasis>y</emphasis> y apparaît sous la forme <emphasis>y<superscript>2</superscript></emphasis>, mais en plus, il est isolé à gauche du signe <emphasis>égal</emphasis>) et comme nous sommes dans l&#8217;arithmétique modulaire on peut ré-écrire cette égalité <emphasis>y<subscript>1</subscript>&#160;&#43;&#160;y<subscript>2</subscript>&#160;=&#160;p</emphasis>.
+<emphasis>p</emphasis> étant impair, <emphasis>y<subscript>1</subscript></emphasis> et <emphasis>y<subscript>2</subscript></emphasis> n&#8217;ont pas même parité. Le bit d&#8217;information est le dernier bit de <emphasis>y</emphasis> (sa parité). On comprend aisément que la forme hybride ne présente aucun intérêt sur <emphasis>F<subscript>p</subscript></emphasis>, puisqu&#8217;un simple examen de <emphasis>y</emphasis> donne le bit d&#8217;information à employer dans la forme compressée. La forme hybride apporte un plus sur <emphasis>F<subscript>2<superscript>m</superscript></subscript></emphasis> où le bit d&#8217;information doit être calculé.</simpara>
+<simpara>Le standard x509 (ici la RFC 5480) permet de coder un point soit sous forme compressée, soit sous forme non compressée. La RFC 5480 interdit expressément la forme hybride définie par le standard X9.62.</simpara>
+<simpara>Selon le standard X9.62 en vigueur dans la RFC 5480 (nous ne mentionnons donc pas ici la forme hybride, interdite par la RFC 5480) les formes compressée et non compressée sont codées ainsi<footnote><simpara>Le standard X9.62 définit <emphasis>00</emphasis> comme seul octet pour coder le point à l&#8217;infini. La RFC 5480 interdit toute autre valeur que <emphasis>02</emphasis>, <emphasis>03</emphasis> et <emphasis>04</emphasis>, et interdit donc <emphasis>00</emphasis>. C&#8217;est logique car on ne voit pas dans quel but le point à l&#8217;infini serait enregistré dans le cadre x509. Dans le standard x509, un point est une clé publique.</simpara></footnote>&#160;:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+Premier octet = <emphasis>02</emphasis>&#160;: le point est compressé, et <emphasis>y</emphasis> est pair. <emphasis>x</emphasis> est codé juste après 02.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Premier octet = <emphasis>03</emphasis>&#160;: le point est compressé, et <emphasis>y</emphasis> est impair. <emphasis>x</emphasis> est codé juste après 03.
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Premier octet = <emphasis>04</emphasis>&#160;: le point est non compressé. <emphasis>x</emphasis> est codé juste après 04, et <emphasis>y</emphasis> est codé juste après <emphasis>x</emphasis>. Comme <emphasis>x</emphasis> et <emphasis>y</emphasis> ont même taille, il n&#8217;y a pas besoin de délimiteur pour retrouver la position à laquelle on passe de <emphasis>x</emphasis> à <emphasis>y</emphasis>.
+</simpara>
+</listitem>
+</itemizedlist>
+</section>
+<section id="_la_courbe_prime256v1_secp256r1">
+<title>La courbe prime256v1 (secp256r1)</title>
+<formalpara><title>Les paramètres de la courbe prime256v1</title><para>Récupérons les paramètres (depuis <emphasis>openssl</emphasis> ou depuis ce document&#160;<xref linkend="18"/>) de la courbe et enregistrons-les dans le fichier <emphasis>secp256r1.b</emphasis>.</para></formalpara>
+<simpara>Pour représenter un point de la courbe nous utilisons la convention <emphasis>point[0] = abscisse du point</emphasis> et <emphasis>point[1] = ordonnée du point</emphasis>. Le point à l&#8217;infini est représenté par <emphasis>point[2] = 1</emphasis> (<emphasis>point[2] = 0</emphasis> pour tout autre point).</simpara>
+<formalpara><title>secp256r1.b</title><para>
+<programlisting language="bc" linenumbering="unnumbered">save_ibase=ibase
+ibase=2^4
+p=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
+a=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC
+b=5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B
+g[0]=6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296
+g[1]=4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5
+g[2]=0
+n=FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
+h=1
+ibase=save_ibase</programlisting>
+</para></formalpara>
+<simpara>Au passage, on peut vérifier que le point <emphasis>G</emphasis> fait bien partie de la courbe&#160;:</simpara>
+<figure><title> </title>
+<mediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-verif-prime256v1-redim.png"/>
+  </imageobject>
+  <textobject><phrase>Vérification prime256v1</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>On peut également vérifier que <emphasis>nG&#160;=&#160;O</emphasis>, <emphasis>O</emphasis> étant le point à l&#8217;infini.
+Dans la convention des fonctions de <emphasis>crypto.b</emphasis>, le point à l&#8217;infini est codé par une valeur non nulle de l'élément d&#8217;indice <emphasis>2</emphasis>&#160;:</simpara>
+<figure><title> </title>
+<mediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-n_fois_g-redim.png"/>
+  </imageobject>
+  <textobject><phrase>n fois G</phrase></textobject>
+</mediaobject>
+</figure>
+<formalpara><title>Création d&#8217;une paire de clé privée et publique sur prime256v1</title><para>Exécuter <footnote><simpara>Enregistrer une clé privée dans un fichier non protégé par mot de passe (chiffré) est une mauvaise pratique. Ici cela n&#8217;a pas d&#8217;importance puisque la clé est une clé de test.</simpara></footnote></para></formalpara>
+<literallayout class="monospaced">$ openssl ecparam -name prime256v1 -genkey -out k.pem</literallayout>
+<simpara>Examiner le résultat avec</simpara>
+<literallayout class="monospaced">$ openssl ec -in k.pem -noout -text</literallayout>
+<figure><title> </title>
+<mediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-key-redim.png"/>
+  </imageobject>
+  <textobject><phrase>ECC key</phrase></textobject>
+</mediaobject>
+</figure>
+<simpara>Par défaut, <emphasis>openssl</emphasis> enregistre les clés publiques sous forme non compressée, ce que l&#8217;on peut voir au <emphasis>04</emphasis> qui démarre la suite d&#8217;octets en-dessous de "pub:".</simpara>
+<simpara>À l&#8217;aide de la commande <emphasis>openssl</emphasis> ci-dessus (ou bien avec <emphasis>pkfile</emphasis>, ou encore <emphasis>dder</emphasis>), copier/coller les valeurs de la clé privée et publique dans <emphasis>k.b</emphasis>, sous les noms <emphasis>k</emphasis> et <emphasis>q[]</emphasis>, respectivement.</simpara>
+<formalpara><title>k.b</title><para>
+<programlisting language="bc" linenumbering="unnumbered">save_ibase=ibase
+ibase=2^4
+k=673DCAD121E37B7E15AC792F8CA0670856E2DE9C233684A9A0FA3D767B61FBF1
+q[0]=134D4E5F632E0545350FB89EE05200450E07A5B115BCA72DF5F4896D2433A65A
+q[1]=A1A33A97ACB4E40D0519CB029B1E85E26D3D6B3D7FF3D3626127D0C045392D91
+q[2]=0
+ibase=save_ibase</programlisting>
+</para></formalpara>
+<formalpara><title>Calcul de la clé publique d&#8217;après la clé privée</title><para>On peut facilement calculer <emphasis>Q</emphasis> (la clé publique) d&#8217;après <emphasis>k</emphasis> (la clé privée). Au passage, cela permet de vérifier le bon fonctionnement de la chaîne&#160;:</para></formalpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>
+Les fonctions de <emphasis>crypto.b</emphasis>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+Les paramètres de domaine de <emphasis>prime256v1</emphasis>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+La définition dans <emphasis>k.b</emphasis> des valeurs de la paire de clés privée et publique
+</simpara>
+</listitem>
+</orderedlist>
+<figure><title> </title>
+<mediaobject>
+  <imageobject>
+  <imagedata fileref="./images/img-k_fois_g-redim.png"/>
+  </imageobject>
+  <textobject><phrase>k fois G</phrase></textobject>
+</mediaobject>
+</figure>
+</section>
+</section>
+</section>
 <bibliography id="_bibliography">
 <title>Bibliography</title>
 <itemizedlist>
@@ -1262,53 +1873,113 @@ Le navigateur vérifie si les certificats rencontrés ont été révoqués à l&
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="4" xreflabel="[4]"/>[4]</emphasis> Article Wikipédia consacré au RSA&#160;: <ulink url="https://fr.wikipedia.org/wiki/Chiffrement_RSA">https://fr.wikipedia.org/wiki/Chiffrement_RSA</ulink>
+<emphasis role="strong"><anchor id="4" xreflabel="[4]"/>[4]</emphasis> RFC 5280 (certificats x509 v3)&#160;: <ulink url="https://tools.ietf.org/html/rfc5280">https://tools.ietf.org/html/rfc5280</ulink>
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="5" xreflabel="[5]"/>[5]</emphasis> Page d&#8217;accueil de <emphasis>bc</emphasis>&#160;: <ulink url="https://www.gnu.org/software/bc/">https://www.gnu.org/software/bc/</ulink>
+<emphasis role="strong"><anchor id="5" xreflabel="[5]"/>[5]</emphasis> Article Wikipédia consacré au RSA&#160;: <ulink url="https://fr.wikipedia.org/wiki/Chiffrement_RSA">https://fr.wikipedia.org/wiki/Chiffrement_RSA</ulink>
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="6" xreflabel="[6]"/>[6]</emphasis> <emphasis>bc</emphasis> pour Windows&#160;: <ulink url="http://gnuwin32.sourceforge.net/packages/bc.htm">http://gnuwin32.sourceforge.net/packages/bc.htm</ulink>
+<emphasis role="strong"><anchor id="6" xreflabel="[6]"/>[6]</emphasis> Page d&#8217;accueil de <emphasis>bc</emphasis>&#160;: <ulink url="https://www.gnu.org/software/bc/">https://www.gnu.org/software/bc/</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="7" xreflabel="[7]"/>[7]</emphasis> <emphasis>bc</emphasis> pour Windows&#160;: <ulink url="http://gnuwin32.sourceforge.net/packages/bc.htm">http://gnuwin32.sourceforge.net/packages/bc.htm</ulink>
 </simpara>
 <simpara><emphasis>bc</emphasis> a besoin du fichier <emphasis>readline5.dll</emphasis> pour s&#8217;exécuter. Vous pouvez le trouver à cette URL&#160;: <ulink url="http://gnuwin32.sourceforge.net/packages/readline.htm">http://gnuwin32.sourceforge.net/packages/readline.htm</ulink></simpara>
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="7" xreflabel="[7]"/>[7]</emphasis> Le site de notepad++ &#160;: <ulink url="https://notepad-plus-plus.org/fr">https://notepad-plus-plus.org/fr</ulink>
+<emphasis role="strong"><anchor id="8" xreflabel="[8]"/>[8]</emphasis> Le site de notepad++ &#160;: <ulink url="https://notepad-plus-plus.org/fr">https://notepad-plus-plus.org/fr</ulink>
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="8" xreflabel="[8]"/>[8]</emphasis> Article Wikipédia sur l&#8217;algorithme d&#8217;exponentiation rapide&#160;: <ulink url="https://fr.wikipedia.org/wiki/Exponentiation_rapide">https://fr.wikipedia.org/wiki/Exponentiation_rapide</ulink>
+<emphasis role="strong"><anchor id="9" xreflabel="[9]"/>[9]</emphasis> Article Wikipédia sur l&#8217;algorithme d&#8217;exponentiation rapide&#160;: <ulink url="https://fr.wikipedia.org/wiki/Exponentiation_rapide">https://fr.wikipedia.org/wiki/Exponentiation_rapide</ulink>
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="9" xreflabel="[9]"/>[9]</emphasis> Article Wikipédia sur l&#8217;exponentiation modulaire&#160;: <ulink url="https://fr.wikipedia.org/wiki/Exponentiation_modulaire">https://fr.wikipedia.org/wiki/Exponentiation_modulaire</ulink>
+<emphasis role="strong"><anchor id="10" xreflabel="[10]"/>[10]</emphasis> Article Wikipédia sur l&#8217;exponentiation modulaire&#160;: <ulink url="https://fr.wikipedia.org/wiki/Exponentiation_modulaire">https://fr.wikipedia.org/wiki/Exponentiation_modulaire</ulink>
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="10" xreflabel="[10]"/>[10]</emphasis> Obtenir <emphasis>dder</emphasis>&#160;: <ulink url="http://dder.sourceforge.net">http://dder.sourceforge.net</ulink>
+<emphasis role="strong"><anchor id="11" xreflabel="[11]"/>[11]</emphasis> Obtenir <emphasis>dder</emphasis>&#160;: <ulink url="http://dder.sourceforge.net">http://dder.sourceforge.net</ulink>
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="11" xreflabel="[11]"/>[11]</emphasis> Obtenir <emphasis>pkfile</emphasis>&#160;: <ulink url="http://pkfile.sourceforge.net">http://pkfile.sourceforge.net</ulink>
+<emphasis role="strong"><anchor id="12" xreflabel="[12]"/>[12]</emphasis> Obtenir <emphasis>pkfile</emphasis>&#160;: <ulink url="http://pkfile.sourceforge.net">http://pkfile.sourceforge.net</ulink>
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="12" xreflabel="[12]"/>[12]</emphasis> GNUWin32&#160;: <ulink url="http://gnuwin32.sourceforge.net/packages/openssl.htm">http://gnuwin32.sourceforge.net/packages/openssl.htm</ulink>
+<emphasis role="strong"><anchor id="13" xreflabel="[13]"/>[13]</emphasis> GNUWin32&#160;: <ulink url="http://gnuwin32.sourceforge.net/packages/openssl.htm">http://gnuwin32.sourceforge.net/packages/openssl.htm</ulink>
 </simpara>
 </listitem>
 <listitem>
 <simpara>
-<emphasis role="strong"><anchor id="13" xreflabel="[13]"/>[13]</emphasis> Télécharger 7-ZIP&#160;: <ulink url="http://www.7-zip.org/download.html">http://www.7-zip.org/download.html</ulink>
+<emphasis role="strong"><anchor id="14" xreflabel="[14]"/>[14]</emphasis> Télécharger 7-ZIP&#160;: <ulink url="http://www.7-zip.org/download.html">http://www.7-zip.org/download.html</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="15" xreflabel="[15]"/>[15]</emphasis> Peter Seibt, Andreea Dragut Cours de cryptographie Chapitre V (format PDF)&#160;: <ulink url="http://www.dil.univ-mrs.fr/~jfp/master/m03/CompresChap5AES.pdf">http://www.dil.univ-mrs.fr/~jfp/master/m03/CompresChap5AES.pdf</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="16" xreflabel="[16]"/>[16]</emphasis> An introduction to elliptic curve cryptography&#160;: <ulink url="http://www.embedded.com/design/safety-and-security/4396040/An-Introduction-to-Elliptic-Curve-Cryptography">http://www.embedded.com/design/safety-and-security/4396040/An-Introduction-to-Elliptic-Curve-Cryptography</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="17" xreflabel="[17]"/>[17]</emphasis> Corps finis (format PDF)&#160;: <ulink url="http://iml.univ-mrs.fr/~rodier/Cours/RappelCorps%20finis.pdf">http://iml.univ-mrs.fr/~rodier/Cours/RappelCorps%20finis.pdf</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="18" xreflabel="[18]"/>[18]</emphasis> SEC 2: Recommended Elliptic Curve Domain Parameters (format PDF)&#160;: <ulink url="http://www.secg.org/SEC2-Ver-1.0.pdf">http://www.secg.org/SEC2-Ver-1.0.pdf</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="19" xreflabel="[19]"/>[19]</emphasis> RECOMMENDED ELLIPTIC CURVES FOR FEDERAL GOVERNMENT USE (format PDF)&#160;: <ulink url="http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf">http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="20" xreflabel="[20]"/>[20]</emphasis> Elliptic Curve Cryptography Subject Public Key Information&#160;: <ulink url="https://tools.ietf.org/html/rfc5480">https://tools.ietf.org/html/rfc5480</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="21" xreflabel="[21]"/>[21]</emphasis> "Courbe elliptique" sur Wikipédia&#160;: <ulink url="https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes">https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="22" xreflabel="[22]"/>[22]</emphasis> Article Wikipédia sur l&#8217;inverse modulaire&#160;: <ulink url="https://fr.wikipedia.org/wiki/Inverse_modulaire">https://fr.wikipedia.org/wiki/Inverse_modulaire</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="23" xreflabel="[23]"/>[23]</emphasis> Conception d&#8217;algorithmes et applications (LI325) COURS 10 (format PDF)&#160;: <ulink url="http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf">http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="99" xreflabel="[99]"/>[99]</emphasis> ECC Tutorial (en anglais)&#160;: <ulink url="http://www.johannes-bauer.com/compsci/ecc">http://www.johannes-bauer.com/compsci/ecc</ulink>
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong"><anchor id="98" xreflabel="[98]"/>[98]</emphasis> Paramètres de domain brainpool (format PDF)&#160;: <ulink url="http://www.ecc-brainpool.org/download/Domain-parameters.pdf">http://www.ecc-brainpool.org/download/Domain-parameters.pdf</ulink>
 </simpara>
 </listitem>
 </itemizedlist>

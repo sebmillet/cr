@@ -17,14 +17,15 @@
 Cet article décrit les calculs à réaliser pour vérifier des signatures RSA et ECDSA, dans le cas des certificats x509. Ces certificats sont couramment utilisés et servent notamment à la sécurisation https.
 
 * _RSA_{nbsp}: ce cas sera traité avec le certificat d'un serveur https.
-* _ECDSA_{nbsp}: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l'occasion, afin de se familiariser avec les calculs qu'implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (Certificat Électronique Visible) footnote:[Ce dernier cas sort du cadre x509.]
+* _ECDSA_{nbsp}: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l'occasion, afin de se familiariser avec les calculs qu'implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (_**C**ertificat **É**lectronique **V**isible_) footnote:[Ce dernier cas sort du cadre x509.]
 
 Au fil du document nous ferons appel aux outils suivants{nbsp}:
 
-* `openssl` pour travailler sur les certificats x509 en ligne de commande
-* `python`, `bc` ou `zsbc` pour faire des calculs avec des nombres entiers de grande taille
-* Conversion entre encodage _PEM_ et encodage _binaire_ (Linux{nbsp}: `base64`, Windows{nbsp}: `notepad`++)
-* Édition du contenu de fichier binaire (Linux{nbsp}: `gvim/xxd`, Windows{nbsp}: `notepad`++)
+* _openssl_ pour travailler sur les certificats x509 en ligne de commande
+* _pkfile_ pour extraire la partie signée d'un certificat et _dder_ pour afficher certains contenus binaires
+* _python_ ou _bc_ pour faire des calculs avec des nombres entiers de grande taille
+* Conversion entre encodage _PEM_ et encodage _binaire_ (Linux{nbsp}: _base64_, Windows{nbsp}: _notepad++_)
+* Édition de contenu de fichier binaire (Linux{nbsp}: _gvim/xxd_, Windows{nbsp}: _notepad++_)
 
 [NOTE]
 .Windows versus Linux
@@ -147,7 +148,7 @@ Un certificat peut être à la fois émetteur (d'autres certificats sont signés
 Dans notre exemple, on voit que le certificat _TrustID Server CA A52_ est lui-même signé par _IdenTrust Commercial Root CA 1_.
 
 [NOTE]
-Dans la pratique la situation se complique souvent avec des certificats croisés. Quoi qu'il en soit, la structure de base des liens qui relient les certificats est hiérarchique.
+Dans la pratique la situation peut se compliquer avec des certificats croisés. Quoi qu'il en soit, la structure de base des liens qui relient les certificats est hiérarchique.
 
 .Quelques précisions
 ****
@@ -546,7 +547,7 @@ Nous verrons dans le chapitre suivant la syntaxe ASN.1 plus en détail.
 La commande _openssl_ (figure 17) nous donne deux informations{nbsp}:
 
 * L'algorithme de hash est SHA-256, ce que l'on savait déjà d'après le contenu de _signatureAlgorithm_ (deuxième partie de la structure en trois parties du certificat).
-* Nous voyons la valeur du hash (le bloc `prim: OCTET STRING`) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).
+* Nous voyons la valeur du hash (le bloc *`prim: OCTET STRING`*) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).
 
 Nous savons désormais que la signature SHA-256 de la valeur tbsCertificate du certificat de _letsencrypt.org_ devrait être{nbsp}:
 ----
@@ -853,7 +854,7 @@ Les opérations sur _F~2^m^~_ portent sur des polynômes et leur arithmétique e
 Les courbes sur _F~p~_ (_prime field_)::
 _p_ est un nombre premier. On a _F~p~ = Z/pZ_ (source{nbsp}: <<17>>). Les opérations sont faites modulo _p_. L'équation de la courbe est (source{nbsp}: <<16>>)
 +
-_y^2^ (mod p) = x^3^ + ax + b (mod p)_
+_y^2^ = x^3^ + ax + b_
 
 ==== Les paramètres de domaine
 
@@ -1001,10 +1002,23 @@ Un point est représenté par un tableau et la convention du script est la suiva
 * Le point à l'infini est codé par _point[2]_ différent de zéro
 * Sinon (si _point[2]_ est nul), _point[0]_ est la coordonnée _x_ et _point[1]_ est la coordonnée _y_.
 
-Le calcul de l'inverse modulo utilise l'_algorithme d'Euclide étendu_ <<22>>.
+Le calcul de l'inverse modulaire utilise l'_algorithme d'Euclide étendu_ <<22>>.
 
 [NOTE]
-Ce script contient la fonction _powmod_ utilisée pour le RSA. Nous n'en avons pas besoin pour les calculs ECDSA.
+Ce script contient la fonction _powmod_ utilisée précédemment, pour le RSA. Nous n'en avons pas besoin pour les calculs ECDSA.
+
+[IMPORTANT]
+.L'opérateur modulo
+======================================
+L'opérateur _%_ (_modulo_) ne fonctionne pas à l'identique d'un langage à l'autre ou d'une librairie à l'autre.
+
+* _bc_ renvoie un nombre dont le signe est le signe du premier argument.
+Ainsi _(-5){nbsp}%{nbsp}3_ renvoie _-2_.
+* _python_ renvoie toujours une valeur positive. _(-5){nbsp}%{nbsp}3_ renvoie _1_.
+* La librairie _libgmp_ (_GNU Multiple Precision Arithmetic Library_) renvoie toujours une valeur positive. _(-5){nbsp}%{nbsp}3_ renvoie _1_.
+
+Cela ne change pas la nature des calculs effectués mais doit parfois être pris en compte. Ainsi la fonction _invmod_ (définie dans _crypto.b_ ci-dessous) ne peut pas fonctionner avec des nombres négatifs et elle commence par "normaliser" le premier argument pour qu'il soit compris entre _0_ et _n{nbsp}-{nbsp}1_.
+======================================
 
 .crypto.b
 [source, bc]
@@ -1018,7 +1032,7 @@ include::crypto.b[]
 Sur Internet on trouve des scripts qui appliquent la première formule (addition de deux points distincts) et la deuxième (doubler un point) sans vérifier les cas "P et Q alignés verticalement" ou "Point à l'infini".
 
 Dans la pratique ce n'est pas un souci car les nombres manipulés avec des clés x509 ne conduisent jamais à ces cas limites.
-La fonction  _ec_mul_ pourrait ainsi être plus efficace, en appelant directement les fonctions ec_add_core et ec_dbl_core (dans la fonction ec_mul).
+La fonction _ec_mul_ pourrait ainsi être plus efficace, en appelant directement les fonctions ec_add_core et ec_dbl_core.
 ======================================
 
 ==== Représentation d'un point dans le standard x509
@@ -1061,13 +1075,15 @@ Pour représenter un point de la courbe nous utilisons la convention _point[0] =
 include::secp256r1.b[]
 ----
 
-Au passage, on peut vérifier que le point G (donc de coordonénes g[0] pour G~x~ et g[1] pour G~y~ dans _secp256r1.b_) fait bien partie de la courbe{nbsp}:
+Au passage, on peut vérifier que le point _G_ fait bien partie de la courbe{nbsp}:
 
+[caption="Fig. 32", title=" "]
 image::img-verif-prime256v1-redim.png["Vérification prime256v1"]
 
 On peut également vérifier que _nG{nbsp}={nbsp}O_, _O_ étant le point à l'infini.
 Dans la convention des fonctions de _crypto.b_, le point à l'infini est codé par une valeur non nulle de l'élément d'indice _2_{nbsp}:
 
+[caption="Fig. 33", title=" "]
 image::img-n_fois_g-redim.png["n fois G"]
 
 .Création d'une paire de clé privée et publique sur prime256v1
@@ -1080,6 +1096,7 @@ Examiner le résultat avec
 
  $ openssl ec -in k.pem -noout -text
 
+[caption="Fig. 34", title=" "]
 image::img-key-redim.png["ECC key"]
 
 Par défaut, _openssl_ enregistre les clés publiques sous forme non compressée, ce que l'on peut voir au _04_ qui démarre la suite d'octets en-dessous de "pub:".
@@ -1100,6 +1117,7 @@ On peut facilement calculer _Q_ (la clé publique) d'après _k_ (la clé privée
 . Les paramètres de domaine de _prime256v1_
 . La définition dans _k.b_ des valeurs de la paire de clés privée et publique
 
+[caption="Fig. 35", title=" "]
 image::img-k_fois_g-redim.png["k fois G"]
 
 == Bibliography
@@ -1121,16 +1139,16 @@ _bc_ a besoin du fichier _readline5.dll_ pour s'exécuter. Vous pouvez le trouve
 * *[[[12]]]* Obtenir _pkfile_{nbsp}: http://pkfile.sourceforge.net
 * *[[[13]]]* GNUWin32{nbsp}: http://gnuwin32.sourceforge.net/packages/openssl.htm
 * *[[[14]]]* Télécharger 7-ZIP{nbsp}: http://www.7-zip.org/download.html
-* *[[[15]]]* Peter Seibt, Andreea Dragut Cours de cryptographie Chapitre V{nbsp}: http://www.dil.univ-mrs.fr/~jfp/master/m03/CompresChap5AES.pdf
+* *[[[15]]]* Peter Seibt, Andreea Dragut Cours de cryptographie Chapitre V (format PDF){nbsp}: http://www.dil.univ-mrs.fr/~jfp/master/m03/CompresChap5AES.pdf
 * *[[[16]]]* An introduction to elliptic curve cryptography{nbsp}: http://www.embedded.com/design/safety-and-security/4396040/An-Introduction-to-Elliptic-Curve-Cryptography
-* *[[[17]]]* Corps finis{nbsp}: http://iml.univ-mrs.fr/~rodier/Cours/RappelCorps%20finis.pdf
-* *[[[18]]]* SEC 2: Recommended Elliptic Curve Domain Parameters{nbsp}: http://www.secg.org/SEC2-Ver-1.0.pdf
-* *[[[19]]]* RECOMMENDED ELLIPTIC CURVES FOR FEDERAL GOVERNMENT USE{nbsp}: http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf
+* *[[[17]]]* Corps finis (format PDF){nbsp}: http://iml.univ-mrs.fr/~rodier/Cours/RappelCorps%20finis.pdf
+* *[[[18]]]* SEC 2: Recommended Elliptic Curve Domain Parameters (format PDF){nbsp}: http://www.secg.org/SEC2-Ver-1.0.pdf
+* *[[[19]]]* RECOMMENDED ELLIPTIC CURVES FOR FEDERAL GOVERNMENT USE (format PDF){nbsp}: http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf
 * *[[[20]]]* Elliptic Curve Cryptography Subject Public Key Information{nbsp}: https://tools.ietf.org/html/rfc5480
 * *[[[21]]]* "Courbe elliptique" sur Wikipédia{nbsp}: https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes
 * *[[[22]]]* Article Wikipédia sur l'inverse modulaire{nbsp}: https://fr.wikipedia.org/wiki/Inverse_modulaire
-* *[[[23]]]* Conception d'algorithmes et applications (LI325) COURS 10{nbsp}: http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf
+* *[[[23]]]* Conception d'algorithmes et applications (LI325) COURS 10 (format PDF){nbsp}: http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf
 
 * *[[[99]]]* ECC Tutorial (en anglais){nbsp}: http://www.johannes-bauer.com/compsci/ecc
-* *[[[98]]]* Paramètres de domain brainpool{nbsp}: http://www.ecc-brainpool.org/download/Domain-parameters.pdf
+* *[[[98]]]* Paramètres de domain brainpool (format PDF){nbsp}: http://www.ecc-brainpool.org/download/Domain-parameters.pdf
 

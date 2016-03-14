@@ -486,7 +486,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><em>RSA</em>&#160;: ce cas sera traité avec le certificat d&#8217;un serveur https.</p>
 </li>
 <li>
-<p><em>ECDSA</em>&#160;: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l&#8217;occasion, afin de se familiariser avec les calculs qu&#8217;implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (Certificat Électronique Visible) <span class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnote_1" title="View footnote.">1</a>]</span></p>
+<p><em>ECDSA</em>&#160;: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l&#8217;occasion, afin de se familiariser avec les calculs qu&#8217;implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (<em><strong>C</strong>ertificat <strong>É</strong>lectronique <strong>V</strong>isible</em>) <span class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnote_1" title="View footnote.">1</a>]</span></p>
 </li>
 </ul>
 </div>
@@ -496,16 +496,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p><code>openssl</code> pour travailler sur les certificats x509 en ligne de commande</p>
+<p><em>openssl</em> pour travailler sur les certificats x509 en ligne de commande</p>
 </li>
 <li>
-<p><code>python</code>, <code>bc</code> ou <code>zsbc</code> pour faire des calculs avec des nombres entiers de grande taille</p>
+<p><em>pkfile</em> pour extraire la partie signée d&#8217;un certificat et <em>dder</em> pour afficher certains contenus binaires</p>
 </li>
 <li>
-<p>Conversion entre encodage <em>PEM</em> et encodage <em>binaire</em> (Linux&#160;: <code>base64</code>, Windows&#160;: <code>notepad</code>++)</p>
+<p><em>python</em> ou <em>bc</em> pour faire des calculs avec des nombres entiers de grande taille</p>
 </li>
 <li>
-<p>Édition du contenu de fichier binaire (Linux&#160;: <code>gvim/xxd</code>, Windows&#160;: <code>notepad</code>++)</p>
+<p>Conversion entre encodage <em>PEM</em> et encodage <em>binaire</em> (Linux&#160;: <em>base64</em>, Windows&#160;: <em>notepad++</em>)</p>
+</li>
+<li>
+<p>Édition de contenu de fichier binaire (Linux&#160;: <em>gvim/xxd</em>, Windows&#160;: <em>notepad++</em>)</p>
 </li>
 </ul>
 </div>
@@ -726,7 +729,7 @@ Dans notre exemple, on voit que le certificat <em>TrustID Server CA A52</em> est
 <div class="title">Note</div>
 </td>
 <td class="content">
-Dans la pratique la situation se complique souvent avec des certificats croisés. Quoi qu&#8217;il en soit, la structure de base des liens qui relient les certificats est hiérarchique.
+Dans la pratique la situation peut se compliquer avec des certificats croisés. Quoi qu&#8217;il en soit, la structure de base des liens qui relient les certificats est hiérarchique.
 </td>
 </tr>
 </table>
@@ -1455,7 +1458,7 @@ Pour faire les manipulations décrites dans ce document, la version de GNUWin32 
 <p>L&#8217;algorithme de hash est SHA-256, ce que l&#8217;on savait déjà d&#8217;après le contenu de <em>signatureAlgorithm</em> (deuxième partie de la structure en trois parties du certificat).</p>
 </li>
 <li>
-<p>Nous voyons la valeur du hash (le bloc <code>prim: OCTET STRING</code>) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).</p>
+<p>Nous voyons la valeur du hash (le bloc <strong><code>prim: OCTET STRING</code></strong>) sous forme hexadécimale. Sa longueur correspond bien au SHA-256 (256 bits de longueur soit 32 octets).</p>
 </li>
 </ul>
 </div>
@@ -2047,7 +2050,7 @@ Nous n&#8217;allons pas expliquer ici toute la cryptographie à base de courbes 
 <dd>
 <p><em>p</em> est un nombre premier. On a <em>F<sub>p</sub> = Z/pZ</em> (source&#160;: <a href="#17">[17]</a>). Les opérations sont faites modulo <em>p</em>. L&#8217;équation de la courbe est (source&#160;: <a href="#16">[16]</a>)</p>
 <div class="paragraph">
-<p><em>y<sup>2</sup> (mod p) = x<sup>3</sup> + ax + b (mod p)</em></p>
+<p><em>y<sup>2</sup> = x<sup>3</sup> + ax + b</em></p>
 </div>
 </dd>
 </dl>
@@ -2301,7 +2304,7 @@ Remplacer la multiplication de deux entiers par l&#8217;addition de deux points 
 </ul>
 </div>
 <div class="paragraph">
-<p>Le calcul de l&#8217;inverse modulo utilise l'<em>algorithme d&#8217;Euclide étendu</em> <a href="#22">[22]</a>.</p>
+<p>Le calcul de l&#8217;inverse modulaire utilise l'<em>algorithme d&#8217;Euclide étendu</em> <a href="#22">[22]</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2310,7 +2313,39 @@ Remplacer la multiplication de deux entiers par l&#8217;addition de deux points 
 <div class="title">Note</div>
 </td>
 <td class="content">
-Ce script contient la fonction <em>powmod</em> utilisée pour le RSA. Nous n&#8217;en avons pas besoin pour les calculs ECDSA.
+Ce script contient la fonction <em>powmod</em> utilisée précédemment, pour le RSA. Nous n&#8217;en avons pas besoin pour les calculs ECDSA.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">L&#8217;opérateur modulo</div>
+<div class="paragraph">
+<p>L&#8217;opérateur <em>%</em> (<em>modulo</em>) ne fonctionne pas à l&#8217;identique d&#8217;un langage à l&#8217;autre ou d&#8217;une librairie à l&#8217;autre.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>bc</em> renvoie un nombre dont le signe est le signe du premier argument.
+Ainsi <em>(-5)&#160;%&#160;3</em> renvoie <em>-2</em>.</p>
+</li>
+<li>
+<p><em>python</em> renvoie toujours une valeur positive. <em>(-5)&#160;%&#160;3</em> renvoie <em>1</em>.</p>
+</li>
+<li>
+<p>La librairie <em>libgmp</em> (<em>GNU Multiple Precision Arithmetic Library</em>) renvoie toujours une valeur positive. <em>(-5)&#160;%&#160;3</em> renvoie <em>1</em>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Cela ne change pas la nature des calculs effectués mais doit parfois être pris en compte. Ainsi la fonction <em>invmod</em> (définie dans <em>crypto.b</em> ci-dessous) ne peut pas fonctionner avec des nombres négatifs et elle commence par "normaliser" le premier argument pour qu&#8217;il soit compris entre <em>0</em> et <em>n&#160;-&#160;1</em>.</p>
+</div>
 </td>
 </tr>
 </table>
@@ -2474,7 +2509,7 @@ define void ec_mul(*r[], p[], k, a, m) {
 </div>
 <div class="paragraph">
 <p>Dans la pratique ce n&#8217;est pas un souci car les nombres manipulés avec des clés x509 ne conduisent jamais à ces cas limites.
-La fonction  <em>ec_mul</em> pourrait ainsi être plus efficace, en appelant directement les fonctions ec_add_core et ec_dbl_core (dans la fonction ec_mul).</p>
+La fonction <em>ec_mul</em> pourrait ainsi être plus efficace, en appelant directement les fonctions ec_add_core et ec_dbl_core.</p>
 </div>
 </td>
 </tr>
@@ -2555,12 +2590,13 @@ ibase=save_ibase</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Au passage, on peut vérifier que le point G (donc de coordonénes g[0] pour G<sub>x</sub> et g[1] pour G<sub>y</sub> dans <em>secp256r1.b</em>) fait bien partie de la courbe&#160;:</p>
+<p>Au passage, on peut vérifier que le point <em>G</em> fait bien partie de la courbe&#160;:</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="./images/img-verif-prime256v1-redim.png" alt="Vérification prime256v1">
 </div>
+<div class="title">Fig. 32 </div>
 </div>
 <div class="paragraph">
 <p>On peut également vérifier que <em>nG&#160;=&#160;O</em>, <em>O</em> étant le point à l&#8217;infini.
@@ -2570,6 +2606,7 @@ Dans la convention des fonctions de <em>crypto.b</em>, le point à l&#8217;infin
 <div class="content">
 <img src="./images/img-n_fois_g-redim.png" alt="n fois G">
 </div>
+<div class="title">Fig. 33 </div>
 </div>
 <div class="paragraph">
 <div class="title">Création d&#8217;une paire de clé privée et publique sur prime256v1</div>
@@ -2592,6 +2629,7 @@ Dans la convention des fonctions de <em>crypto.b</em>, le point à l&#8217;infin
 <div class="content">
 <img src="./images/img-key-redim.png" alt="ECC key">
 </div>
+<div class="title">Fig. 34 </div>
 </div>
 <div class="paragraph">
 <p>Par défaut, <em>openssl</em> enregistre les clés publiques sous forme non compressée, ce que l&#8217;on peut voir au <em>04</em> qui démarre la suite d&#8217;octets en-dessous de "pub:".</p>
@@ -2632,6 +2670,7 @@ ibase=save_ibase</code></pre>
 <div class="content">
 <img src="./images/img-k_fois_g-redim.png" alt="k fois G">
 </div>
+<div class="title">Fig. 35 </div>
 </div>
 </div>
 </div>
@@ -2688,19 +2727,19 @@ ibase=save_ibase</code></pre>
 <p><strong><a id="14"></a>[14]</strong> Télécharger 7-ZIP&#160;: <a href="http://www.7-zip.org/download.html" class="bare">http://www.7-zip.org/download.html</a></p>
 </li>
 <li>
-<p><strong><a id="15"></a>[15]</strong> Peter Seibt, Andreea Dragut Cours de cryptographie Chapitre V&#160;: <a href="http://www.dil.univ-mrs.fr/~jfp/master/m03/CompresChap5AES.pdf" class="bare">http://www.dil.univ-mrs.fr/~jfp/master/m03/CompresChap5AES.pdf</a></p>
+<p><strong><a id="15"></a>[15]</strong> Peter Seibt, Andreea Dragut Cours de cryptographie Chapitre V (format PDF)&#160;: <a href="http://www.dil.univ-mrs.fr/~jfp/master/m03/CompresChap5AES.pdf" class="bare">http://www.dil.univ-mrs.fr/~jfp/master/m03/CompresChap5AES.pdf</a></p>
 </li>
 <li>
 <p><strong><a id="16"></a>[16]</strong> An introduction to elliptic curve cryptography&#160;: <a href="http://www.embedded.com/design/safety-and-security/4396040/An-Introduction-to-Elliptic-Curve-Cryptography" class="bare">http://www.embedded.com/design/safety-and-security/4396040/An-Introduction-to-Elliptic-Curve-Cryptography</a></p>
 </li>
 <li>
-<p><strong><a id="17"></a>[17]</strong> Corps finis&#160;: <a href="http://iml.univ-mrs.fr/~rodier/Cours/RappelCorps%20finis.pdf" class="bare">http://iml.univ-mrs.fr/~rodier/Cours/RappelCorps%20finis.pdf</a></p>
+<p><strong><a id="17"></a>[17]</strong> Corps finis (format PDF)&#160;: <a href="http://iml.univ-mrs.fr/~rodier/Cours/RappelCorps%20finis.pdf" class="bare">http://iml.univ-mrs.fr/~rodier/Cours/RappelCorps%20finis.pdf</a></p>
 </li>
 <li>
-<p><strong><a id="18"></a>[18]</strong> SEC 2: Recommended Elliptic Curve Domain Parameters&#160;: <a href="http://www.secg.org/SEC2-Ver-1.0.pdf" class="bare">http://www.secg.org/SEC2-Ver-1.0.pdf</a></p>
+<p><strong><a id="18"></a>[18]</strong> SEC 2: Recommended Elliptic Curve Domain Parameters (format PDF)&#160;: <a href="http://www.secg.org/SEC2-Ver-1.0.pdf" class="bare">http://www.secg.org/SEC2-Ver-1.0.pdf</a></p>
 </li>
 <li>
-<p><strong><a id="19"></a>[19]</strong> RECOMMENDED ELLIPTIC CURVES FOR FEDERAL GOVERNMENT USE&#160;: <a href="http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf" class="bare">http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf</a></p>
+<p><strong><a id="19"></a>[19]</strong> RECOMMENDED ELLIPTIC CURVES FOR FEDERAL GOVERNMENT USE (format PDF)&#160;: <a href="http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf" class="bare">http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf</a></p>
 </li>
 <li>
 <p><strong><a id="20"></a>[20]</strong> Elliptic Curve Cryptography Subject Public Key Information&#160;: <a href="https://tools.ietf.org/html/rfc5480" class="bare">https://tools.ietf.org/html/rfc5480</a></p>
@@ -2712,13 +2751,13 @@ ibase=save_ibase</code></pre>
 <p><strong><a id="22"></a>[22]</strong> Article Wikipédia sur l&#8217;inverse modulaire&#160;: <a href="https://fr.wikipedia.org/wiki/Inverse_modulaire" class="bare">https://fr.wikipedia.org/wiki/Inverse_modulaire</a></p>
 </li>
 <li>
-<p><strong><a id="23"></a>[23]</strong> Conception d&#8217;algorithmes et applications (LI325) COURS 10&#160;: <a href="http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf" class="bare">http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf</a></p>
+<p><strong><a id="23"></a>[23]</strong> Conception d&#8217;algorithmes et applications (LI325) COURS 10 (format PDF)&#160;: <a href="http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf" class="bare">http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf</a></p>
 </li>
 <li>
 <p><strong><a id="99"></a>[99]</strong> ECC Tutorial (en anglais)&#160;: <a href="http://www.johannes-bauer.com/compsci/ecc" class="bare">http://www.johannes-bauer.com/compsci/ecc</a></p>
 </li>
 <li>
-<p><strong><a id="98"></a>[98]</strong> Paramètres de domain brainpool&#160;: <a href="http://www.ecc-brainpool.org/download/Domain-parameters.pdf" class="bare">http://www.ecc-brainpool.org/download/Domain-parameters.pdf</a></p>
+<p><strong><a id="98"></a>[98]</strong> Paramètres de domain brainpool (format PDF)&#160;: <a href="http://www.ecc-brainpool.org/download/Domain-parameters.pdf" class="bare">http://www.ecc-brainpool.org/download/Domain-parameters.pdf</a></p>
 </li>
 </ul>
 </div>
@@ -2791,7 +2830,7 @@ ibase=save_ibase</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version 0.5<br>
-Last updated 2016-03-14 22:17:13 CET
+Last updated 2016-03-14 23:33:01 CET
 </div>
 </div>
 </body>
