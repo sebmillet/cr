@@ -1092,7 +1092,7 @@ Par défaut, _openssl_ enregistre les clés publiques sous forme non compressée
 include::k.b[]
 ----
 
-.Vérification de la clé publique d'après la clé privée
+.Calcul de la clé publique d'après la clé privée
 
 On peut facilement calculer _Q_ (la clé publique) d'après _k_ (la clé privée). Au passage, cela permet de vérifier le bon fonctionnement de la chaîne{nbsp}:
 
