@@ -409,6 +409,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 .hide-for-print{display:none!important}
 .show-for-print{display:inherit!important}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
 </head>
 <body class="article">
 <div id="header">
@@ -1157,13 +1160,13 @@ Il faut le faire en deux fois, une fois pour le modulo de 256 octets (variable <
 <div class="listingblock">
 <div class="title">val.b</div>
 <div class="content">
-<pre>ibase=2*8
+<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">ibase=2*8
 
 s=8049A7CE9627701FC4E520876B97271A8AEF34D13A5ECA776172BD7C9053DBEF9C8504E4C85629135D934D1F9C6FB09375189812B3475D5F0797F5D32BC9B11B12BC29733DCD40E57EB97BC819F21939764A4F2A270036906BAE5FD280D68DCC16428C0FCD3D213025BCFA10A6697529ED1A168E0D2CEFCB24A9C9A64C85F0BF8942B91F2CD1E92989F73EF9F2267BAB5535C3388C10C3C1D55DBC3A50A01A77CEDED612862D83A9B1A68A08B68DC35BE0F2E23E3BD9AFD4C0BA1537CFD694A5AF5D6CF8887861A9DCB89B9DE35AD3F255C251B0ECD54C2CF693DD5732EDF33939334BDB1E64C29636E0502E57914984BDA74C7E05AC948403D2BEBE051452F8
 
 n=9769D7999885023FE9264276E8F4733FA932442690782E78579119A05D762B49F9935A5D5ACE82F3C2D8E54C367A2B1D0DDBA6A7FE91127CED7201B78CA1C5DACC9DFE09FB57E214470FE89E918F942D8032939303F5287868BA7E0F42B4317A0514225333E4A3AD6C8FAFBE636BB2329FD917B9C9E0607C99D631E1E4A0B73FAFB232AC7E8C9CDC02EBE1BC1F149CBC91F7B2FB42F3E1202BCBBF8FF3B37063FAF7752802ABC5D4B0EDEA257F87CD371496833C40021BA09E19477FF3B0CCC52560B83512F151EB17DCFC5BA5D99BEF404CD77771E9FB458B7EF2E369B042661746903ACD463DF1B0096FDCFFEE3361CAFCC72E3CED5E0AD1BF221269804B23
 
-e=10001</pre>
+e=10001</code></pre>
 </div>
 </div>
 </div>
@@ -1186,7 +1189,7 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
 <div class="listingblock">
 <div class="title">powmod.b</div>
 <div class="content">
-<pre class="highlight"><code class="language-bc" data-lang="bc">define powmod(a, b, c) {
+<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">define powmod(a, b, c) {
 	auto p, r
 	p = a
 	r = 1
@@ -2042,7 +2045,7 @@ Nous n&#8217;allons pas expliquer ici toute la cryptographie à base de courbes 
 </dd>
 <dt class="hdlist1">Les courbes sur <em>F<sub>p</sub></em> (<em>prime field</em>)</dt>
 <dd>
-<p><em>p</em> est un nombre premier. On a <em>F<sub>p</sub> = Z/pZ</em> (source&#160;: <a href="#17">[17]</a>). Les opérations sont faites modulo <em>p</em>. L&#8217;équation de la courbe est</p>
+<p><em>p</em> est un nombre premier. On a <em>F<sub>p</sub> = Z/pZ</em> (source&#160;: <a href="#17">[17]</a>). Les opérations sont faites modulo <em>p</em>. L&#8217;équation de la courbe est (source&#160;: <a href="#16">[16]</a>)</p>
 <div class="paragraph">
 <p><em>y<sup>2</sup> (mod p) = x<sup>3</sup> + ax + b (mod p)</em></p>
 </div>
@@ -2074,10 +2077,10 @@ Nous n&#8217;allons pas expliquer ici toute la cryptographie à base de courbes 
 <p><em>a</em> et <em>b</em>, les paramètres de l&#8217;équation <em>y<sup>2</sup> + xy = x<sup>3</sup> + ax<sup>2</sup> + b</em>.</p>
 </li>
 <li>
-<p><em>G</em>, le générateur du groupe noté <em>E(F<sub>2<sup>m</sup></sub>)</em> (<em>G</em> est un point de la courbe).</p>
+<p><em>G</em>, le générateur du groupe noté <em>E(F<sub>2<sup>m</sup></sub>)</em> (<em>G</em> est donc un point de la courbe).</p>
 </li>
 <li>
-<p><em>n</em> est l&#8217;ordre de la courbe.</p>
+<p><em>n</em> est l&#8217;ordre du groupe généré par <em>G</em>.</p>
 </li>
 <li>
 <p><em>h</em> est le cofacteur, c&#8217;est le nombre d&#8217;éléments de <em>E(F<sub>2<sup>m</sup></sub>)</em> divisé par <em>n</em>.</p>
@@ -2096,10 +2099,10 @@ Nous n&#8217;allons pas expliquer ici toute la cryptographie à base de courbes 
 <p><em>a</em> et <em>b</em>, les paramètres de l&#8217;équation <em>y<sup>2</sup> (mod p) = x<sup>3</sup> + ax + b (mod p)</em>.</p>
 </li>
 <li>
-<p><em>G</em>, le générateur du groupe noté <em>E(F<sub>p</sub>)</em> (<em>G</em> est un point de la courbe).</p>
+<p><em>G</em>, le générateur du groupe noté <em>E(F<sub>p</sub>)</em> (<em>G</em> est donc un point de la courbe).</p>
 </li>
 <li>
-<p><em>n</em> est l&#8217;ordre de la courbe.</p>
+<p><em>n</em> est l&#8217;ordre du groupe généré par <em>G</em>.</p>
 </li>
 <li>
 <p><em>h</em> est le cofacteur, c&#8217;est le nombre d&#8217;éléments de <em>E(F<sub>p</sub>)</em> divisé par <em>n</em>.</p>
@@ -2198,8 +2201,7 @@ Les courbes binaires fonctionnent selon les mêmes principes mais les "nombres" 
 <div class="sect3">
 <h4 id="_l_arithmétique_des_courbes_sur_em_f_sub_p_sub_em">4.1.3. L&#8217;arithmétique des courbes sur <em>F<sub>p</sub></em></h4>
 <div class="paragraph">
-<p>Les calculs sont faits <span class="footnote">[<a id="_footnoteref_18" class="footnote" href="#_footnote_18" title="View footnote.">18</a>]</span>
-modulo <em>p</em> et nous ne le préciserons plus par la suite.</p>
+<p>Les calculs sont faits modulo <em>p</em> et nous ne le préciserons plus par la suite&#160;<span class="footnote">[<a id="_footnoteref_18" class="footnote" href="#_footnote_18" title="View footnote.">18</a>]</span>.</p>
 </div>
 <div class="paragraph">
 <div class="title">Clés privée et publique</div>
@@ -2211,7 +2213,7 @@ modulo <em>p</em> et nous ne le préciserons plus par la suite.</p>
 <p>Choisir un entier <em>k</em> inférieur à <em>p</em></p>
 </li>
 <li>
-<p>Calculer <em>Q = kG</em> (voir ci-après la multiplication d&#8217;un point par un scalaire)</p>
+<p>Calculer <em>Q = kG</em> où <em>G</em> est l&#8217;un des paramètres de domaine de la courbe (voir ci-après la multiplication d&#8217;un point par un scalaire)</p>
 </li>
 </ol>
 </div>
@@ -2223,7 +2225,7 @@ modulo <em>p</em> et nous ne le préciserons plus par la suite.</p>
 <p>La signification de l&#8217;addition de deux points est géométrique et on peut le voir ici&#160;<a href="#21">[21]</a>.</p>
 </div>
 <div class="paragraph">
-<p>Les formules qui en découlent sont les suivantes, pour <em>R&#160;=&#160;P&#160;+&#160;Q</em> de coordonnées (<em>r<sub>x</sub></em>, <em>r<sub>y</sub></em>), (<em>p<sub>x</sub></em>, <em>p<sub>y</sub></em>) et (<em>q<sub>x</sub></em>, <em>q<sub>y</sub></em>) respectivement, <em>P</em> étant différent de Q et non aligné verticalement avec <em>Q</em> (<em>p<sub>x</sub></em> est différent de <em>q<sub>x</sub></em>)&#160;:</p>
+<p>Les formules qui en découlent sont les suivantes, pour <em>R&#160;=&#160;P&#160;+&#160;Q</em> de coordonnées (<em>r<sub>x</sub></em>, <em>r<sub>y</sub></em>), (<em>p<sub>x</sub></em>, <em>p<sub>y</sub></em>) et (<em>q<sub>x</sub></em>, <em>q<sub>y</sub></em>) respectivement, <em>P</em> étant différent de Q et non aligné verticalement avec <em>Q</em>&#160;:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2301,13 +2303,22 @@ Remplacer la multiplication de deux entiers par l&#8217;addition de deux points 
 <div class="paragraph">
 <p>Le calcul de l&#8217;inverse modulo utilise l'<em>algorithme d&#8217;Euclide étendu</em> <a href="#22">[22]</a>.</p>
 </div>
-<div class="paragraph">
-<p>Vous remarquerez que ce script contient la fonction <em>powmod</em> utilisée pour le RSA (nous n&#8217;en avons pas besoin pour les calculs à venir)&#160;.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Ce script contient la fonction <em>powmod</em> utilisée pour le RSA. Nous n&#8217;en avons pas besoin pour les calculs ECDSA.
+</td>
+</tr>
+</table>
 </div>
 <div class="listingblock">
 <div class="title">crypto.b</div>
 <div class="content">
-<pre class="highlight"><code class="language-bc" data-lang="bc">	/* Calculate the invert of a modulo n */
+<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">	/* Calculate the invert of a modulo n */
 define invmod(a, n) {
 	auto aa, bb, r, t, anc_t, nou_t, negflag
 	aa = n
@@ -2530,7 +2541,7 @@ La fonction  <em>ec_mul</em> pourrait ainsi être plus efficace, en appelant dir
 <div class="listingblock">
 <div class="title">secp256r1.b</div>
 <div class="content">
-<pre class="highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
+<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
 ibase=2^4
 p=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
 a=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC
@@ -2552,8 +2563,17 @@ ibase=save_ibase</code></pre>
 </div>
 </div>
 <div class="paragraph">
+<p>On peut également vérifier que <em>nG&#160;=&#160;O</em>, <em>O</em> étant le point à l&#8217;infini.
+Dans la convention des fonctions de <em>crypto.b</em>, le point à l&#8217;infini est codé par une valeur non nulle de l&#8217;élément d&#8217;indice <em>2</em>&#160;:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-n_fois_g-redim.png" alt="n fois G">
+</div>
+</div>
+<div class="paragraph">
 <div class="title">Création d&#8217;une paire de clé privée et publique sur prime256v1</div>
-<p>Exécuter</p>
+<p>Exécuter <span class="footnote">[<a id="_footnoteref_20" class="footnote" href="#_footnote_20" title="View footnote.">20</a>]</span></p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -2575,6 +2595,43 @@ ibase=save_ibase</code></pre>
 </div>
 <div class="paragraph">
 <p>Par défaut, <em>openssl</em> enregistre les clés publiques sous forme non compressée, ce que l&#8217;on peut voir au <em>04</em> qui démarre la suite d&#8217;octets en-dessous de "pub:".</p>
+</div>
+<div class="paragraph">
+<p>À l&#8217;aide de la commande <em>openssl</em> ci-dessus (ou bien avec <em>pkfile</em>, ou encore <em>dder</em>), copier/coller les valeurs de la clé privée et publique dans <em>k.b</em>, sous les noms <em>k</em> et <em>q[]</em>, respectivement.</p>
+</div>
+<div class="listingblock">
+<div class="title">k.b</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
+ibase=2^4
+k=673DCAD121E37B7E15AC792F8CA0670856E2DE9C233684A9A0FA3D767B61FBF1
+q[0]=134D4E5F632E0545350FB89EE05200450E07A5B115BCA72DF5F4896D2433A65A
+q[1]=A1A33A97ACB4E40D0519CB029B1E85E26D3D6B3D7FF3D3626127D0C045392D91
+q[2]=0
+ibase=save_ibase</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Vérification de la clé publique d&#8217;après la clé privée</div>
+<p>On peut facilement calculer <em>Q</em> (la clé publique) d&#8217;après <em>k</em> (la clé privée). Au passage, cela permet de vérifier le bon fonctionnement de la chaîne&#160;:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Les fonctions de <em>crypto.b</em></p>
+</li>
+<li>
+<p>Les paramètres de domaine de <em>prime256v1</em></p>
+</li>
+<li>
+<p>La définition dans <em>k.b</em> des valeurs de la paire de clés privée et publique</p>
+</li>
+</ol>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-k_fois_g-redim.png" alt="k fois G">
+</div>
 </div>
 </div>
 </div>
@@ -2727,11 +2784,14 @@ ibase=save_ibase</code></pre>
 <div class="footnote" id="_footnote_19">
 <a href="#_footnoteref_19">19</a>. Le standard X9.62 définit <em>00</em> comme seul octet pour coder le point à l&#8217;infini. La RFC 5480 interdit toute autre valeur que <em>02</em>, <em>03</em> et <em>04</em>, et interdit donc <em>00</em>. C&#8217;est logique car on ne voit pas dans quel but le point à l&#8217;infini serait enregistré dans le cadre x509. Dans le standard x509, un point est une clé publique.
 </div>
+<div class="footnote" id="_footnote_20">
+<a href="#_footnoteref_20">20</a>. Enregistrer une clé privée dans un fichier non protégé par mot de passe (chiffré) est une mauvaise pratique. Ici cela n&#8217;a pas d&#8217;importance puisque la clé est une clé de test.
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 0.5<br>
-Last updated 2016-03-12 15:16:03 CET
+Last updated 2016-03-14 22:13:32 CET
 </div>
 </div>
 </body>

@@ -10,6 +10,7 @@
 :toclevels: 3
 :numbered:
 :imagesdir: ./images
+:source-highlighter: highlightjs
 
 == Introduction
 
@@ -381,6 +382,7 @@ image::img-cle-3-redim.png["Image clé dans navigateur"]
 A l'arrivée, *_val.b_* contient trois variables, s, n et e.
 
 .val.b
+[source, bc]
 ----
 ibase=2*8
 
@@ -849,7 +851,7 @@ _y^2^ + xy = x^3^ + ax^2^ + b_
 Les opérations sur _F~2^m^~_ portent sur des polynômes et leur arithmétique est distincte de l'arithmétique usuelle sur les nombres entiers. Par exemple quel que soit _A_ de _F~2^m^~_, on a _A{nbsp}+{nbsp}A{nbsp}={nbsp}0_ (soit _A{nbsp}={nbsp}-A_ pour tout _A_).
 
 Les courbes sur _F~p~_ (_prime field_)::
-_p_ est un nombre premier. On a _F~p~ = Z/pZ_ (source{nbsp}: <<17>>). Les opérations sont faites modulo _p_. L'équation de la courbe est
+_p_ est un nombre premier. On a _F~p~ = Z/pZ_ (source{nbsp}: <<17>>). Les opérations sont faites modulo _p_. L'équation de la courbe est (source{nbsp}: <<16>>)
 +
 _y^2^ (mod p) = x^3^ + ax + b (mod p)_
 
@@ -863,15 +865,15 @@ Source{nbsp}: <<16>>.
 ** _m_, entier qui définit _F~2^m^~_.
 ** _f(x)_, polynôme irréductible de degré _m_.
 ** _a_ et _b_, les paramètres de l'équation _y^2^ + xy = x^3^ + ax^2^ + b_.
-** _G_, le générateur du groupe noté _E(F~2^m^~)_ (_G_ est un point de la courbe).
-** _n_ est l'ordre de la courbe.
+** _G_, le générateur du groupe noté _E(F~2^m^~)_ (_G_ est donc un point de la courbe).
+** _n_ est l'ordre du groupe généré par _G_.
 ** _h_ est le cofacteur, c'est le nombre d'éléments de _E(F~2^m^~)_ divisé par _n_.
 
 * Sur _F~p~_, les paramètres sont (_p_, _a_, _b_, _G_, _n_, _h_)
 ** _p_, nombre premier.
 ** _a_ et _b_, les paramètres de l'équation _y^2^ (mod p) = x^3^ + ax + b (mod p)_.
-** _G_, le générateur du groupe noté _E(F~p~)_ (_G_ est un point de la courbe).
-** _n_ est l'ordre de la courbe.
+** _G_, le générateur du groupe noté _E(F~p~)_ (_G_ est donc un point de la courbe).
+** _n_ est l'ordre du groupe généré par _G_.
 ** _h_ est le cofacteur, c'est le nombre d'éléments de _E(F~p~)_ divisé par _n_.
 
 .Les courbes nommées
@@ -944,15 +946,14 @@ Les courbes binaires fonctionnent selon les mêmes principes mais les "nombres" 
 
 ==== L'arithmétique des courbes sur _F~p~_
 
-Les calculs sont faits footnote:[Dans la signature ECDSA certains calculs sont faits modulo _n_, l'ordre du groupe associé à la courbe. Cela sera signalé. À défaut, tous les calculs sont faits modulo _p_.]
-modulo _p_ et nous ne le préciserons plus par la suite.
+Les calculs sont faits modulo _p_ et nous ne le préciserons plus par la suite{nbsp}footnote:[Dans la signature ECDSA certains calculs sont faits modulo _n_, l'ordre du groupe associé à la courbe. Cela sera signalé. À défaut, tous les calculs sont faits modulo _p_.].
 
 .Clés privée et publique
 
 La construction d'une paire de clés privée et publique consiste à
 
 . Choisir un entier _k_ inférieur à _p_
-. Calculer _Q = kG_ (voir ci-après la multiplication d'un point par un scalaire)
+. Calculer _Q = kG_ où _G_ est l'un des paramètres de domaine de la courbe (voir ci-après la multiplication d'un point par un scalaire)
 
 Le point _Q_ est la clé publique, l'entier _k_ est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.
 
@@ -960,7 +961,7 @@ Le point _Q_ est la clé publique, l'entier _k_ est la clé privée. Ainsi contr
 
 La signification de l'addition de deux points est géométrique et on peut le voir ici{nbsp}<<21>>.
 
-Les formules qui en découlent sont les suivantes, pour _R{nbsp}={nbsp}P{nbsp}+{nbsp}Q_ de coordonnées (_r~x~_, _r~y~_), (_p~x~_, _p~y~_) et (_q~x~_, _q~y~_) respectivement, _P_ étant différent de Q et non aligné verticalement avec _Q_ (_p~x~_ est différent de _q~x~_){nbsp}:
+Les formules qui en découlent sont les suivantes, pour _R{nbsp}={nbsp}P{nbsp}+{nbsp}Q_ de coordonnées (_r~x~_, _r~y~_), (_p~x~_, _p~y~_) et (_q~x~_, _q~y~_) respectivement, _P_ étant différent de Q et non aligné verticalement avec _Q_{nbsp}:
 
 image::img-point-add.png["Addition de deux points"]
 
@@ -1002,7 +1003,8 @@ Un point est représenté par un tableau et la convention du script est la suiva
 
 Le calcul de l'inverse modulo utilise l'_algorithme d'Euclide étendu_ <<22>>.
 
-Vous remarquerez que ce script contient la fonction _powmod_ utilisée pour le RSA (nous n'en avons pas besoin pour les calculs à venir){nbsp}.
+[NOTE]
+Ce script contient la fonction _powmod_ utilisée pour le RSA. Nous n'en avons pas besoin pour les calculs ECDSA.
 
 .crypto.b
 [source, bc]
@@ -1063,9 +1065,14 @@ Au passage, on peut vérifier que le point G (donc de coordonénes g[0] pour G~x
 
 image::img-verif-prime256v1-redim.png["Vérification prime256v1"]
 
+On peut également vérifier que _nG{nbsp}={nbsp}O_, _O_ étant le point à l'infini.
+Dans la convention des fonctions de _crypto.b_, le point à l'infini est codé par une valeur non nulle de l'élément d'indice _2_{nbsp}:
+
+image::img-n_fois_g-redim.png["n fois G"]
+
 .Création d'une paire de clé privée et publique sur prime256v1
 
-Exécuter
+Exécuter footnote:[Enregistrer une clé privée dans un fichier non protégé par mot de passe (chiffré) est une mauvaise pratique. Ici cela n'a pas d'importance puisque la clé est une clé de test.]
 
  $ openssl ecparam -name prime256v1 -genkey -out k.pem
 
@@ -1076,6 +1083,24 @@ Examiner le résultat avec
 image::img-key-redim.png["ECC key"]
 
 Par défaut, _openssl_ enregistre les clés publiques sous forme non compressée, ce que l'on peut voir au _04_ qui démarre la suite d'octets en-dessous de "pub:".
+
+À l'aide de la commande _openssl_ ci-dessus (ou bien avec _pkfile_, ou encore _dder_), copier/coller les valeurs de la clé privée et publique dans _k.b_, sous les noms _k_ et _q[]_, respectivement.
+
+.k.b
+[source, bc]
+----
+include::k.b[]
+----
+
+.Vérification de la clé publique d'après la clé privée
+
+On peut facilement calculer _Q_ (la clé publique) d'après _k_ (la clé privée). Au passage, cela permet de vérifier le bon fonctionnement de la chaîne{nbsp}:
+
+. Les fonctions de _crypto.b_
+. Les paramètres de domaine de _prime256v1_
+. La définition dans _k.b_ des valeurs de la paire de clés privée et publique
+
+image::img-k_fois_g-redim.png["k fois G"]
 
 == Bibliography
 
