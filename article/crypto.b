@@ -73,7 +73,7 @@ define powmod(a, b, c) {
 /*
 	ECC addition of p and q, p[0] being different from q[0]
 */
-define void ec_add_core(*r[], p[], q[], m) {
+define ec_add_core(*r[], p[], q[], m) {
 	auto s
 	s = ((p[1] - q[1]) * invmod(p[0] - q[0], m)) % m
 	r[0] = (s^2 - p[0] - q[0]) % m
@@ -84,7 +84,7 @@ define void ec_add_core(*r[], p[], q[], m) {
 /*
    ECC point doubling
 */
-define void ec_dbl_core(*r[], p[], a, m) {
+define ec_dbl_core(*r[], p[], a, m) {
 	auto s
 	s = ((3 * p[0]^2 + a) * invmod(2 * p[1], m)) % m
 	r[0] = (s^2 - 2 * p[0]) % m
@@ -95,7 +95,7 @@ define void ec_dbl_core(*r[], p[], a, m) {
 /*
 	ECC addition of p and q for any value of p and q
 */
-define void ec_add(*r[], p[], q[], a, m) {
+define ec_add(*r[], p[], q[], a, m) {
 	if (p[2]) { r[0] = q[0]; r[1] = q[1]; r[2] = q[2]; return }
 	if (q[2]) { r[0] = p[0]; r[1] = p[1]; r[2] = p[2]; return }
 	if (p[0] == q[0]) {
@@ -106,29 +106,29 @@ define void ec_add(*r[], p[], q[], a, m) {
 				r[2] = 1
 				return
 			}
-			ec_dbl_core(r[], p[], a, m)
+			.=ec_dbl_core(r[], p[], a, m)
 		}
 	} else {
-		ec_add_core(r[], p[], q[], m)
+		.=ec_add_core(r[], p[], q[], m)
 	}
 }
 
 /*
    ECC scalar point multiplication
 */
-define void ec_mul(*r[], p[], k, a, m) {
+define ec_mul(*r[], p[], k, a, m) {
 	auto tmp[]
 	r[2] = 1
 	if (p[2]) return
 	while (k > 0) {
 		if ((k % 2) == 1) {
-			ec_add(r[], r[], p[], a, m)
+			.=ec_add(r[], r[], p[], a, m)
 		}
 			/*
 			 * ec_dbl(p[], p[], a, m) does not work with bc,
 			 * need to use a temporary array.
 			 */
-		ec_add(tmp[], p[], p[], a, m)
+		.=ec_add(tmp[], p[], p[], a, m)
 		p[0]=tmp[0]
 		p[1]=tmp[1]
 		p[2]=tmp[2]

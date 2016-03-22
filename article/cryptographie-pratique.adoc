@@ -1,5 +1,5 @@
 // cryptographie-pratique.adoc
-// Sébastien Millet, February 2016
+// Sébastien Millet, February, March 2016
 
 = Cryptographie pratique
 :author: Sébastien Millet
@@ -953,10 +953,11 @@ Les calculs sont faits modulo _p_ et nous ne le préciserons plus par la suite{n
 
 La construction d'une paire de clés privée et publique consiste à
 
-. Choisir un entier _k_ inférieur à _p_
+. Choisir un entier _k_ inférieur à _n_
 . Calculer _Q = kG_ où _G_ est l'un des paramètres de domaine de la courbe (voir ci-après la multiplication d'un point par un scalaire)
 
-Le point _Q_ est la clé publique, l'entier _k_ est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.
+Le point _Q_ est la clé publique, l'entier _k_ est la clé privéefootnote:[Un peu plus loin la clé privée sera notée _s_.].
+Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.
 
 .Addition de deux points distincts (et non alignés verticalement)
 
@@ -1120,6 +1121,108 @@ On peut facilement calculer _Q_ (la clé publique) d'après _k_ (la clé privée
 [caption="Fig. 35", title=" "]
 image::img-k_fois_g-redim.png["k fois G"]
 
+==== Création d'un certificat auto-signé
+
+Par définition, un certificat auto-signé a même émetteur (_issuer_) et sujet (_subject_).
+Ce certificat aura pour clé la clé contenue dans le fichier _k.pem_, de type _prime256v1_.
+
+Exécuter la commande{nbsp}:
+
+ $ openssl req -new -x509 -key k.pem -subj "/CN=Sebastien Millet DEV CA/C=FR" -out cert.pem
+
+[caption="Fig. 36", title=" "]
+image::img-...
+
+Contrôler le résultat avec cette commande{nbsp}:
+
+ $ openssl x509 -in cert.pem -noout -text
+
+[caption="Fig. 37", title=" "]
+image::img-...
+
+==== Vérification de la signature ECDSA du certificat
+
+.Signature d'un message avec ECDSA
+
+Les formules sont disponibles ici par exemple{nbsp}<<24>>.
+Ce tutoriel (en anglais) est très bien fait et explique de nombreux calculs{nbsp}<<25>>.
+Jusqu'à présent _k_ désignait la clé privée, ci-dessous _k_ est un entier choisi aléatoirement. La clé privée est notée _d_.
+
+Les notations sont celles introduites précédemment pour les paramètres de domaine ainsi que la clé publique.
+
+. Choisir un entier k entre _0_ et _n_, différent de _0_ et de _n_
+
+. Calculer _R{nbsp}={nbsp}(R~x~,{nbsp}R~y~){nbsp}={nbsp}kG_ puis _r{nbsp}={nbsp}R~x~ mod n_) et si _r_ est égal à _0_, recommencer
+
+. Calculer _s{nbsp}={nbsp}(H(m)+rd)/k mod n_
+
+Le couple _(r,{nbsp}s)_ est la signature du hash du message _m_, représenté par la fonction _H(m)_.
+
+.Vérification d'une signature ECDSA
+
+. Calculer _u~1~{nbsp}={nbsp}H(m)(s^-1^{nbsp}mod{nbsp}n)_ mod n et _u~2~{nbsp}={nbsp}r(s^-1^{nbsp}mod{nbsp}n)_
+
+. Calculer _P{nbsp}={nbsp}(P~x~,{nbsp}P~y~){nbsp}={nbsp}u~1~G{nbsp}+{nbsp}u~2~Q_ et calculer _p{nbsp}={nbsp}P~x~{nbsp}mod{nbsp}n_
+
+. Vérifier que _p{nbsp}={nbsp}r_
+
+.Vérification de notre certificat auto-signé
+
+Une fois de plus l'encodage est défini par la RFC 5280. Il s'agit de la définition suivante{nbsp}:
+
+--------------------------------------
+ECDSA-Sig-Value ::= SEQUENCE {
+	r  INTEGER,
+	s  INTEGER
+}
+--------------------------------------
+
+La valeur de _(r,{nbsp}s)_ est la troisième séquence du certificat que _pkfile_ a noté _1.3.1_.
+Récupérer les valeurs de _r_ et _s_, soit avec la commande _pkfile_{nbsp}:
+
+ $ pkfile cert.pem -N 1.3.1
+
+[caption="Fig. 38", title=" "]
+image::img-...
+
+soit avec la commande _openssl_ (reprendre le numéro d'octet du dernier _BIT STRING_ dans l'option _strparse_){nbsp}:
+
+ $ openssl asn1parse -in cert.pem
+ $ openssl asn1parse -in cert.pem -strparse 351
+
+[caption="Fig. 39", title=" "]
+image::img-...
+
+Copier/coller le résultat dans le fichier sign.b{nbsp}:
+
+Nous avons également besoin de _H(m)_, que nous noterons _h_ dans notre script (dans certains tutoriels il est noté _e_). Comme vu avec le RSA il faut extraire la partie tbsCertificate de notre certificat et en calculer le hash.
+
+Quel hash{nbsp}? Le certificat indique que l'algorithme est _ecdsa-with-SHA256_, donc _h{nbsp}={nbsp}SHA256(tbsCertificate)_.
+
+.Calcul de h
+
+Extraire tbsCertificate dans _tbs.der_ puis en calculer le hash SHA256, avec les commandes suivantes{nbsp}:
+
+ $ pkfile cert.pem -n 1.1 -x -o tbs.der
+
+ $ pkfile --sha256 tbs.der
+
+[caption="Fig. 40", title=" "]
+image::img-...
+
+Au final le fichier _sign.b_ ressemble à ceci{nbsp}:
+
+.sign.b
+[source, bc]
+----
+include::sign.b[]
+----
+
+Ne reste plus qu'à faire les calculs{nbsp}:
+
+
+
+
 == Bibliography
 
 * *[[[1]]]* Présentation de l'ASN.1{nbsp}: http://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx
@@ -1148,7 +1251,6 @@ _bc_ a besoin du fichier _readline5.dll_ pour s'exécuter. Vous pouvez le trouve
 * *[[[21]]]* "Courbe elliptique" sur Wikipédia{nbsp}: https://fr.wikipedia.org/wiki/Courbe_elliptique#Additionner_les_points_:_d.C3.A9finition_par_la_m.C3.A9thode_des_tangentes_et_des_s.C3.A9cantes
 * *[[[22]]]* Article Wikipédia sur l'inverse modulaire{nbsp}: https://fr.wikipedia.org/wiki/Inverse_modulaire
 * *[[[23]]]* Conception d'algorithmes et applications (LI325) COURS 10 (format PDF){nbsp}: http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf
-
-* *[[[99]]]* ECC Tutorial (en anglais){nbsp}: http://www.johannes-bauer.com/compsci/ecc
-* *[[[98]]]* Paramètres de domain brainpool (format PDF){nbsp}: http://www.ecc-brainpool.org/download/Domain-parameters.pdf
+* *[[[24]]]* Elliptic curve digital signature algorithm{nbsp}: https://fr.wikipedia.org/wiki/Elliptic_curve_digital_signature_algorithm
+* *[[[25]]]* ECC Tutorial (en anglais){nbsp}: http://www.johannes-bauer.com/compsci/ecc
 
