@@ -7,11 +7,9 @@
 <meta name="generator" content="Asciidoctor 1.5.2">
 <meta name="author" content="Sébastien Millet">
 <title>Cryptographie pratique</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
 /* Remove the comments around the @import statement below when using this as a custom stylesheet */
-/*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400";*/
 article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}
 audio,canvas,video{display:inline-block}
 audio:not([controls]){display:none;height:0}
@@ -409,9 +407,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 .hide-for-print{display:none!important}
 .show-for-print{display:inherit!important}}
 </style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </head>
 <body class="article">
 <div id="header">
@@ -1166,7 +1161,7 @@ Il faut le faire en deux fois, une fois pour le modulo de 256 octets (variable <
 <div class="listingblock">
 <div class="title">val.b</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
+<pre class="highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
 ibase=2*8
 s=8049A7CE9627701FC4E520876B97271A8AEF34D13A5ECA776172BD7C9053DBEF9C8504E4C85629135D934D1F9C6FB09375189812B3475D5F0797F5D32BC9B11B12BC29733DCD40E57EB97BC819F21939764A4F2A270036906BAE5FD280D68DCC16428C0FCD3D213025BCFA10A6697529ED1A168E0D2CEFCB24A9C9A64C85F0BF8942B91F2CD1E92989F73EF9F2267BAB5535C3388C10C3C1D55DBC3A50A01A77CEDED612862D83A9B1A68A08B68DC35BE0F2E23E3BD9AFD4C0BA1537CFD694A5AF5D6CF8887861A9DCB89B9DE35AD3F255C251B0ECD54C2CF693DD5732EDF33939334BDB1E64C29636E0502E57914984BDA74C7E05AC948403D2BEBE051452F8
 n=9769D7999885023FE9264276E8F4733FA932442690782E78579119A05D762B49F9935A5D5ACE82F3C2D8E54C367A2B1D0DDBA6A7FE91127CED7201B78CA1C5DACC9DFE09FB57E214470FE89E918F942D8032939303F5287868BA7E0F42B4317A0514225333E4A3AD6C8FAFBE636BB2329FD917B9C9E0607C99D631E1E4A0B73FAFB232AC7E8C9CDC02EBE1BC1F149CBC91F7B2FB42F3E1202BCBBF8FF3B37063FAF7752802ABC5D4B0EDEA257F87CD371496833C40021BA09E19477FF3B0CCC52560B83512F151EB17DCFC5BA5D99BEF404CD77771E9FB458B7EF2E369B042661746903ACD463DF1B0096FDCFFEE3361CAFCC72E3CED5E0AD1BF221269804B23
@@ -1194,7 +1189,7 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
 <div class="listingblock">
 <div class="title">powmod.b</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">define powmod(a, b, c) {
+<pre class="highlight"><code class="language-bc" data-lang="bc">define powmod(a, b, c) {
 	auto p, r
 	p = a
 	r = 1
@@ -2354,7 +2349,7 @@ Ainsi <em>(-5)&#160;%&#160;3</em> renvoie <em>-2</em>.</p>
 <div class="listingblock">
 <div class="title">crypto.b</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">	/* Calculate the invert of a modulo n */
+<pre class="highlight"><code class="language-bc" data-lang="bc">	/* Calculate the invert of a modulo n */
 define invmod(a, n) {
 	auto aa, bb, r, t, anc_t, nou_t, negflag
 	aa = n
@@ -2599,7 +2594,7 @@ define ec_mul(*r[], p[], k, a, m) {
 <div class="listingblock">
 <div class="title">secp256r1.b</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
+<pre class="highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
 ibase=2^4
 p=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
 a=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC
@@ -2663,7 +2658,7 @@ Dans la convention des fonctions de <em>crypto.b</em>, le point à l&#8217;infin
 <div class="listingblock">
 <div class="title">k.b</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
+<pre class="highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
 ibase=2^4
 k=673DCAD121E37B7E15AC792F8CA0670856E2DE9C233684A9A0FA3D767B61FBF1
 q[0]=134D4E5F632E0545350FB89EE05200450E07A5B115BCA72DF5F4896D2433A65A
@@ -2766,6 +2761,18 @@ La division par <em>k</em> est une multiplication par <em>k<sup>-1</sup>&#160;mo
 </tr>
 </table>
 </div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<em>k</em> doit être cryptographiquement aléatoire, et différent à chaque signature. Si une clé signe deux documents différents avec un <em>k</em> unique, il est trivial de la calculer. Le lien <a href="#25">[25]</a> en donne la démonstration et décrit un cas pratique avec le programme <em>openssl</em> modifié pour signer avec un <em>k</em> invariable.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Le couple <em>(r,&#160;s)</em> est la signature de <em>H(m)</em>.</p>
 </div>
@@ -2791,7 +2798,7 @@ La division par <em>k</em> est une multiplication par <em>k<sup>-1</sup>&#160;mo
 <div class="title">Note</div>
 </td>
 <td class="content">
-On laisse le soin au lecteur de voir pourquoi le deuxième <em>mod&#160;n</em> est facultatif dans les formules de calcul de <em>u<sub>1</sub></em> et <em>u<sub>2</sub></em>.
+Dans les formules de calcul de <em>u<sub>1</sub></em> et <em>u<sub>2</sub></em>, on pourrait se passer du deuxième <em>mod&#160;n</em>, mais le calcul serait un peu plus long.
 </td>
 </tr>
 </table>
@@ -2816,11 +2823,11 @@ On laisse le soin au lecteur de voir pourquoi le deuxième <em>mod&#160;n</em> e
 </div>
 </div>
 <div class="paragraph">
-<p>Si vous vous rappelez les chapitres précédents concernant le RSA, la signature (ici la valeur de <em>(r,&#160;s)</em>) est la troisième séquence du certificat. Avec <em>pkfile</em> il s&#8217;agit du noeud de coordonnées <em>1.3.1</em>.
-Récupérer les valeurs de <em>r</em> et <em>s</em> du certificat et les écrire dans le fichier <em>sign.b</em>.</p>
+<p>Si vous vous rappelez les chapitres précédents concernant le RSA, la signature (ici la valeur de <em>(r,&#160;s)</em>) est la troisième séquence du certificat. Avec <em>pkfile</em> il s&#8217;agit du noeud de coordonnées <em>1.3.1</em>.</p>
 </div>
 <div class="paragraph">
-<p>Deux possibilités pour afficher <em>r</em> et <em>s</em>&#160;:</p>
+<p>Nous allons récupérer les valeurs de <em>r</em> et <em>s</em> du certificat et les écrire dans le fichier <em>sign.b</em>.
+Deux possibilités pour afficher <em>r</em> et <em>s</em>&#160;:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -2863,13 +2870,13 @@ openssl asn1parse -in cert.pem -strparse 351</pre>
 </ol>
 </div>
 <div class="paragraph">
-<p>Nous avons également besoin de <em>H(m)</em>, que nous noterons <em>h</em> dans notre script (dans certains tutoriels il est noté <em>e</em>). <em>h</em> a été défini par <em>secp256r1.b</em> (c&#8217;est le cofacteur) mais nous n&#8217;en avons pas besoin. Comme vu avec le RSA il faut extraire la partie tbsCertificate de notre certificat et en calculer le hash.</p>
+<p>Nous avons également besoin de <em>H(m)</em>, que nous noterons <em>hm</em> dans notre script (dans certains tutoriels il est noté <em>e</em>). Comme vu avec le RSA il faut extraire la partie tbsCertificate de notre certificat et en calculer le hash.</p>
 </div>
 <div class="paragraph">
-<p>Quel hash&#160;? Le certificat indique que l&#8217;algorithme est <em>ecdsa-with-SHA256</em>, donc <em>h&#160;=&#160;SHA256(tbsCertificate)</em>.</p>
+<p>Quel hash&#160;? Le certificat indique que l&#8217;algorithme est <em>ecdsa-with-SHA256</em>, donc <em>hm&#160;=&#160;SHA256(tbsCertificate)</em>.</p>
 </div>
 <div class="olist arabic">
-<div class="title">Calcul de h</div>
+<div class="title">Calcul de hm</div>
 <ol class="arabic">
 <li>
 <p>Extraire tbsCertificate dans <em>tbs.der</em>&#160;:</p>
@@ -2917,16 +2924,16 @@ openssl asn1parse -in cert.pem -strparse 351</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Après ces manipulations le fichier <em>sign.b</em> contient <em>r</em>, <em>s</em> et <em>h</em>.</p>
+<p>Après ces manipulations le fichier <em>sign.b</em> contient <em>r</em>, <em>s</em> et <em>hm</em>.</p>
 </div>
 <div class="listingblock">
 <div class="title">sign.b</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
+<pre class="highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
 ibase=2^4
 r=EAAF9A71679B8DB097D9B3FD6F1269722F9064719AA0F9EBA609EBEAA2137249
 s=341F2779CFA258038389553A62494793D57F06CD3AF3DA1758C05ECDF680F7F5
-h=FA7C84F7AD64B726AC9261CE4B7DAB683CE9E34491A2C4EAB7F116FA7F1D2142
+hm=FA7C84F7AD64B726AC9261CE4B7DAB683CE9E34491A2C4EAB7F116FA7F1D2142
 ibase=save_ibase</code></pre>
 </div>
 </div>
@@ -3118,7 +3125,7 @@ Le fichier exécutable <em>bc.exe</em> semble mal gérer le clavier français, �
 <div id="footer">
 <div id="footer-text">
 Version 0.9<br>
-Last updated 2016-03-23 01:08:15 CET
+Last updated 2016-03-23 21:53:04 CET
 </div>
 </div>
 </body>

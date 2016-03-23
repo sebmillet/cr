@@ -10,7 +10,6 @@
 :toclevels: 3
 :numbered:
 :imagesdir: ./images
-:source-highlighter: highlightjs
 
 == Introduction
 
@@ -1161,6 +1160,9 @@ Le message à signer est noté _m_ et son hash est noté _H(m)_.
 [NOTE]
 La division par _k_ est une multiplication par _k^-1^{nbsp}mod{nbsp}n_.
 
+[IMPORTANT]
+_k_ doit être cryptographiquement aléatoire, et différent à chaque signature. Si une clé signe deux documents différents avec un _k_ unique, il est trivial de la calculer. Le lien <<25>> en donne la démonstration et décrit un cas pratique avec le programme _openssl_ modifié pour signer avec un _k_ invariable.
+
 Le couple _(r,{nbsp}s)_ est la signature de _H(m)_.
 
 .Vérification d'une signature ECDSA
@@ -1171,7 +1173,7 @@ Le couple _(r,{nbsp}s)_ est la signature de _H(m)_.
 . Calculer image:img-sig-formula-5.png["ECDSA Formule 5"]
 
 [NOTE]
-On laisse le soin au lecteur de voir pourquoi le deuxième _mod{nbsp}n_ est facultatif dans les formules de calcul de _u~1~_ et _u~2~_.
+Dans les formules de calcul de _u~1~_ et _u~2~_, on pourrait se passer du deuxième _mod{nbsp}n_, mais le calcul serait un peu plus long.
 
 [start=3]
 . Vérifier que _p{nbsp}={nbsp}r_
@@ -1188,8 +1190,8 @@ ECDSA-Sig-Value ::= SEQUENCE {
 --------------------------------------
 
 Si vous vous rappelez les chapitres précédents concernant le RSA, la signature (ici la valeur de _(r,{nbsp}s)_) est la troisième séquence du certificat. Avec _pkfile_ il s'agit du noeud de coordonnées _1.3.1_.
-Récupérer les valeurs de _r_ et _s_ du certificat et les écrire dans le fichier _sign.b_.
 
+Nous allons récupérer les valeurs de _r_ et _s_ du certificat et les écrire dans le fichier _sign.b_.
 Deux possibilités pour afficher _r_ et _s_{nbsp}:
 
 . Avec _pkfile_ (la première commande permet de voir que nous avons besoin de décoder la valeur _1.3.1_){nbsp}:
@@ -1211,11 +1213,11 @@ image::img-pkfile-cert-2-redim.png["pkfile 2"]
 [caption="Fig. 39", title=" "]
 image::img-openssl-strparse-redim.png["openssl straparse"]
 
-Nous avons également besoin de _H(m)_, que nous noterons _h_ dans notre script (dans certains tutoriels il est noté _e_). _h_ a été défini par _secp256r1.b_ (c'est le cofacteur) mais nous n'en avons pas besoin. Comme vu avec le RSA il faut extraire la partie tbsCertificate de notre certificat et en calculer le hash.
+Nous avons également besoin de _H(m)_, que nous noterons _hm_ dans notre script (dans certains tutoriels il est noté _e_). Comme vu avec le RSA il faut extraire la partie tbsCertificate de notre certificat et en calculer le hash.
 
-Quel hash{nbsp}? Le certificat indique que l'algorithme est _ecdsa-with-SHA256_, donc _h{nbsp}={nbsp}SHA256(tbsCertificate)_.
+Quel hash{nbsp}? Le certificat indique que l'algorithme est _ecdsa-with-SHA256_, donc _hm{nbsp}={nbsp}SHA256(tbsCertificate)_.
 
-.Calcul de h
+.Calcul de hm
 
 . Extraire tbsCertificate dans _tbs.der_{nbsp}:
 +
@@ -1239,7 +1241,7 @@ image::img-pkfile-cert-4-redim.png["pkfile 4"]
 image::img-pkfile-cert-3-redim.png["pkfile 3"]
 ====
 
-Après ces manipulations le fichier _sign.b_ contient _r_, _s_ et _h_.
+Après ces manipulations le fichier _sign.b_ contient _r_, _s_ et _hm_.
 
 .sign.b
 [source, bc]
