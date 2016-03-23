@@ -4,8 +4,8 @@
 = Cryptographie pratique
 :author: Sébastien Millet
 :email: <milletseb@laposte.net>
-:revnumber: 0.5
-:revdate: February 29th, 2016
+:revnumber: 0.9
+:revdate: 23 mars 2016
 :toc:
 :toclevels: 3
 :numbered:
@@ -223,7 +223,8 @@ footnote:[Ce calcul est le même que pour déchiffrer un message destiné au pro
 Nous avons besoin d'une "calculatrice" qui calcule sur des nombres entiers arbitrairement grands, sans perte de précision. Dans la suite de ce document, c'est _bc_ qui sera utilisé{nbsp}<<6>>.
 
 * Linux{nbsp}: _bc_ est disponible par défaut sur la plupart des distributions.
-* Windows{nbsp}: les binaires sont accessibles à l'URL{nbsp}<<7>>.
+* Windows{nbsp}: les binaires sont accessibles ici{nbsp}<<7>>.
+La version standard de _bc_ (GnuWin32) gère mal le clavier français. La référence <<7>> vous propose un exécutable _bc.exe_ qui n'a pas ce défaut.
 
 [NOTE]
 .Le choix de bc
@@ -278,7 +279,8 @@ Exemple{nbsp}:
 `obase = 2 * 8`
 
 `2 ^ (2 ^ 4) + 1`
-footnote:[Sous Windows, _bc_ a des difficultés à lire le caractère _circonflexe_ au clavier (en-dessous de la touche **9**). Pour contourner ce problème, il est possible d'utiliser (sur un clavier français) l'accent circonflexe à droite de la touche **P**, en appuyant dessus à deux reprises. Cela affiche deux _circonflexes_ et vous devez alors en supprimer un.]
+footnote:[Sous Windows, _bc_ a des difficultés à lire le caractère _circonflexe_ au clavier (en-dessous de la touche **9**). Pour contourner ce problème, il est possible d'utiliser (sur un clavier français) l'accent circonflexe à droite de la touche **P**, en appuyant dessus à deux reprises. Cela affiche deux _circonflexes_ et vous devez alors en supprimer un.
+Voir <<7>>.]
 
 `10001`
 
@@ -358,9 +360,9 @@ Un éditeur suffisamment avancé comme _vim_ ou _emacs_ le permet aussi.
 .Windows
 [caption=""]
 ====
-Windows ne dispose pas par défaut d'outil pour passer du texte en majuscule. Il faut installer _GNUWin32_ ou _cygwin_.
+Windows ne dispose pas par défaut d'outil pour passer du texte en majuscule. L'une des solutions est d'installer les utilitaires adéquats avec _GNUWin32_ ou bien _cygwin_.
 
-L'éditeur de texte (natif) adéquat pour ce type de transformation est *_notepad++_*, disponible à cette URL{nbsp}<<8>>.
+L'éditeur de texte (natif) adapté pour ce type de transformation est *_notepad++_*, disponible à cette URL{nbsp}<<8>>.
 
 [NOTE]
 _vim_ et _emacs_ sont disponibles sous Windows.
@@ -380,22 +382,15 @@ Ne pas oublier de passer les caractères hexadécimaux en majuscule.
 [caption="Fig. 11 : Clé publique dans le navigateur", title=" "]
 image::img-cle-3-redim.png["Image clé dans navigateur"]
 
-A l'arrivée, *_val.b_* contient trois variables, s, n et e.
+A l'arrivée, *_val.b_* contient trois variables, _s_ (la signature du certificat), _n_ et _e_ (la clé publique).
 
 .val.b
 [source, bc]
 ----
-ibase=2*8
-
-s=8049A7CE9627701FC4E520876B97271A8AEF34D13A5ECA776172BD7C9053DBEF9C8504E4C85629135D934D1F9C6FB09375189812B3475D5F0797F5D32BC9B11B12BC29733DCD40E57EB97BC819F21939764A4F2A270036906BAE5FD280D68DCC16428C0FCD3D213025BCFA10A6697529ED1A168E0D2CEFCB24A9C9A64C85F0BF8942B91F2CD1E92989F73EF9F2267BAB5535C3388C10C3C1D55DBC3A50A01A77CEDED612862D83A9B1A68A08B68DC35BE0F2E23E3BD9AFD4C0BA1537CFD694A5AF5D6CF8887861A9DCB89B9DE35AD3F255C251B0ECD54C2CF693DD5732EDF33939334BDB1E64C29636E0502E57914984BDA74C7E05AC948403D2BEBE051452F8
-
-n=9769D7999885023FE9264276E8F4733FA932442690782E78579119A05D762B49F9935A5D5ACE82F3C2D8E54C367A2B1D0DDBA6A7FE91127CED7201B78CA1C5DACC9DFE09FB57E214470FE89E918F942D8032939303F5287868BA7E0F42B4317A0514225333E4A3AD6C8FAFBE636BB2329FD917B9C9E0607C99D631E1E4A0B73FAFB232AC7E8C9CDC02EBE1BC1F149CBC91F7B2FB42F3E1202BCBBF8FF3B37063FAF7752802ABC5D4B0EDEA257F87CD371496833C40021BA09E19477FF3B0CCC52560B83512F151EB17DCFC5BA5D99BEF404CD77771E9FB458B7EF2E369B042661746903ACD463DF1B0096FDCFFEE3361CAFCC72E3CED5E0AD1BF221269804B23
-
-e=10001
-
+include::val.b[]
 ----
 
-==== La fonction powmod
+==== La fonction _powmod_
 
 Les amateurs de _python_ ont encore un avantage à ce stade. L'équivalent de la fonction _powmod_ y est disponible sous forme d'un troisième paramètre (facultatif) à la fonction _pow_.
 
@@ -433,16 +428,14 @@ obase=2*8
 powmod(s, e, n)
 ----
 
-Rappelons que c'est _S_ (variable _s_ dans _val.b_) qui doit être élevé à la puissance _e_, modulo _n_.
-Lors de la définition d'obase, ibase vaut 16 (résultat du script _val.b_ chargé au démarrage) donc obase=16 ne fonctionnerait pas.
+Rappelons que c'est _S_ (variable _s_ dans _val.b_) qui doit être élevé à la puissance _e_, modulo _n_. Nous écrivons _2{nbsp}*{nbsp}8_ au lieu de _16_ pour être certain de définir _obase_ à _16_ quelle que soit la valeur d'_ibase_.
 
 [caption="Fig. 12 : Calcul pour vérifier la signature RSA", title=" "]
 image::img-powmod-redim.png["Image résultat powmod"]
 
 [IMPORTANT]
-Au démarrage de bc, ibase est égal à 16 du fait du chargement de _val.b_. Si vous exécutez obase = 16, obase sera égal à... 22 !
-C'est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d'utiliser _2{nbsp}*{nbsp}8_ comme indiqué. Vous pouvez aussi exécuter _obase = 10_ (ibase étant égal à 16), mais c'est moins clair, et vous devez être certain qu'ibase vaut bien 16 au moment d'exécuter _obase = 10_, pour passer l'affichage des nombres en hexadécimal
-(_2{nbsp}*{nbsp}8_ fonctionne toujours quelle que soit la valeur d'ibase, y compris pour les valeurs inférieures ou égales à 7).
+Si vous exécutez _obase{nbsp}={nbsp}16_, vous obtiendrez le résultat voulu (_obase_ défini à _16 décimal_) seulement si _ibase_ vaut _10_.
+Pour parer à toute éventualité, le plus simple est d'utiliser _2{nbsp}*{nbsp}8_ comme ici (ou bien _2{nbsp}^{nbsp}4_, ou quoi que ce soit qui n'utilise que des nombres à un seul chiffre).
 
 Le résultat (figure 12) avec tous ces _F_ prouve avec une quasi certitude que le calcul s'est bien passé.
 Les _F_ correspondent au 'padding' standard effectué pour une signature RSA, la valeur qui suit (à partir de *`303130`*) est le hash de tbsCertificate "emballé".
@@ -687,7 +680,7 @@ Il y a deux solutions pour ce faire
 . À la main
 . À l'aide de l'utilitaire _pkfile_. _pkfile_ est disponible à cette URL{nbsp}<<12>>.
 
-.Extraction de tbsCertificate{nbsp}: alernative 1 (à la main)
+.Extraction de tbsCertificate{nbsp}: 1ère méthode (à la main)
 
 Un éditeur de fichier binaire ferait l'affaire, mais la manipulation est plus claire si l'on affiche le contenu hexadécimal avec _dder_.
 
@@ -742,7 +735,7 @@ Au final on obtient le fichier _tbs.der_ comme montré sur la figure 26.
 [caption="Fig. 26", title=" "]
 image::img-extracttbs-alt1-4-redim.png["Image extraction tbsCertificate alternative 1 - 4"]
 
-.Extraction de tbsCertificate{nbsp}: alernative 2 (à l'aide de _pkfile_)
+.Extraction de tbsCertificate{nbsp}: 2ème méthode (à l'aide de _pkfile_)
 
 Exécuter la commande
 ----
@@ -806,7 +799,7 @@ image::img-calchash-2.png["Calcul hash Windows, 2"]
 image::img-calchash-3.png["Calcul hash Windows, 3"]
 ====
 
-Les captures d'écran montrent également le calcul sur le fichier _tbs2.der_ (créé avec _pkfile_), qui est ben identique à _tbs.der_, ce qui confirme au passage l'équivalence des deux termes de l'alternative pour extraire tbsCertificate.
+Les captures d'écran montrent également le calcul sur le fichier _tbs2.der_ (créé avec _pkfile_), qui est ben identique à _tbs.der_, ce qui confirme au passage l'équivalence des deux méthodes pour extraire tbsCertificate.
 
 **Le hash trouvé (_M'_) concorde avec la signature (_M_), ce qui valide la signature du certificat _letsencrypt.org_**
 
@@ -849,7 +842,7 @@ Cette notation est un raccourci. On a _F~2^n^~ = F~2~[x]/(p(x))_ où _p(x)_ est 
 +
 _y^2^ + xy = x^3^ + ax^2^ + b_
 +
-Les opérations sur _F~2^m^~_ portent sur des polynômes et leur arithmétique est distincte de l'arithmétique usuelle sur les nombres entiers. Par exemple quel que soit _A_ de _F~2^m^~_, on a _A{nbsp}+{nbsp}A{nbsp}={nbsp}0_ (soit _A{nbsp}={nbsp}-A_ pour tout _A_).
+Les opérations sur _F~2^m^~_ portent sur des polynômes et leur arithmétique est différente de l'arithmétique usuelle sur les nombres entiers. Par exemple quel que soit _A_ de _F~2^m^~_, on a _A{nbsp}+{nbsp}A{nbsp}={nbsp}0_ (soit _A{nbsp}={nbsp}-A_ pour tout _A_).
 
 Les courbes sur _F~p~_ (_prime field_)::
 _p_ est un nombre premier. On a _F~p~ = Z/pZ_ (source{nbsp}: <<17>>). Les opérations sont faites modulo _p_. L'équation de la courbe est (source{nbsp}: <<16>>)
@@ -1028,12 +1021,13 @@ include::crypto.b[]
 ----
 
 [NOTE]
-.Optimisation et robustesse
+.Le ".=" dans le script bc
 ======================================
-Sur Internet on trouve des scripts qui appliquent la première formule (addition de deux points distincts) et la deuxième (doubler un point) sans vérifier les cas "P et Q alignés verticalement" ou "Point à l'infini".
+_bc_ permet de déclarer une fonction _void_ pour qu'elle ne renvoie pas de valeur, exemple{nbsp}:
 
-Dans la pratique ce n'est pas un souci car les nombres manipulés avec des clés x509 ne conduisent jamais à ces cas limites.
-La fonction _ec_mul_ pourrait ainsi être plus efficace, en appelant directement les fonctions ec_add_core et ec_dbl_core.
+ define void myprint(x) { print "x=", x, "\n" }
+
+La version GnuWin32 de _bc_ est ancienne et ne reconnaît pas le mot-clé _void_. Le script _crypto.b_ a été conçu pour être compatible avec cette version. Pour éviter qu'une expression (ici l'appel d'une fonction) ne produise un affichage parasite, chaque appel est précédé de ".=". Ainsi le résultat est affecté à la variable _last_ (qui vaut toujours la dernière valeur calculée). Cela ne modifie donc pas le cacul. C'est la méthode usuelle avec _bc_ pour ne pas afficher le résultat d'une expression.
 ======================================
 
 ==== Représentation d'un point dans le standard x509
@@ -1062,6 +1056,14 @@ Selon le standard X9.62 en vigueur dans la RFC 5480 (nous ne mentionnons donc pa
 * Premier octet = _03_{nbsp}: le point est compressé, et _y_ est impair. _x_ est codé juste après 03.
 * Premier octet = _04_{nbsp}: le point est non compressé. _x_ est codé juste après 04, et _y_ est codé juste après _x_. Comme _x_ et _y_ ont même taille, il n'y a pas besoin de délimiteur pour retrouver la position à laquelle on passe de _x_ à _y_.
 
+[NOTE]
+.Conversion entre format compressé et non comrpessé
+======================================
+Pour retrouver le _y_ qui satisfasse l'équation _y^2^ = x^3^ + ax + b_, il faut calculer le terme à droite du signe égal puis en extraire la racine carrée (dans _Z/pZ_{nbsp}: il s'agit de la _racine modulaire_), et enfin choisir le bon _y_ d'après le bit de parité.
+
+D'après <<23>>, il n'existe pas d'algorithme déterministe qui calcule la racine modulaire en temps polynomial. Cette même source donne un algorithme de type Monte-Carlo (qui fait donc intervenir le hasard) en _temps moyen_ polynomial, ce qui est suffisant dans la pratique.
+======================================
+
 ==== La courbe prime256v1 (secp256r1)
 
 .Les paramètres de la courbe prime256v1
@@ -1089,7 +1091,7 @@ image::img-n_fois_g-redim.png["n fois G"]
 
 .Création d'une paire de clé privée et publique sur prime256v1
 
-Exécuter footnote:[Enregistrer une clé privée dans un fichier non protégé par mot de passe (chiffré) est une mauvaise pratique. Ici cela n'a pas d'importance puisque la clé est une clé de test.]
+Exécuter footnote:[Enregistrer une clé privée dans un fichier non protégé par mot de passe (chiffré) est une mauvaise pratique. D'autre part le fichier doit être enregistré dans un endroit parfaitement sécurisé, ne jamais être transféré à travers un réseau, etc. Ici cela n'a pas d'importance puisque la clé est une clé de test.]
 
  $ openssl ecparam -name prime256v1 -genkey -out k.pem
 
@@ -1124,51 +1126,59 @@ image::img-k_fois_g-redim.png["k fois G"]
 ==== Création d'un certificat auto-signé
 
 Par définition, un certificat auto-signé a même émetteur (_issuer_) et sujet (_subject_).
-Ce certificat aura pour clé la clé contenue dans le fichier _k.pem_, de type _prime256v1_.
+Sa clé sera celle du fichier _k.pem_.
 
 Exécuter la commande{nbsp}:
 
  $ openssl req -new -x509 -key k.pem -subj "/CN=Sebastien Millet DEV CA/C=FR" -out cert.pem
 
-[caption="Fig. 36", title=" "]
-image::img-...
-
 Contrôler le résultat avec cette commande{nbsp}:
 
  $ openssl x509 -in cert.pem -noout -text
 
-[caption="Fig. 37", title=" "]
-image::img-...
+[caption="Fig. 36", title=" "]
+image::img-openssl-autosigned-redim.png["Création certificat auto-signé"]
 
 ==== Vérification de la signature ECDSA du certificat
 
 .Signature d'un message avec ECDSA
 
-Les formules sont disponibles ici par exemple{nbsp}<<24>>.
-Ce tutoriel (en anglais) est très bien fait et explique de nombreux calculs{nbsp}<<25>>.
-Jusqu'à présent _k_ désignait la clé privée, ci-dessous _k_ est un entier choisi aléatoirement. La clé privée est notée _d_.
+Les formules sont disponibles sur de nombreux sites, par exemple ici{nbsp}<<24>>.
+
+Ce tutoriel (en anglais) est très bien fait et explique dans le détail de nombreux calculs{nbsp}<<25>>.
+
+Jusqu'à présent _k_ désignait la clé privée. Ci-dessous _k_ est un entier choisi aléatoirement, alors que la clé privée est notée _d_.
 
 Les notations sont celles introduites précédemment pour les paramètres de domaine ainsi que la clé publique.
+Le message à signer est noté _m_ et son hash est noté _H(m)_.
 
 . Choisir un entier k entre _0_ et _n_, différent de _0_ et de _n_
 
-. Calculer _R{nbsp}={nbsp}(R~x~,{nbsp}R~y~){nbsp}={nbsp}kG_ puis _r{nbsp}={nbsp}R~x~ mod n_) et si _r_ est égal à _0_, recommencer
+. Calculer image:img-sig-formula-1.png["ECDSA Formule 1"] Si _r_ est égal à _0_, recommencer à l'étape _1_.
 
-. Calculer _s{nbsp}={nbsp}(H(m)+rd)/k mod n_
+. Calculer image:img-sig-formula-2.png["ECDSA Formule 2"] Si _s_ est égal à zéro, recommencer à l'étape _1_.
 
-Le couple _(r,{nbsp}s)_ est la signature du hash du message _m_, représenté par la fonction _H(m)_.
+[NOTE]
+La division par _k_ est une multiplication par _k^-1^{nbsp}mod{nbsp}n_.
+
+Le couple _(r,{nbsp}s)_ est la signature de _H(m)_.
 
 .Vérification d'une signature ECDSA
 
-. Calculer _u~1~{nbsp}={nbsp}H(m)(s^-1^{nbsp}mod{nbsp}n)_ mod n et _u~2~{nbsp}={nbsp}r(s^-1^{nbsp}mod{nbsp}n)_
+. Calculer image:img-sig-formula-3.png["ECDSA Formule 3"] et image:img-sig-formula-4.png["ECDSA Formule 4"]
 
-. Calculer _P{nbsp}={nbsp}(P~x~,{nbsp}P~y~){nbsp}={nbsp}u~1~G{nbsp}+{nbsp}u~2~Q_ et calculer _p{nbsp}={nbsp}P~x~{nbsp}mod{nbsp}n_
+[start=2]
+. Calculer image:img-sig-formula-5.png["ECDSA Formule 5"]
 
+[NOTE]
+On laisse le soin au lecteur de voir pourquoi le deuxième _mod{nbsp}n_ est facultatif dans les formules de calcul de _u~1~_ et _u~2~_.
+
+[start=3]
 . Vérifier que _p{nbsp}={nbsp}r_
 
 .Vérification de notre certificat auto-signé
 
-Une fois de plus l'encodage est défini par la RFC 5280. Il s'agit de la définition suivante{nbsp}:
+L'encodage de _(r, s)_ est standardisé par la RFC 5280. Il s'agit de la définition suivante{nbsp}:
 
 --------------------------------------
 ECDSA-Sig-Value ::= SEQUENCE {
@@ -1177,40 +1187,59 @@ ECDSA-Sig-Value ::= SEQUENCE {
 }
 --------------------------------------
 
-La valeur de _(r,{nbsp}s)_ est la troisième séquence du certificat que _pkfile_ a noté _1.3.1_.
-Récupérer les valeurs de _r_ et _s_, soit avec la commande _pkfile_{nbsp}:
+Si vous vous rappelez les chapitres précédents concernant le RSA, la signature (ici la valeur de _(r,{nbsp}s)_) est la troisième séquence du certificat. Avec _pkfile_ il s'agit du noeud de coordonnées _1.3.1_.
+Récupérer les valeurs de _r_ et _s_ du certificat et les écrire dans le fichier _sign.b_.
 
- $ pkfile cert.pem -N 1.3.1
+Deux possibilités pour afficher _r_ et _s_{nbsp}:
 
+. Avec _pkfile_ (la première commande permet de voir que nous avons besoin de décoder la valeur _1.3.1_){nbsp}:
++
+ pkfile cert.pem -l 3
+ pkfile cert.pem -N 1.3.1
++
+
+[caption="Fig. 37", title=" "]
+image::img-pkfile-cert-1-redim.png["pkfile 1"]
 [caption="Fig. 38", title=" "]
-image::img-...
+image::img-pkfile-cert-2-redim.png["pkfile 2"]
 
-soit avec la commande _openssl_ (reprendre le numéro d'octet du dernier _BIT STRING_ dans l'option _strparse_){nbsp}:
-
- $ openssl asn1parse -in cert.pem
- $ openssl asn1parse -in cert.pem -strparse 351
-
+. Avec _openssl_ (la première commande permet de voir que nous avons besoin de décoder la valeur située à l'offset _351_){nbsp}:
++
+ openssl asn1parse -in cert.pem
+ openssl asn1parse -in cert.pem -strparse 351
++
 [caption="Fig. 39", title=" "]
-image::img-...
+image::img-openssl-strparse-redim.png["openssl straparse"]
 
-Copier/coller le résultat dans le fichier sign.b{nbsp}:
-
-Nous avons également besoin de _H(m)_, que nous noterons _h_ dans notre script (dans certains tutoriels il est noté _e_). Comme vu avec le RSA il faut extraire la partie tbsCertificate de notre certificat et en calculer le hash.
+Nous avons également besoin de _H(m)_, que nous noterons _h_ dans notre script (dans certains tutoriels il est noté _e_). _h_ a été défini par _secp256r1.b_ (c'est le cofacteur) mais nous n'en avons pas besoin. Comme vu avec le RSA il faut extraire la partie tbsCertificate de notre certificat et en calculer le hash.
 
 Quel hash{nbsp}? Le certificat indique que l'algorithme est _ecdsa-with-SHA256_, donc _h{nbsp}={nbsp}SHA256(tbsCertificate)_.
 
 .Calcul de h
 
-Extraire tbsCertificate dans _tbs.der_ puis en calculer le hash SHA256, avec les commandes suivantes{nbsp}:
+. Extraire tbsCertificate dans _tbs.der_{nbsp}:
++
+ pkfile cert.pem -n 1.1 -x -o tbs.der
 
- $ pkfile cert.pem -n 1.1 -x -o tbs.der
+. Calculer le hash SHA256 de _tbs.der_{nbsp}:
 
- $ pkfile --sha256 tbs.der
-
+.Linux
+[caption=""]
+====
+ $ sha256sum tbs.der
 [caption="Fig. 40", title=" "]
-image::img-...
+image::img-pkfile-cert-4-redim.png["pkfile 4"]
+====
 
-Au final le fichier _sign.b_ ressemble à ceci{nbsp}:
+.Windows
+[caption=""]
+====
+ pkfile --sha256 tbs.der
+[caption="Fig. 41", title=" "]
+image::img-pkfile-cert-3-redim.png["pkfile 3"]
+====
+
+Après ces manipulations le fichier _sign.b_ contient _r_, _s_ et _h_.
 
 .sign.b
 [source, bc]
@@ -1220,10 +1249,15 @@ include::sign.b[]
 
 Ne reste plus qu'à faire les calculs{nbsp}:
 
+image::img-sig-verif-1-redim.png["Vérification signature  1"]
 
+On voit que l'abscisse du résultat est bien égale à _r_ ce qui valide la signature.
 
+*FIN*
 
-== Bibliography
+<<<
+
+== Bibliographie
 
 * *[[[1]]]* Présentation de l'ASN.1{nbsp}: http://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx
 * *[[[2]]]* Document X.690 (format PDF){nbsp}: https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
@@ -1234,6 +1268,9 @@ Ne reste plus qu'à faire les calculs{nbsp}:
 * *[[[7]]]* _bc_ pour Windows{nbsp}: http://gnuwin32.sourceforge.net/packages/bc.htm
 +
 _bc_ a besoin du fichier _readline5.dll_ pour s'exécuter. Vous pouvez le trouver à cette URL{nbsp}: http://gnuwin32.sourceforge.net/packages/readline.htm
++
+[IMPORTANT]
+Le fichier exécutable _bc.exe_ semble mal gérer le clavier français, à cause de _readline_. Cela oblige à jongler pour saisir des caractèrs tels que '^', '{' et '[', et il faut parfois passer en mode "clavier anglais" pour s'en sortir. Une alternative est de compiler _bc_ sans _readline_. L'auteur de ce document l'a fait pour vous et vous pouvez le récupérer ici{nbsp}: http://seb-o-fourneaux.fr/?p=116
 
 * *[[[8]]]* Le site de notepad++ {nbsp}: https://notepad-plus-plus.org/fr
 * *[[[9]]]* Article Wikipédia sur l'algorithme d'exponentiation rapide{nbsp}: https://fr.wikipedia.org/wiki/Exponentiation_rapide

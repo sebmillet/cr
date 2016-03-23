@@ -419,8 +419,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="details">
 <span id="author" class="author">Sébastien Millet</span><br>
 <span id="email" class="email">&lt;<a href="mailto:milletseb@laposte.net">milletseb@laposte.net</a>&gt;</span><br>
-<span id="revnumber">version 0.5,</span>
-<span id="revdate">February 29th, 2016</span>
+<span id="revnumber">version 0.9,</span>
+<span id="revdate">23 mars 2016</span>
 </div>
 <div id="toc" class="toc">
 <div id="toctitle">Table of Contents</div>
@@ -446,7 +446,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_choix_d_un_programme_de_calcul">3.2.1. Choix d&#8217;un programme de calcul</a></li>
 <li><a href="#_enregistrement_de_la_signature_sous_forme_d_entier">3.2.2. Enregistrement de la signature sous forme d&#8217;entier</a></li>
 <li><a href="#_enregistrement_de_la_clé_publique_sous_forme_d_entier">3.2.3. Enregistrement de la clé publique sous forme d&#8217;entier</a></li>
-<li><a href="#_la_fonction_powmod">3.2.4. La fonction powmod</a></li>
+<li><a href="#_la_fonction_em_powmod_em">3.2.4. La fonction <em>powmod</em></a></li>
 <li><a href="#_calcul_de_em_m_em">3.2.5. Calcul de <em>M</em></a></li>
 <li><a href="#_analyse_de_em_m_em">3.2.6. Analyse de <em>M</em></a></li>
 <li><a href="#_calcul_de_em_m_em_2">3.2.7. Calcul de <em>M'</em></a></li>
@@ -465,11 +465,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_fonctions_de_calcul_sur_em_f_sub_p_sub_em_avec_le_programme_em_bc_em">4.1.4. Fonctions de calcul sur <em>F<sub>p</sub></em> avec le programme <em>bc</em></a></li>
 <li><a href="#_représentation_d_un_point_dans_le_standard_x509">4.1.5. Représentation d&#8217;un point dans le standard x509</a></li>
 <li><a href="#_la_courbe_prime256v1_secp256r1">4.1.6. La courbe prime256v1 (secp256r1)</a></li>
+<li><a href="#_création_d_un_certificat_auto_signé">4.1.7. Création d&#8217;un certificat auto-signé</a></li>
+<li><a href="#_vérification_de_la_signature_ecdsa_du_certificat">4.1.8. Vérification de la signature ECDSA du certificat</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#_bibliography">5. Bibliography</a></li>
+<li><a href="#_bibliographie">5. Bibliographie</a></li>
 </ul>
 </div>
 </div>
@@ -889,7 +891,8 @@ Pour <em>signer</em>, le calcul inverse le rôle de l&#8217;exposant privé et p
 <p>Linux&#160;: <em>bc</em> est disponible par défaut sur la plupart des distributions.</p>
 </li>
 <li>
-<p>Windows&#160;: les binaires sont accessibles à l&#8217;URL&#160;<a href="#7">[7]</a>.</p>
+<p>Windows&#160;: les binaires sont accessibles ici&#160;<a href="#7">[7]</a>.
+La version standard de <em>bc</em> (GnuWin32) gère mal le clavier français. La référence <a href="#7">[7]</a> vous propose un exécutable <em>bc.exe</em> qui n&#8217;a pas ce défaut.</p>
 </li>
 </ul>
 </div>
@@ -1110,10 +1113,10 @@ Si ibase est déjà égal à 16 et que l&#8217;on exécute <em>ibase = 16</em>, 
 <div class="title">Windows</div>
 <div class="content">
 <div class="paragraph">
-<p>Windows ne dispose pas par défaut d&#8217;outil pour passer du texte en majuscule. Il faut installer <em>GNUWin32</em> ou <em>cygwin</em>.</p>
+<p>Windows ne dispose pas par défaut d&#8217;outil pour passer du texte en majuscule. L&#8217;une des solutions est d&#8217;installer les utilitaires adéquats avec <em>GNUWin32</em> ou bien <em>cygwin</em>.</p>
 </div>
 <div class="paragraph">
-<p>L&#8217;éditeur de texte (natif) adéquat pour ce type de transformation est <strong><em>notepad++</em></strong>, disponible à cette URL&#160;<a href="#8">[8]</a>.</p>
+<p>L&#8217;éditeur de texte (natif) adapté pour ce type de transformation est <strong><em>notepad++</em></strong>, disponible à cette URL&#160;<a href="#8">[8]</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1158,23 +1161,22 @@ Il faut le faire en deux fois, une fois pour le modulo de 256 octets (variable <
 <div class="title">Fig. 11 : Clé publique dans le navigateur </div>
 </div>
 <div class="paragraph">
-<p>A l&#8217;arrivée, <strong><em>val.b</em></strong> contient trois variables, s, n et e.</p>
+<p>A l&#8217;arrivée, <strong><em>val.b</em></strong> contient trois variables, <em>s</em> (la signature du certificat), <em>n</em> et <em>e</em> (la clé publique).</p>
 </div>
 <div class="listingblock">
 <div class="title">val.b</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">ibase=2*8
-
+<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
+ibase=2*8
 s=8049A7CE9627701FC4E520876B97271A8AEF34D13A5ECA776172BD7C9053DBEF9C8504E4C85629135D934D1F9C6FB09375189812B3475D5F0797F5D32BC9B11B12BC29733DCD40E57EB97BC819F21939764A4F2A270036906BAE5FD280D68DCC16428C0FCD3D213025BCFA10A6697529ED1A168E0D2CEFCB24A9C9A64C85F0BF8942B91F2CD1E92989F73EF9F2267BAB5535C3388C10C3C1D55DBC3A50A01A77CEDED612862D83A9B1A68A08B68DC35BE0F2E23E3BD9AFD4C0BA1537CFD694A5AF5D6CF8887861A9DCB89B9DE35AD3F255C251B0ECD54C2CF693DD5732EDF33939334BDB1E64C29636E0502E57914984BDA74C7E05AC948403D2BEBE051452F8
-
 n=9769D7999885023FE9264276E8F4733FA932442690782E78579119A05D762B49F9935A5D5ACE82F3C2D8E54C367A2B1D0DDBA6A7FE91127CED7201B78CA1C5DACC9DFE09FB57E214470FE89E918F942D8032939303F5287868BA7E0F42B4317A0514225333E4A3AD6C8FAFBE636BB2329FD917B9C9E0607C99D631E1E4A0B73FAFB232AC7E8C9CDC02EBE1BC1F149CBC91F7B2FB42F3E1202BCBBF8FF3B37063FAF7752802ABC5D4B0EDEA257F87CD371496833C40021BA09E19477FF3B0CCC52560B83512F151EB17DCFC5BA5D99BEF404CD77771E9FB458B7EF2E369B042661746903ACD463DF1B0096FDCFFEE3361CAFCC72E3CED5E0AD1BF221269804B23
-
-e=10001</code></pre>
+e=10001
+ibase=save_ibase</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_la_fonction_powmod">3.2.4. La fonction powmod</h4>
+<h4 id="_la_fonction_em_powmod_em">3.2.4. La fonction <em>powmod</em></h4>
 <div class="paragraph">
 <p>Les amateurs de <em>python</em> ont encore un avantage à ce stade. L&#8217;équivalent de la fonction <em>powmod</em> y est disponible sous forme d&#8217;un troisième paramètre (facultatif) à la fonction <em>pow</em>.</p>
 </div>
@@ -1249,8 +1251,7 @@ Les deux algorithmes font appel au même principe, mais le second exploite le co
 </div>
 </div>
 <div class="paragraph">
-<p>Rappelons que c&#8217;est <em>S</em> (variable <em>s</em> dans <em>val.b</em>) qui doit être élevé à la puissance <em>e</em>, modulo <em>n</em>.
-Lors de la définition d&#8217;obase, ibase vaut 16 (résultat du script <em>val.b</em> chargé au démarrage) donc obase=16 ne fonctionnerait pas.</p>
+<p>Rappelons que c&#8217;est <em>S</em> (variable <em>s</em> dans <em>val.b</em>) qui doit être élevé à la puissance <em>e</em>, modulo <em>n</em>. Nous écrivons <em>2&#160;*&#160;8</em> au lieu de <em>16</em> pour être certain de définir <em>obase</em> à <em>16</em> quelle que soit la valeur d'<em>ibase</em>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1265,9 +1266,8 @@ Lors de la définition d&#8217;obase, ibase vaut 16 (résultat du script <em>val
 <div class="title">Important</div>
 </td>
 <td class="content">
-Au démarrage de bc, ibase est égal à 16 du fait du chargement de <em>val.b</em>. Si vous exécutez obase = 16, obase sera égal à&#8230;&#8203; 22 !
-C&#8217;est logique, puisque 16 est saisi en hexadécimal. Le plus simple est d&#8217;utiliser <em>2&#160;*&#160;8</em> comme indiqué. Vous pouvez aussi exécuter <em>obase = 10</em> (ibase étant égal à 16), mais c&#8217;est moins clair, et vous devez être certain qu&#8217;ibase vaut bien 16 au moment d&#8217;exécuter <em>obase = 10</em>, pour passer l&#8217;affichage des nombres en hexadécimal
-(<em>2&#160;*&#160;8</em> fonctionne toujours quelle que soit la valeur d&#8217;ibase, y compris pour les valeurs inférieures ou égales à 7).
+Si vous exécutez <em>obase&#160;=&#160;16</em>, vous obtiendrez le résultat voulu (<em>obase</em> défini à <em>16 décimal</em>) seulement si <em>ibase</em> vaut <em>10</em>.
+Pour parer à toute éventualité, le plus simple est d&#8217;utiliser <em>2&#160;*&#160;8</em> comme ici (ou bien <em>2&#160;^&#160;4</em>, ou quoi que ce soit qui n&#8217;utilise que des nombres à un seul chiffre).
 </td>
 </tr>
 </table>
@@ -1716,7 +1716,7 @@ Ensuite sélectionner <em>X.509 binaire encodé DER</em>.</p>
 </ol>
 </div>
 <div class="paragraph">
-<div class="title">Extraction de tbsCertificate&#160;: alernative 1 (à la main)</div>
+<div class="title">Extraction de tbsCertificate&#160;: 1ère méthode (à la main)</div>
 <p>Un éditeur de fichier binaire ferait l&#8217;affaire, mais la manipulation est plus claire si l&#8217;on affiche le contenu hexadécimal avec <em>dder</em>.</p>
 </div>
 <div class="paragraph">
@@ -1824,7 +1824,7 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 <div class="title">Fig. 26 </div>
 </div>
 <div class="paragraph">
-<div class="title">Extraction de tbsCertificate&#160;: alernative 2 (à l&#8217;aide de <em>pkfile</em>)</div>
+<div class="title">Extraction de tbsCertificate&#160;: 2ème méthode (à l&#8217;aide de <em>pkfile</em>)</div>
 <p>Exécuter la commande</p>
 </div>
 <div class="listingblock">
@@ -1938,7 +1938,7 @@ Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique 
 </div>
 </div>
 <div class="paragraph">
-<p>Les captures d&#8217;écran montrent également le calcul sur le fichier <em>tbs2.der</em> (créé avec <em>pkfile</em>), qui est ben identique à <em>tbs.der</em>, ce qui confirme au passage l&#8217;équivalence des deux termes de l&#8217;alternative pour extraire tbsCertificate.</p>
+<p>Les captures d&#8217;écran montrent également le calcul sur le fichier <em>tbs2.der</em> (créé avec <em>pkfile</em>), qui est ben identique à <em>tbs.der</em>, ce qui confirme au passage l&#8217;équivalence des deux méthodes pour extraire tbsCertificate.</p>
 </div>
 <div class="paragraph">
 <p><strong>Le hash trouvé (<em>M'</em>) concorde avec la signature (<em>M</em>), ce qui valide la signature du certificat <em>letsencrypt.org</em></strong></p>
@@ -2043,7 +2043,7 @@ Nous n&#8217;allons pas expliquer ici toute la cryptographie à base de courbes 
 <p><em>y<sup>2</sup> + xy = x<sup>3</sup> + ax<sup>2</sup> + b</em></p>
 </div>
 <div class="paragraph">
-<p>Les opérations sur <em>F<sub>2<sup>m</sup></sub></em> portent sur des polynômes et leur arithmétique est distincte de l&#8217;arithmétique usuelle sur les nombres entiers. Par exemple quel que soit <em>A</em> de <em>F<sub>2<sup>m</sup></sub></em>, on a <em>A&#160;+&#160;A&#160;=&#160;0</em> (soit <em>A&#160;=&#160;-A</em> pour tout <em>A</em>).</p>
+<p>Les opérations sur <em>F<sub>2<sup>m</sup></sub></em> portent sur des polynômes et leur arithmétique est différente de l&#8217;arithmétique usuelle sur les nombres entiers. Par exemple quel que soit <em>A</em> de <em>F<sub>2<sup>m</sup></sub></em>, on a <em>A&#160;+&#160;A&#160;=&#160;0</em> (soit <em>A&#160;=&#160;-A</em> pour tout <em>A</em>).</p>
 </div>
 </dd>
 <dt class="hdlist1">Les courbes sur <em>F<sub>p</sub></em> (<em>prime field</em>)</dt>
@@ -2213,7 +2213,7 @@ Les courbes binaires fonctionnent selon les mêmes principes mais les "nombres" 
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Choisir un entier <em>k</em> inférieur à <em>p</em></p>
+<p>Choisir un entier <em>k</em> inférieur à <em>n</em></p>
 </li>
 <li>
 <p>Calculer <em>Q = kG</em> où <em>G</em> est l&#8217;un des paramètres de domaine de la courbe (voir ci-après la multiplication d&#8217;un point par un scalaire)</p>
@@ -2221,7 +2221,8 @@ Les courbes binaires fonctionnent selon les mêmes principes mais les "nombres" 
 </ol>
 </div>
 <div class="paragraph">
-<p>Le point <em>Q</em> est la clé publique, l&#8217;entier <em>k</em> est la clé privée. Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.</p>
+<p>Le point <em>Q</em> est la clé publique, l&#8217;entier <em>k</em> est la clé privée<span class="footnote">[<a id="_footnoteref_19" class="footnote" href="#_footnote_19" title="View footnote.">19</a>]</span>.
+Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.</p>
 </div>
 <div class="paragraph">
 <div class="title">Addition de deux points distincts (et non alignés verticalement)</div>
@@ -2428,7 +2429,7 @@ define powmod(a, b, c) {
 /*
 	ECC addition of p and q, p[0] being different from q[0]
 */
-define void ec_add_core(*r[], p[], q[], m) {
+define ec_add_core(*r[], p[], q[], m) {
 	auto s
 	s = ((p[1] - q[1]) * invmod(p[0] - q[0], m)) % m
 	r[0] = (s^2 - p[0] - q[0]) % m
@@ -2439,7 +2440,7 @@ define void ec_add_core(*r[], p[], q[], m) {
 /*
    ECC point doubling
 */
-define void ec_dbl_core(*r[], p[], a, m) {
+define ec_dbl_core(*r[], p[], a, m) {
 	auto s
 	s = ((3 * p[0]^2 + a) * invmod(2 * p[1], m)) % m
 	r[0] = (s^2 - 2 * p[0]) % m
@@ -2450,7 +2451,7 @@ define void ec_dbl_core(*r[], p[], a, m) {
 /*
 	ECC addition of p and q for any value of p and q
 */
-define void ec_add(*r[], p[], q[], a, m) {
+define ec_add(*r[], p[], q[], a, m) {
 	if (p[2]) { r[0] = q[0]; r[1] = q[1]; r[2] = q[2]; return }
 	if (q[2]) { r[0] = p[0]; r[1] = p[1]; r[2] = p[2]; return }
 	if (p[0] == q[0]) {
@@ -2461,29 +2462,29 @@ define void ec_add(*r[], p[], q[], a, m) {
 				r[2] = 1
 				return
 			}
-			ec_dbl_core(r[], p[], a, m)
+			.=ec_dbl_core(r[], p[], a, m)
 		}
 	} else {
-		ec_add_core(r[], p[], q[], m)
+		.=ec_add_core(r[], p[], q[], m)
 	}
 }
 
 /*
    ECC scalar point multiplication
 */
-define void ec_mul(*r[], p[], k, a, m) {
+define ec_mul(*r[], p[], k, a, m) {
 	auto tmp[]
 	r[2] = 1
 	if (p[2]) return
 	while (k &gt; 0) {
 		if ((k % 2) == 1) {
-			ec_add(r[], r[], p[], a, m)
+			.=ec_add(r[], r[], p[], a, m)
 		}
 			/*
 			 * ec_dbl(p[], p[], a, m) does not work with bc,
 			 * need to use a temporary array.
 			 */
-		ec_add(tmp[], p[], p[], a, m)
+		.=ec_add(tmp[], p[], p[], a, m)
 		p[0]=tmp[0]
 		p[1]=tmp[1]
 		p[2]=tmp[2]
@@ -2503,13 +2504,17 @@ define void ec_mul(*r[], p[], k, a, m) {
 <div class="title">Note</div>
 </td>
 <td class="content">
-<div class="title">Optimisation et robustesse</div>
+<div class="title">Le ".=" dans le script bc</div>
 <div class="paragraph">
-<p>Sur Internet on trouve des scripts qui appliquent la première formule (addition de deux points distincts) et la deuxième (doubler un point) sans vérifier les cas "P et Q alignés verticalement" ou "Point à l&#8217;infini".</p>
+<p><em>bc</em> permet de déclarer une fonction <em>void</em> pour qu&#8217;elle ne renvoie pas de valeur, exemple&#160;:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>define void myprint(x) { print "x=", x, "\n" }</pre>
+</div>
 </div>
 <div class="paragraph">
-<p>Dans la pratique ce n&#8217;est pas un souci car les nombres manipulés avec des clés x509 ne conduisent jamais à ces cas limites.
-La fonction <em>ec_mul</em> pourrait ainsi être plus efficace, en appelant directement les fonctions ec_add_core et ec_dbl_core.</p>
+<p>La version GnuWin32 de <em>bc</em> est ancienne et ne reconnaît pas le mot-clé <em>void</em>. Le script <em>crypto.b</em> a été conçu pour être compatible avec cette version. Pour éviter qu&#8217;une expression (ici l&#8217;appel d&#8217;une fonction) ne produise un affichage parasite, chaque appel est précédé de ".=". Ainsi le résultat est affecté à la variable <em>last</em> (qui vaut toujours la dernière valeur calculée). Cela ne modifie donc pas le cacul. C&#8217;est la méthode usuelle avec <em>bc</em> pour ne pas afficher le résultat d&#8217;une expression.</p>
 </div>
 </td>
 </tr>
@@ -2548,7 +2553,7 @@ La fonction <em>ec_mul</em> pourrait ainsi être plus efficace, en appelant dire
 <p>Le standard x509 (ici la RFC 5480) permet de coder un point soit sous forme compressée, soit sous forme non compressée. La RFC 5480 interdit expressément la forme hybride définie par le standard X9.62.</p>
 </div>
 <div class="paragraph">
-<p>Selon le standard X9.62 en vigueur dans la RFC 5480 (nous ne mentionnons donc pas ici la forme hybride, interdite par la RFC 5480) les formes compressée et non compressée sont codées ainsi<span class="footnote">[<a id="_footnoteref_19" class="footnote" href="#_footnote_19" title="View footnote.">19</a>]</span>&#160;:</p>
+<p>Selon le standard X9.62 en vigueur dans la RFC 5480 (nous ne mentionnons donc pas ici la forme hybride, interdite par la RFC 5480) les formes compressée et non compressée sont codées ainsi<span class="footnote">[<a id="_footnoteref_20" class="footnote" href="#_footnote_20" title="View footnote.">20</a>]</span>&#160;:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2562,6 +2567,24 @@ La fonction <em>ec_mul</em> pourrait ainsi être plus efficace, en appelant dire
 <p>Premier octet = <em>04</em>&#160;: le point est non compressé. <em>x</em> est codé juste après 04, et <em>y</em> est codé juste après <em>x</em>. Comme <em>x</em> et <em>y</em> ont même taille, il n&#8217;y a pas besoin de délimiteur pour retrouver la position à laquelle on passe de <em>x</em> à <em>y</em>.</p>
 </li>
 </ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Conversion entre format compressé et non comrpessé</div>
+<div class="paragraph">
+<p>Pour retrouver le <em>y</em> qui satisfasse l&#8217;équation <em>y<sup>2</sup> = x<sup>3</sup> + ax + b</em>, il faut calculer le terme à droite du signe égal puis en extraire la racine carrée (dans <em>Z/pZ</em>&#160;: il s&#8217;agit de la <em>racine modulaire</em>), et enfin choisir le bon <em>y</em> d&#8217;après le bit de parité.</p>
+</div>
+<div class="paragraph">
+<p>D&#8217;après <a href="#23">[23]</a>, il n&#8217;existe pas d&#8217;algorithme déterministe qui calcule la racine modulaire en temps polynomial. Cette même source donne un algorithme de type Monte-Carlo (qui fait donc intervenir le hasard) en <em>temps moyen</em> polynomial, ce qui est suffisant dans la pratique.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -2610,7 +2633,7 @@ Dans la convention des fonctions de <em>crypto.b</em>, le point à l&#8217;infin
 </div>
 <div class="paragraph">
 <div class="title">Création d&#8217;une paire de clé privée et publique sur prime256v1</div>
-<p>Exécuter <span class="footnote">[<a id="_footnoteref_20" class="footnote" href="#_footnote_20" title="View footnote.">20</a>]</span></p>
+<p>Exécuter <span class="footnote">[<a id="_footnoteref_21" class="footnote" href="#_footnote_21" title="View footnote.">21</a>]</span></p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -2673,11 +2696,261 @@ ibase=save_ibase</code></pre>
 <div class="title">Fig. 35 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_création_d_un_certificat_auto_signé">4.1.7. Création d&#8217;un certificat auto-signé</h4>
+<div class="paragraph">
+<p>Par définition, un certificat auto-signé a même émetteur (<em>issuer</em>) et sujet (<em>subject</em>).
+Sa clé sera celle du fichier <em>k.pem</em>.</p>
+</div>
+<div class="paragraph">
+<p>Exécuter la commande&#160;:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ openssl req -new -x509 -key k.pem -subj "/CN=Sebastien Millet DEV CA/C=FR" -out cert.pem</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Contrôler le résultat avec cette commande&#160;:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ openssl x509 -in cert.pem -noout -text</pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-openssl-autosigned-redim.png" alt="Création certificat auto-signé">
+</div>
+<div class="title">Fig. 36 </div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_vérification_de_la_signature_ecdsa_du_certificat">4.1.8. Vérification de la signature ECDSA du certificat</h4>
+<div class="paragraph">
+<div class="title">Signature d&#8217;un message avec ECDSA</div>
+<p>Les formules sont disponibles sur de nombreux sites, par exemple ici&#160;<a href="#24">[24]</a>.</p>
+</div>
+<div class="paragraph">
+<p>Ce tutoriel (en anglais) est très bien fait et explique dans le détail de nombreux calculs&#160;<a href="#25">[25]</a>.</p>
+</div>
+<div class="paragraph">
+<p>Jusqu&#8217;à présent <em>k</em> désignait la clé privée. Ci-dessous <em>k</em> est un entier choisi aléatoirement, alors que la clé privée est notée <em>d</em>.</p>
+</div>
+<div class="paragraph">
+<p>Les notations sont celles introduites précédemment pour les paramètres de domaine ainsi que la clé publique.
+Le message à signer est noté <em>m</em> et son hash est noté <em>H(m)</em>.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Choisir un entier k entre <em>0</em> et <em>n</em>, différent de <em>0</em> et de <em>n</em></p>
+</li>
+<li>
+<p>Calculer <span class="image"><img src="./images/img-sig-formula-1.png" alt="ECDSA Formule 1"></span> Si <em>r</em> est égal à <em>0</em>, recommencer à l&#8217;étape <em>1</em>.</p>
+</li>
+<li>
+<p>Calculer <span class="image"><img src="./images/img-sig-formula-2.png" alt="ECDSA Formule 2"></span> Si <em>s</em> est égal à zéro, recommencer à l&#8217;étape <em>1</em>.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+La division par <em>k</em> est une multiplication par <em>k<sup>-1</sup>&#160;mod&#160;n</em>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Le couple <em>(r,&#160;s)</em> est la signature de <em>H(m)</em>.</p>
+</div>
+<div class="olist arabic">
+<div class="title">Vérification d&#8217;une signature ECDSA</div>
+<ol class="arabic">
+<li>
+<p>Calculer <span class="image"><img src="./images/img-sig-formula-3.png" alt="ECDSA Formule 3"></span> et <span class="image"><img src="./images/img-sig-formula-4.png" alt="ECDSA Formule 4"></span></p>
+</li>
+</ol>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="2">
+<li>
+<p>Calculer <span class="image"><img src="./images/img-sig-formula-5.png" alt="ECDSA Formule 5"></span></p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+On laisse le soin au lecteur de voir pourquoi le deuxième <em>mod&#160;n</em> est facultatif dans les formules de calcul de <em>u<sub>1</sub></em> et <em>u<sub>2</sub></em>.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="3">
+<li>
+<p>Vérifier que <em>p&#160;=&#160;r</em></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<div class="title">Vérification de notre certificat auto-signé</div>
+<p>L&#8217;encodage de <em>(r, s)</em> est standardisé par la RFC 5280. Il s&#8217;agit de la définition suivante&#160;:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>ECDSA-Sig-Value ::= SEQUENCE {
+	r  INTEGER,
+	s  INTEGER
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Si vous vous rappelez les chapitres précédents concernant le RSA, la signature (ici la valeur de <em>(r,&#160;s)</em>) est la troisième séquence du certificat. Avec <em>pkfile</em> il s&#8217;agit du noeud de coordonnées <em>1.3.1</em>.
+Récupérer les valeurs de <em>r</em> et <em>s</em> du certificat et les écrire dans le fichier <em>sign.b</em>.</p>
+</div>
+<div class="paragraph">
+<p>Deux possibilités pour afficher <em>r</em> et <em>s</em>&#160;:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Avec <em>pkfile</em> (la première commande permet de voir que nous avons besoin de décoder la valeur <em>1.3.1</em>)&#160;:</p>
+<div class="literalblock">
+<div class="content">
+<pre>pkfile cert.pem -l 3
+pkfile cert.pem -N 1.3.1</pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-pkfile-cert-1-redim.png" alt="pkfile 1">
+</div>
+<div class="title">Fig. 37 </div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-pkfile-cert-2-redim.png" alt="pkfile 2">
+</div>
+<div class="title">Fig. 38 </div>
+</div>
+</li>
+<li>
+<p>Avec <em>openssl</em> (la première commande permet de voir que nous avons besoin de décoder la valeur située à l&#8217;offset <em>351</em>)&#160;:</p>
+<div class="literalblock">
+<div class="content">
+<pre>openssl asn1parse -in cert.pem
+openssl asn1parse -in cert.pem -strparse 351</pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-openssl-strparse-redim.png" alt="openssl straparse">
+</div>
+<div class="title">Fig. 39 </div>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Nous avons également besoin de <em>H(m)</em>, que nous noterons <em>h</em> dans notre script (dans certains tutoriels il est noté <em>e</em>). <em>h</em> a été défini par <em>secp256r1.b</em> (c&#8217;est le cofacteur) mais nous n&#8217;en avons pas besoin. Comme vu avec le RSA il faut extraire la partie tbsCertificate de notre certificat et en calculer le hash.</p>
+</div>
+<div class="paragraph">
+<p>Quel hash&#160;? Le certificat indique que l&#8217;algorithme est <em>ecdsa-with-SHA256</em>, donc <em>h&#160;=&#160;SHA256(tbsCertificate)</em>.</p>
+</div>
+<div class="olist arabic">
+<div class="title">Calcul de h</div>
+<ol class="arabic">
+<li>
+<p>Extraire tbsCertificate dans <em>tbs.der</em>&#160;:</p>
+<div class="literalblock">
+<div class="content">
+<pre>pkfile cert.pem -n 1.1 -x -o tbs.der</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Calculer le hash SHA256 de <em>tbs.der</em>&#160;:</p>
+</li>
+</ol>
+</div>
+<div class="exampleblock">
+<div class="title">Linux</div>
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre>$ sha256sum tbs.der</pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-pkfile-cert-4-redim.png" alt="pkfile 4">
+</div>
+<div class="title">Fig. 40 </div>
+</div>
+</div>
+</div>
+<div class="exampleblock">
+<div class="title">Windows</div>
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre>pkfile --sha256 tbs.der</pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-pkfile-cert-3-redim.png" alt="pkfile 3">
+</div>
+<div class="title">Fig. 41 </div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Après ces manipulations le fichier <em>sign.b</em> contient <em>r</em>, <em>s</em> et <em>h</em>.</p>
+</div>
+<div class="listingblock">
+<div class="title">sign.b</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bc" data-lang="bc">save_ibase=ibase
+ibase=2^4
+r=EAAF9A71679B8DB097D9B3FD6F1269722F9064719AA0F9EBA609EBEAA2137249
+s=341F2779CFA258038389553A62494793D57F06CD3AF3DA1758C05ECDF680F7F5
+h=FA7C84F7AD64B726AC9261CE4B7DAB683CE9E34491A2C4EAB7F116FA7F1D2142
+ibase=save_ibase</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ne reste plus qu&#8217;à faire les calculs&#160;:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/img-sig-verif-1-redim.png" alt="Vérification signature  1">
+</div>
+</div>
+<div class="paragraph">
+<p>On voit que l&#8217;abscisse du résultat est bien égale à <em>r</em> ce qui valide la signature.</p>
+</div>
+<div class="paragraph">
+<p><strong>FIN</strong></p>
+</div>
+<div style="page-break-after: always;"></div>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_bibliography">5. Bibliography</h2>
+<h2 id="_bibliographie">5. Bibliographie</h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
@@ -2703,6 +2976,18 @@ ibase=save_ibase</code></pre>
 <p><strong><a id="7"></a>[7]</strong> <em>bc</em> pour Windows&#160;: <a href="http://gnuwin32.sourceforge.net/packages/bc.htm" class="bare">http://gnuwin32.sourceforge.net/packages/bc.htm</a></p>
 <div class="paragraph">
 <p><em>bc</em> a besoin du fichier <em>readline5.dll</em> pour s&#8217;exécuter. Vous pouvez le trouver à cette URL&#160;: <a href="http://gnuwin32.sourceforge.net/packages/readline.htm" class="bare">http://gnuwin32.sourceforge.net/packages/readline.htm</a></p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+Le fichier exécutable <em>bc.exe</em> semble mal gérer le clavier français, à cause de <em>readline</em>. Cela oblige à jongler pour saisir des caractèrs tels que '^', '{' et '[', et il faut parfois passer en mode "clavier anglais" pour s&#8217;en sortir. Une alternative est de compiler <em>bc</em> sans <em>readline</em>. L&#8217;auteur de ce document l&#8217;a fait pour vous et vous pouvez le récupérer ici&#160;: <a href="http://seb-o-fourneaux.fr/?p=116" class="bare">http://seb-o-fourneaux.fr/?p=116</a>
+</td>
+</tr>
+</table>
 </div>
 </li>
 <li>
@@ -2754,10 +3039,10 @@ ibase=save_ibase</code></pre>
 <p><strong><a id="23"></a>[23]</strong> Conception d&#8217;algorithmes et applications (LI325) COURS 10 (format PDF)&#160;: <a href="http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf" class="bare">http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf</a></p>
 </li>
 <li>
-<p><strong><a id="99"></a>[99]</strong> ECC Tutorial (en anglais)&#160;: <a href="http://www.johannes-bauer.com/compsci/ecc" class="bare">http://www.johannes-bauer.com/compsci/ecc</a></p>
+<p><strong><a id="24"></a>[24]</strong> Elliptic curve digital signature algorithm&#160;: <a href="https://fr.wikipedia.org/wiki/Elliptic_curve_digital_signature_algorithm" class="bare">https://fr.wikipedia.org/wiki/Elliptic_curve_digital_signature_algorithm</a></p>
 </li>
 <li>
-<p><strong><a id="98"></a>[98]</strong> Paramètres de domain brainpool (format PDF)&#160;: <a href="http://www.ecc-brainpool.org/download/Domain-parameters.pdf" class="bare">http://www.ecc-brainpool.org/download/Domain-parameters.pdf</a></p>
+<p><strong><a id="25"></a>[25]</strong> ECC Tutorial (en anglais)&#160;: <a href="http://www.johannes-bauer.com/compsci/ecc" class="bare">http://www.johannes-bauer.com/compsci/ecc</a></p>
 </li>
 </ul>
 </div>
@@ -2791,7 +3076,7 @@ ibase=save_ibase</code></pre>
 <a href="#_footnoteref_8">8</a>. <em>python</em> peut lire les nombres hexadécimaux indifféremment en majuscule et minuscule. <em>bc</em> exige des majuscules.
 </div>
 <div class="footnote" id="_footnote_9">
-<a href="#_footnoteref_9">9</a>. Sous Windows, <em>bc</em> a des difficultés à lire le caractère <em>circonflexe</em> au clavier (en-dessous de la touche <strong>9</strong>). Pour contourner ce problème, il est possible d&#8217;utiliser (sur un clavier français) l&#8217;accent circonflexe à droite de la touche <strong>P</strong>, en appuyant dessus à deux reprises. Cela affiche deux <em>circonflexes</em> et vous devez alors en supprimer un.
+<a href="#_footnoteref_9">9</a>. Sous Windows, <em>bc</em> a des difficultés à lire le caractère <em>circonflexe</em> au clavier (en-dessous de la touche <strong>9</strong>). Pour contourner ce problème, il est possible d&#8217;utiliser (sur un clavier français) l&#8217;accent circonflexe à droite de la touche <strong>P</strong>, en appuyant dessus à deux reprises. Cela affiche deux <em>circonflexes</em> et vous devez alors en supprimer un. Voir <a href="#7">[7]</a>.
 </div>
 <div class="footnote" id="_footnote_10">
 <a href="#_footnoteref_10">10</a>. Si vous utilisez <em>python</em>, il est inutile de passer les caractères hexadécimaux en majuscule.
@@ -2821,16 +3106,19 @@ ibase=save_ibase</code></pre>
 <a href="#_footnoteref_18">18</a>. Dans la signature ECDSA certains calculs sont faits modulo <em>n</em>, l&#8217;ordre du groupe associé à la courbe. Cela sera signalé. À défaut, tous les calculs sont faits modulo <em>p</em>.
 </div>
 <div class="footnote" id="_footnote_19">
-<a href="#_footnoteref_19">19</a>. Le standard X9.62 définit <em>00</em> comme seul octet pour coder le point à l&#8217;infini. La RFC 5480 interdit toute autre valeur que <em>02</em>, <em>03</em> et <em>04</em>, et interdit donc <em>00</em>. C&#8217;est logique car on ne voit pas dans quel but le point à l&#8217;infini serait enregistré dans le cadre x509. Dans le standard x509, un point est une clé publique.
+<a href="#_footnoteref_19">19</a>. Un peu plus loin la clé privée sera notée <em>s</em>.
 </div>
 <div class="footnote" id="_footnote_20">
-<a href="#_footnoteref_20">20</a>. Enregistrer une clé privée dans un fichier non protégé par mot de passe (chiffré) est une mauvaise pratique. Ici cela n&#8217;a pas d&#8217;importance puisque la clé est une clé de test.
+<a href="#_footnoteref_20">20</a>. Le standard X9.62 définit <em>00</em> comme seul octet pour coder le point à l&#8217;infini. La RFC 5480 interdit toute autre valeur que <em>02</em>, <em>03</em> et <em>04</em>, et interdit donc <em>00</em>. C&#8217;est logique car on ne voit pas dans quel but le point à l&#8217;infini serait enregistré dans le cadre x509. Dans le standard x509, un point est une clé publique.
+</div>
+<div class="footnote" id="_footnote_21">
+<a href="#_footnoteref_21">21</a>. Enregistrer une clé privée dans un fichier non protégé par mot de passe (chiffré) est une mauvaise pratique. D&#8217;autre part le fichier doit être enregistré dans un endroit parfaitement sécurisé, ne jamais être transféré à travers un réseau, etc. Ici cela n&#8217;a pas d&#8217;importance puisque la clé est une clé de test.
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Version 0.5<br>
-Last updated 2016-03-14 23:33:01 CET
+Version 0.9<br>
+Last updated 2016-03-23 01:08:15 CET
 </div>
 </div>
 </body>

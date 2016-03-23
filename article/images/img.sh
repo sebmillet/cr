@@ -11,6 +11,7 @@ fi
 S="$1"
 R="$2"
 D=`echo "$S" | sed 's/\.png$//'`-redim.png
+D2=`echo "$S" | sed 's/\.png$//'`-orig-size.png
 
 echo "Source:      '$S'"
 echo "Destination: '$D'"
@@ -18,4 +19,6 @@ echo "Destination: '$D'"
 cp -i "$S" "$D"
 
 mogrify -resize $R "$D"
+
+mv -i "$S" "$D2"
 
