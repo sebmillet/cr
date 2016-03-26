@@ -4,7 +4,7 @@
 = Cryptographie pratique
 :author: Sébastien Millet
 :email: <milletseb@laposte.net>
-:revnumber: 1.0
+:revnumber: 1.0.1
 :revdate: 26 mars 2016
 :toc:
 :toclevels: 3

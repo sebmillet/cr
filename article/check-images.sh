@@ -19,7 +19,7 @@ if [ $U -eq 1 ]; then
 	exit
 fi
 
-./list-images.sh > tmp-file.txt
+cat "cryptographie-pratique.adoc" | sed 's/\]/\]\n/g' | egrep "image:" | sed 's/^.*image::\?//; s/\[.*\]//' | sort > tmp-file.txt
 ls images | egrep -v "^img\.sh$" > tmp-dir.txt
 
 cmp tmp-file.txt tmp-dir.txt 2>&1 > /dev/null
