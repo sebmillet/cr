@@ -1,8 +1,0 @@
-\documentclass{article}
-\usepackage{amsmath}
-\begin{document}
-    Hello World !
-	$M \equiv S^e mod\ n$
-	$M \equiv S^e \text{mod } n$
-\end{document} 
-

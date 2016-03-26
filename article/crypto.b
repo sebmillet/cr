@@ -31,7 +31,7 @@ define invmod(a, n) {
 	if (r != 1) {
 			/*
 			   No invert can be returned => error
-			   Alternate solution: return -1
+			   Alternate solution: return 0
 
 			   I find triggering an error best: the calculation stops
 			   immediately instead of continuing with meaningless values
@@ -125,7 +125,7 @@ define ec_mul(*r[], p[], k, a, m) {
 			.=ec_add(r[], r[], p[], a, m)
 		}
 			/*
-			 * ec_dbl(p[], p[], a, m) does not work with bc,
+			 * ec_add(p[], p[], p[], a, m) does not work with bc,
 			 * need to use a temporary array.
 			 */
 		.=ec_add(tmp[], p[], p[], a, m)

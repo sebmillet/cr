@@ -4,8 +4,8 @@
 = Cryptographie pratique
 :author: Sébastien Millet
 :email: <milletseb@laposte.net>
-:revnumber: 0.9
-:revdate: 23 mars 2016
+:revnumber: 1.0
+:revdate: 26 mars 2016
 :toc:
 :toclevels: 3
 :numbered:
@@ -13,12 +13,29 @@
 
 == Introduction
 
-Cet article décrit les calculs à réaliser pour vérifier des signatures RSA et ECDSA, dans le cas des certificats x509. Ces certificats sont couramment utilisés et servent notamment à la sécurisation https.
+=== Pourquoi un tel document
 
-* _RSA_{nbsp}: ce cas sera traité avec le certificat d'un serveur https.
-* _ECDSA_{nbsp}: nous commencerons par travailler sur un certificat auto-signé que nous créerons pour l'occasion, afin de se familiariser avec les calculs qu'implique la cryptographie à courbes elliptiques. Pour finir nous récupérerons un certificat CEV (_**C**ertificat **É**lectronique **V**isible_) footnote:[Ce dernier cas sort du cadre x509.]
+Faire des calculs à la main sur des signatures électroniques est très ludique.
 
-Au fil du document nous ferons appel aux outils suivants{nbsp}:
+Il faut s'entendre sur le terme "à la main". Au fil du document nous ne ferons aucun calcul à la main ni même avec une calculatrice de bureau. Les nombres manipulés sont beaucoup trop grands.
+Même à supposer que l'on décide d'utiliser une calculatrice de bureau (la chose est sans doute possible, en transférant les données depuis un PC), il faudrait la programmer en raison du nombre d'étapes de calcul.
+
+=== Contenu
+
+Cet article décrit les calculs à faire pour vérifier des signatures RSA et ECDSA, dans le cadre x509 et 2D-Doc.
+
+RSA ECDSA::
+_RSA_ et _ECDSA_ permettent de signer footnote:[_RSA_ permet également de chiffrer.]
+avec une paire de clés privée et publique.
+La clé privée est utilisée pour signer. La clé publique permet de vérifier la signature.
+
+.Nous examinerons trois cas de signatures électroniques{nbsp}:
+
+. _RSA_ dans le contexte x509{nbsp}: cas du certificat d'un serveur https
+. _ECDSA_ dans le contexte x509{nbsp}: création d'un certificat x509 auto-signé, afin de se familiariser avec les calculs sur les courbes elliptiques
+. _ECDSA_ dans le contexte 2D-Doc{nbsp}: vérification d'un code 2D-Doc, qui est le standard du Certificat Électronique Visible
+
+.Au fil du document nous ferons appel aux outils suivants{nbsp}:
 
 * _openssl_ pour travailler sur les certificats x509 en ligne de commande
 * _pkfile_ pour extraire la partie signée d'un certificat et _dder_ pour afficher certains contenus binaires
@@ -31,7 +48,7 @@ Au fil du document nous ferons appel aux outils suivants{nbsp}:
 ======================================
 Ce document s'adresse aux utilisateurs de Windows et Linux.
 
-Il peut arriver qu'entre les deux environnements l'outil ou la commande à employer soit différente. Dans ce cas la solution pour chaque système est présentée.
+Il peut arriver que l'outil ou la commande à employer diffère entre les deux environnements, dans ce cas les deux sont présentés.
 ======================================
 
 <<<
@@ -108,11 +125,11 @@ Certificate  ::=  SEQUENCE  {
 ...
 ----
 
-La suite définit les différents éléments du certificat, à savoir ce que sont les structures _TBSCertificate_ et _AlgorithmIdentifier_.
+La suite définit les différents éléments du certificat, à savoir _TBSCertificate_ et _AlgorithmIdentifier_.
 
 .Grammaire, ASN.1 et DER
 ****
-La structure du certificat est décrite par une _grammaire_, d'après les règles de syntaxe *ASN.1* (**A**bstrat **S**yntax **N**otation number **1**){nbsp}<<1>>.
+La structure du certificat est décrite par une _grammaire_, d'après les règles de syntaxe *ASN.1* (_Abstrat{nbsp}Syntax{nbsp}Notation{nbsp}number{nbsp}1_){nbsp}<<1>>.
 
 Les différents encodages possibles du standard _ASN.1_ sont eux-mêmes des standards et le *X.690* est l'un d'entre eux{nbsp}<<2>>.
 
@@ -122,7 +139,7 @@ Nous verrons plus loin l'encodage DER.
 Si vous souhaitez le découvrir, plutôt que d'examiner directement le document X.690, je vous recommande de commencer par l'article Wikipédia{nbsp}<<3>>.
 ****
 
-En ASN.1 le mot-clé _SEQUENCE_ sans autre précision indique que la valeur est constituée d'une suite de valeurs elles-mêmes spécifiées en ASN.1. La valeur _Certificate_ contient donc, à la suite{nbsp}:
+En ASN.1 le mot-clé `SEQUENCE` sans autre précision indique que la valeur est constituée d'une suite de valeurs elles-mêmes spécifiées en ASN.1. La valeur _Certificate_ contient donc, à la suite{nbsp}:
 
 . La valeur _tbsCertificate_, soit le certificat à signer (**t**o **b**e **s**igned *Certificate*)
 . La valeur _signatureAlgorithm_, soit l'identification de l'algorithme de signature
@@ -132,13 +149,13 @@ En ASN.1 le mot-clé _SEQUENCE_ sans autre précision indique que la valeur est 
 
 Dans la partie tbsCertificate de _letsencrypt.org_, intéressons-nous à deux éléments en particulier, l'_émetteur_ du certificat et le _sujet_ du certificat.
 
-* Le _sujet_ du certificat a pour *CN* (**C**ommon **N**ame) letsencrypt.org et c'est le dernier nom qui est affiché dans la hiérarchie des certificats (partie supérieure de la fenêtre).
+* Le _sujet_ du certificat a pour CN (_Common Name_) letsencrypt.org et c'est le dernier nom qui est affiché dans la hiérarchie des certificats (partie supérieure de la fenêtre).
 * L'_émetteur_ du certificat a pour CN _TrustID Server CA A52_ et on peut voir ce nom au-dessus de letsencrypt.org dans la hiérarchie.
 
-L'émetteur et le sujet ont également le pays (**C**) et l'organisation (**O**) définis dans leur nom, ainsi que d'autres éléments.
+L'émetteur et le sujet ont également le pays (C) et l'organisation (O) définis dans leur nom, ainsi que d'autres éléments.
 Le "nom simple" ou "nom court" du certificat est son CN. Le standard x509 ne définit pas cette notion de "nom simple" ou "nom court", nous l'employons ici pour préciser que dans la pratique, le CN est le véritable nom du certificat, les autres éléments donnant des informations annexes.
 
-Cela dit, le nom (au sens du standard x509) est constitué du DN (_**D**istinguished **N**ame_), il s'agit de la _la totalité des éléments qui le composent_ (et non pas seulement le CN).
+Cela dit, le nom (au sens du standard x509) est constitué du DN (_Distinguished Name_), il s'agit de la _la totalité des éléments qui le composent_ (et non pas seulement du CN).
 
 Le lien hiérarchique est toujours établi entre un émetteur et un sujet.
 L'émetteur est celui qui signe le certificat, le sujet est celui qui est signé. Voir figures 7 et 8.
@@ -147,13 +164,19 @@ Un certificat peut être à la fois émetteur (d'autres certificats sont signés
 Dans notre exemple, on voit que le certificat _TrustID Server CA A52_ est lui-même signé par _IdenTrust Commercial Root CA 1_.
 
 [NOTE]
-Dans la pratique la situation peut se compliquer avec des certificats croisés. Quoi qu'il en soit, la structure de base des liens qui relient les certificats est hiérarchique.
+======================================
+* Dans la pratique la situation peut se compliquer avec des certificats croisés.
+
+* Un cas particulier est celui où l'émetteur et le sujet sont identiques. Ce sont les certificats _auto-signés_. C'est le cas des certificats racine (en haut de la hiérarchie) et parfois d'autres certificats auto-signés pour toutes sortes de raisons bonnes ou mauvaises (souvent mauvaises, mais il existe des cas légitimes).
+
+* Quoi qu'il en soit, la structure de base des liens qui relient les certificats est hiérarchique.
+======================================
 
 .Quelques précisions
 ****
-* Pour qu'un certificat joue le rôle émetteur, il doit être une autorité de certification ou CA (_**C**ertificate **A**uthority_), il s'agit de l'une des nombreuses options que l'on peut trouver dans un certificat.
+* Pour qu'un certificat joue le rôle émetteur, il doit être une autorité de certification ou CA (_Certificate Authority_), il s'agit de l'une des nombreuses options que l'on peut trouver dans un certificat.
 * En plus des éléments permettant d'identifier le sujet du certificat, la partie tbsCertificate contient sa _clé publique_. C'est précisément le rôle du certificat{nbsp}: _certifier_ la correspondance entre une entité (un DN) et une clé publique.
-* L'émetteur (qui est une autorité de certification) a toujours un numéro d'identification de clé (_Subject Key Identifier_). Cet identifiant, qui doit être par construction un entier, doit être enregistré dans les certificats émis comme numéro de clé d'autorité de certification (_Authority Key Identifier_). Cette logique permet de gérer facilement les cas où une autorité de certification possède plusieurs clés.
+* L'émetteur (qui est forcément une autorité de certification) a toujours un numéro d'identification de clé (_Subject Key Identifier_). Cet identifiant, qui doit être par construction un entier, doit être enregistré dans les certificats émis comme numéro de clé d'autorité de certification (_Authority Key Identifier_). Cette logique permet de gérer facilement les cas où une autorité de certification possède plusieurs clés.
 ** En résumé, quand un émetteur signe un sujet, on doit avoir égalité entre ces différents éléments
 +
 [options="header", cols="4,1,4"]
@@ -228,7 +251,7 @@ La version standard de _bc_ (GnuWin32) gère mal le clavier français. La réfé
 [NOTE]
 .Le choix de bc
 ======================================
-* _bc_ est installé par défaut sur la plupart des distributions Linux, et facile et rapide à installer sous Windows.
+* _bc_ est installé par défaut sur la plupart des distributions Linux, et facile et rapide à installer sous Windows (si ce n'est les problèmes de clavier français).
 * _bc_ contient peu de fonctions mathématiques intégrées mais sur Internet on trouve de nombreux scripts qui permettent de l'enrichir considérablement.
 ** Dans _bc_ la variable _scale_ définit le nombre de décimales des nombres manipulés. Comme nous ne ferons que des calculs sur des entiers, nous laisserons _scale_ à zéro (pas de partie décimale). Zéro est la valeur par défaut de _scale_ au lancement de _bc_
 footnote:[Lorsque _bc_ est lancé avec l'option *_-l_*, des fonctions mathématiques sont chargées au démarrage et _scale_ vaut 20. Nous ne nous servirons pas de cette option dans ce document et _scale_ sera toujours égal à zéro.]
@@ -239,7 +262,7 @@ footnote:[Lorsque _bc_ est lancé avec l'option *_-l_*, des fonctions mathémati
 .Alternatives à bc
 ======================================
 * *sagemath*, logiciel mathématique en licence GPL.
-* *python*, langage de programmation en licence GPL, calcule par défaut sur des entiers de taille arbitrairement grande et convient donc aux calculs que nous allons faire.
+* *python*, langage de programmation en licence GPL, calcule par défaut sur des entiers de taille arbitrairement grande et convient donc aux calculs que nous allons faire. Beaucoup de tuto sur Internet utilisent _python_.
 * Logiciels mathématiques propriétaires bien connus.
 ======================================
 
@@ -382,6 +405,7 @@ Ne pas oublier de passer les caractères hexadécimaux en majuscule.
 image::img-cle-3-redim.png["Image clé dans navigateur"]
 
 A l'arrivée, *_val.b_* contient trois variables, _s_ (la signature du certificat), _n_ et _e_ (la clé publique).
+On a ajouté la sauvegarde et la récupération d'_ibase_, c'est une bonne pratique.
 
 .val.b
 [source, bc]
@@ -393,7 +417,7 @@ include::val.b[]
 
 Les amateurs de _python_ ont encore un avantage à ce stade. L'équivalent de la fonction _powmod_ y est disponible sous forme d'un troisième paramètre (facultatif) à la fonction _pow_.
 
-Pour ceux qui utilisent bc comme moi, il faut écrire la fonction.
+Pour ceux qui utilisent _bc_ comme moi, il faut écrire la fonction.
 
 La fonction _powmod_ met en oeuvre l'algorithme d'exponentiation rapide, décrit à cette URL{nbsp}<<9>>.
 En fait nous sommes dans un contexte modulaire et d'après Wikipédia le nom exact de l'algorithme est _exponentiation modulaire_. Un article y est consacrée{nbsp}<<10>>.
@@ -427,7 +451,7 @@ obase=2*8
 powmod(s, e, n)
 ----
 
-Rappelons que c'est _S_ (variable _s_ dans _val.b_) qui doit être élevé à la puissance _e_, modulo _n_. Nous écrivons _2{nbsp}*{nbsp}8_ au lieu de _16_ pour être certain de définir _obase_ à _16_ quelle que soit la valeur d'_ibase_.
+Rappelons que c'est _S_ (variable _s_ dans _val.b_) qui doit être élevé à la puissance _e_, modulo _n_.
 
 [caption="Fig. 12 : Calcul pour vérifier la signature RSA", title=" "]
 image::img-powmod-redim.png["Image résultat powmod"]
@@ -516,14 +540,14 @@ _pkfile_ est disponible à l'URL{nbsp}<<12>>.
 
 .Exécutable openssl
 
-* Sous Linux ce programme est disponible par défaut.
-* Sous Windows il faut trouver un binaire à télécharger.
+* Sous Linux _openssl_ est disponible par défaut.
+* Sous Windows il faut trouver un binaire _openssl_ à télécharger.
 Le plus simple est de télécharger la version GNUWin32, disponible à cette URL{nbsp}<<13>>.
 +
 La version proposée au téléchargement (en février 2016) date de 2008. Des binaires plus récents sont disponibles sur Internet.
 Pour faire les manipulations décrites dans ce document, la version de GNUWin32 est suffisante.
 +
-** À noter que Sous Windows les environnements "de taille importante" (_cygwin_, _perl_, ...) sont souvent installés avec leur librairie openssl, qui contient l'outil en ligne de commande _openssl_.
+** À noter que sous Windows les environnements "de taille importante" (_cygwin_, _perl_, ...) sont souvent installés avec leur librairie openssl, qui contient l'outil en ligne de commande _openssl_.
 ****
 
 Exécuter la commande
@@ -570,11 +594,11 @@ Certificate  ::=  SEQUENCE  {
 
 Un certificat x509 est défini selon la syntaxe ASN.1.
 L'encodage peut être BER
-footnote:[BER signifie **B**asic **E**ncoding **R**ules]
+footnote:[BER signifie Basic Encoding Rules]
 , CER
-footnote:[CER signifie **C**anonical **E**ncoding **R**ules]
+footnote:[CER signifie Canonical Encoding Rules]
 ou DER
-footnote:[DER signifie **D**istinguished **E**ncoding **R**ules]
+footnote:[DER signifie Distinguished Encoding Rules]
 .
 
 Ces trois standards sont très proches, l'intérêt de DER étant son unicité{nbsp}: une structure de données spécifiée en ASN.1 ne peut être encodée en DER que d'une manière, et une seule. BER et CER permettent certaines variations dans la manière d'encoder.
@@ -587,15 +611,15 @@ ASN.1 structure chaque valeur (_data value_ dans le document X.690) selon la typ
 La forme "longueur indéfinie" apporte un quatrième élément, "end-of-contents" (marqueur de fin de valeur), que nous ignorerons car DER ne permet pas cette forme.
 
 [**T**]ag::
-Définit toutes les caractéristiques de la valeur, notamment son _type_, par exemple une date (_UTCTime_), une séquence (_SEQUENCE_ ou _SEQUENCE OF_), un entier (_INTEGER_), et bien d'autres. Il définit également si l'encodage de la valeur est _primitive_ ou _contructed_.
+Définit toutes les caractéristiques de la valeur, notamment son _type_, par exemple une date (`UTCTime`), une séquence (`SEQUENCE` ou `SEQUENCE{nbsp}OF`), un entier (`INTEGER`), et bien d'autres. Il indique également si l'encodage de la valeur est _primitive_ ou _contructed_.
 Encodage _primitive_:::
 La donnée ne contient pas de sous-structure
 Encodage _constructed_:::
-La donnée est elle-même une structure qui suit la typologie **T**-**L**-**V**, et ici, cette structure est elle-même définie en ASN.1{nbsp}footnote:[Certains types de données, notamment les _*string_ (OCTET STRING, UTF8String, etc.), peuvent être _primitive_ ou _constructed_, ce qui signifie que leur encodage peut suivre une structure hiérarchique "propre à l'encodage", non explicitée dans la définition de la valeur en ASN.1.].
+La donnée est elle-même une structure qui suit la typologie **T**-**L**-**V**, et ici, cette structure est elle-même définie en ASN.1{nbsp}footnote:[Certains types de données, notamment les _*string_ (`OCTET{nbsp}STRING`, `UTF8String`, etc.), peuvent être _primitive_ ou _constructed_, ce qui signifie que leur encodage peut suivre une structure hiérarchique "propre à l'encodage", non explicitée dans la définition de la valeur en ASN.1.].
 Structure hiérarchique:::
 La différence _primitive_ - _constructed_ est à la base de la structure hiérarchique d'une spécification ASN.1, les éléments _constructed_ étant les branches, les éléments _primitive_ étant les feuilles.
 +
-Dans la définition d'un _Certificate_ ci-dessus, le type _SEQUENCE_ est, par définition du type _SEQUENCE_ en ASN.1, _constructed_. Cela signifie que la valeur _SEQUENCE_ est elle-même une structure ASN.1, ce qu'on peut voir dans la liste des trois composants d'un certificat définie entre accolades.
+Dans la définition d'un _Certificate_ ci-dessus, le type `SEQUENCE` est, par définition du type `SEQUENCE` en ASN.1, _constructed_. Cela signifie que la valeur `SEQUENCE` est elle-même une structure ASN.1, ce qu'on peut voir dans la liste des trois composants d'un certificat définie entre accolades.
 
 [**L**]ength::
 Donne la longueur de la valeur en octets.
@@ -615,7 +639,7 @@ image::img-dder-redim.png["Image lecture m.der avec dder"]
 La copie d'écran de la figure 18 a été faite sous Windows pour changer un peu.
 
 La description de la valeur indique _-cons_ ou _-prim_, pour _constructed_ ou _primitive_.
-Chaque fois que le tag indique une valeur _constructed_ (ici, il s'agit à deux reprises du type _SEQUENCE_, qui est obligatoirement _constructed_), on descend d'un niveau dans la structure hiérarchique, que l'on a fait ressortir ici avec l'option _-recursive "|  "_.
+Chaque fois que le tag indique une valeur _constructed_ (ici, il s'agit à deux reprises du type `SEQUENCE`, qui est obligatoirement _constructed_), on descend d'un niveau dans la structure hiérarchique, que l'on a fait ressortir ici avec l'option _-recursive "|  "_.
 
 ===== Extraction de tbsCertificate du certificat _letsencrypt.org_
 
@@ -702,7 +726,8 @@ $ dder -recursive "|  " -hex letsencryptorg.cer > d
 Ouvrir le fichier _d_ dans un éditeur de texte.
 Comme on a affiché le contenu avec un décalage à chaque niveau hiérarchique (option _-recursive "|  "_), la structure en trois parties des certificats x509 ressort bien.
 
-Supprimer les deux premières lignes et un certain nombre de lignes à la fin pour que seul demeure le contenu de tbsCertificate. Ci-dessous, le texte à conserver est le texte sélectionné (les lignes au milieu ont été supprimées pour condenser l'image).
+Supprimer les deux premières lignes et un certain nombre de lignes à la fin pour que seul demeure le contenu de tbsCertificate.
+Ci-dessous, le texte à conserver est le texte sélectionné (les lignes du milieu ont été supprimées pour condenser l'image).
 
 [caption="Fig. 23", title=" "]
 image::img-extracttbs-alt1-1.png["Image extraction tbsCertificate alternative 1 - 1"]
@@ -744,7 +769,7 @@ $ pkfile letsencryptorg.der -l 2
 [caption="Fig. 27", title=" "]
 image::img-extracttbs-alt2-1-redim.png["Image extraction tbsCertificate alternative 2 - 1"]
 
-Le résultat visible sur la figure 27 nous montre que le tbsCertificate correspond à la valeur _SEQUENCE_ de 1518 octets (4 octets d'en-tête, 1514 octets de données). _pkfile_ donne à cette valeur les coordonnées 1.1.
+Le résultat visible sur la figure 27 nous montre que le tbsCertificate correspond à la valeur `SEQUENCE` de 1518 octets (4 octets d'en-tête, 1514 octets de données). _pkfile_ donne à cette valeur les coordonnées 1.1.
 
 Nous enregistrons cette valeur en binaire dans le fichier _tbs2.der_ en exécutant la commande
 ----
@@ -818,12 +843,12 @@ Nous arrivons au terme des manipulations à effectuer pour vérifier la signatur
 ** La création de la fonction _powmod_ dans _bc_
 * Outils divers
 ** Calcul du hash d'un fichier
-** Extraction d'une valeur d'un fichier encodé en DER
+** Extraction d'une valeur (c'est-à-dire, d'une sous-partie) d'un fichier encodé en DER
 
 La _signature_ a été vérifiée mais le certificat lui-même n'a pas été validé en totalité. Il y a deux raisons à cela.
 
 . Une fois un certificat vérifié, il faut vérifier son parent dans la hiérarchie (le certificat qui l'a signé), et ainsi de suite, jusqu'à vérifier un certificat connu dans la base des certificats du navigateur (les certificats _racine_).
-. Le navigateur vérifie si les certificats rencontrés ont été révoqués à l'aide des Listes de Révocation des Certificats ou _CRL_ (_**C**ertificate **R**evocation **L**ist_).
+. Le navigateur vérifie si les certificats rencontrés ont été révoqués à l'aide des Listes de Révocation des Certificats ou _CRL_ (_Certificate Revocation List_).
 
 <<<
 
@@ -837,7 +862,7 @@ Nous n'allons pas expliquer ici toute la cryptographie à base de courbes ellipt
 ==== Les deux familles de courbes elliptiques
 
 Les courbes sur _F~2^m^~_ (_binary field_)::
-Cette notation est un raccourci. On a _F~2^n^~ = F~2~[x]/(p(x))_ où _p(x)_ est un polynôme irréductible de degré _n_ (source{nbsp}: <<15>>). Les "nombres" manipulés sont des polynômes sur _F~2~_ et les opérations sont faites modulo _p(x)_. L'équation de la courbe (source{nbsp}: <<16>>) est
+La notation _F~2^m^~_ est un raccourci. On a _F~2^m^~ = F~2~[x]/(p(x))_ où _p(x)_ est un polynôme irréductible de degré _m_ (source{nbsp}: <<15>>). Les "nombres" manipulés sont des polynômes sur _F~2~_ et les opérations sont faites modulo _p(x)_. L'équation de la courbe (source{nbsp}: <<16>>) est
 +
 _y^2^ + xy = x^3^ + ax^2^ + b_
 +
@@ -858,14 +883,14 @@ Source{nbsp}: <<16>>.
 ** _m_, entier qui définit _F~2^m^~_.
 ** _f(x)_, polynôme irréductible de degré _m_.
 ** _a_ et _b_, les paramètres de l'équation _y^2^ + xy = x^3^ + ax^2^ + b_.
-** _G_, le générateur du groupe noté _E(F~2^m^~)_ (_G_ est donc un point de la courbe).
+** _G_, le générateur d'un sous-groupe du groupe _E(F~2^m^~)_.
 ** _n_ est l'ordre du groupe généré par _G_.
 ** _h_ est le cofacteur, c'est le nombre d'éléments de _E(F~2^m^~)_ divisé par _n_.
 
 * Sur _F~p~_, les paramètres sont (_p_, _a_, _b_, _G_, _n_, _h_)
 ** _p_, nombre premier.
 ** _a_ et _b_, les paramètres de l'équation _y^2^ (mod p) = x^3^ + ax + b (mod p)_.
-** _G_, le générateur du groupe noté _E(F~p~)_ (_G_ est donc un point de la courbe).
+** _G_, le générateur d'un sous-groupe du groupe _E(F~p~)_.
 ** _n_ est l'ordre du groupe généré par _G_.
 ** _h_ est le cofacteur, c'est le nombre d'éléments de _E(F~p~)_ divisé par _n_.
 
@@ -928,7 +953,10 @@ Et les paramètres de domaine{nbsp}? Il faut demander à _openssl_ d'afficher le
 
 Tous ces paramètres ont été vus plus haut, sauf _Seed_. Qu'en est-il{nbsp}?
 
-_Seed_ est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n'importe qui, selon une spécification _X9.62_. Cela garantit qu'ils n'ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement. _Seed_ est à l'origine des paramètres de la courbe mais il n'en fait pas partie. Le passage de _Seed_ aux paramètres utilise une fonction de hachage à sens unique, ce qui garantit que le choix ne s'est pas fait dans l'autre sens (détermination de paramètres ad hoc puis du _Seed_ correspondant).
+_Seed_ est un nombre arbitraire à partir duquel les autres paramètres de la courbe ont été déterminés, de manière vérifiable par n'importe qui, selon une spécification _X9.62_.
+Cela garantit qu'ils n'ont pas été choisis en raison de propriétés cachées qui permettraient à leur inventeur de casser la protection facilement.
+_Seed_ est à l'origine des paramètres de la courbe mais il n'en fait pas partie.
+Le calcul des paramètres d'après _Seed_ utilise une fonction de hachage à sens unique, ce qui garantit que le choix ne s'est pas fait dans l'autre sens (détermination de paramètres ad hoc puis du _Seed_ correspondant).
 
 .Le x509
 
@@ -948,7 +976,7 @@ La construction d'une paire de clés privée et publique consiste à
 . Choisir un entier _k_ inférieur à _n_
 . Calculer _Q = kG_ où _G_ est l'un des paramètres de domaine de la courbe (voir ci-après la multiplication d'un point par un scalaire)
 
-Le point _Q_ est la clé publique, l'entier _k_ est la clé privéefootnote:[Un peu plus loin la clé privée sera notée _s_.].
+Le point _Q_ est la clé publique, l'entier _k_ est la clé privéefootnote:[Un peu plus loin la clé privée sera notée _d_.].
 Ainsi contrairement au RSA où la clé privée et publique ont même nature (ce sont deux entiers), ici la clé publique est un point tandis que la clé privée est un entier.
 
 .Addition de deux points distincts (et non alignés verticalement)
@@ -983,7 +1011,7 @@ Si _P_ et _Q_ sont alignés verticalement ils sont opposés (cela découle du te
 
 Les _k_ utilisés en pratique étant des grands nombres (de l'ordre de 2^256^ avec _prime256v1_), il n'est pas possible de calculer _kP_ en ajoutant _P_ à lui-même _k_ fois.
 
-Il faut utiliser l'algorithme d'exponentiation rapide vu précédemment{nbsp}: <<9>>.
+Il faut utiliser l'algorithme d'exponentiation rapide vu précédemment{nbsp}<<9>>.
 Remplacer la multiplication de deux entiers par l'addition de deux points et l'élévation à la puissance par la multiplication d'un point par un entier.
 
 ==== Fonctions de calcul sur _F~p~_ avec le programme _bc_
@@ -998,7 +1026,7 @@ Un point est représenté par un tableau et la convention du script est la suiva
 Le calcul de l'inverse modulaire utilise l'_algorithme d'Euclide étendu_ <<22>>.
 
 [NOTE]
-Ce script contient la fonction _powmod_ utilisée précédemment, pour le RSA. Nous n'en avons pas besoin pour les calculs ECDSA.
+Le script présenté plus loin contient la fonction _powmod_ utilisée précédemment, pour le RSA, mais nous n'en avons pas besoin pour les calculs ECDSA.
 
 [IMPORTANT]
 .L'opérateur modulo
@@ -1026,8 +1054,10 @@ _bc_ permet de déclarer une fonction _void_ pour qu'elle ne renvoie pas de vale
 
  define void myprint(x) { print "x=", x, "\n" }
 
-La version GnuWin32 de _bc_ est ancienne et ne reconnaît pas le mot-clé _void_. Le script _crypto.b_ a été conçu pour être compatible avec cette version. Pour éviter qu'une expression (ici l'appel d'une fonction) ne produise un affichage parasite, chaque appel est précédé de ".=". Ainsi le résultat est affecté à la variable _last_ (qui vaut toujours la dernière valeur calculée). Cela ne modifie donc pas le cacul. C'est la méthode usuelle avec _bc_ pour ne pas afficher le résultat d'une expression.
+La version Windows de _bc_ (GnuWin32) est ancienne et ne reconnaît pas le mot-clé _void_. Le script _crypto.b_ a été conçu pour être compatible avec cette version. Pour éviter qu'une expression (ici l'appel d'une fonction) ne produise un affichage parasite, chaque appel est précédé de ".=". Ainsi le résultat est affecté à la variable _last_ (qui vaut toujours la dernière valeur calculée). Cela ne modifie donc pas le cacul. C'est la méthode usuelle avec _bc_ pour ne pas afficher le résultat d'une expression.
 ======================================
+
+=== Les courbes elliptiques dans le standard x509
 
 ==== Représentation d'un point dans le standard x509
 
@@ -1044,7 +1074,7 @@ Enregistrement de _x_ et du bit d'information relatif à _y_
 La forme hybride::
 Enregistrement de _x_, _y_ et du bit d'information relatif à _y_
 
-Sur _F~p~_ on a _y~1~{nbsp}={nbsp}-y~2~_ (car non seulement _y_ y apparaît sous la forme _y^2^_, mais en plus, il est isolé à gauche du signe _égal_) et comme nous sommes dans l'arithmétique modulaire on peut ré-écrire cette égalité _y~1~{nbsp}{plus}{nbsp}y~2~{nbsp}={nbsp}p_.
+Sur _F~p~_ on a _y~1~{nbsp}={nbsp}-y~2~_ (car non seulement _y_ apparaît sous la forme _y^2^_, mais en plus, il est isolé à gauche du signe _égal_) et comme nous sommes dans l'arithmétique modulaire on peut ré-écrire cette égalité _y~1~{nbsp}{plus}{nbsp}y~2~{nbsp}={nbsp}p_.
 _p_ étant impair, _y~1~_ et _y~2~_ n'ont pas même parité. Le bit d'information est le dernier bit de _y_ (sa parité). On comprend aisément que la forme hybride ne présente aucun intérêt sur _F~p~_, puisqu'un simple examen de _y_ donne le bit d'information à employer dans la forme compressée. La forme hybride apporte un plus sur _F~2^m^~_ où le bit d'information doit être calculé.
 
 Le standard x509 (ici la RFC 5480) permet de coder un point soit sous forme compressée, soit sous forme non compressée. La RFC 5480 interdit expressément la forme hybride définie par le standard X9.62.
@@ -1088,9 +1118,9 @@ Dans la convention des fonctions de _crypto.b_, le point à l'infini est codé p
 [caption="Fig. 33", title=" "]
 image::img-n_fois_g-redim.png["n fois G"]
 
-.Création d'une paire de clé privée et publique sur prime256v1
+.Création d'une paire de clés privée et publique sur prime256v1
 
-Exécuter footnote:[Enregistrer une clé privée dans un fichier non protégé par mot de passe (chiffré) est une mauvaise pratique. D'autre part le fichier doit être enregistré dans un endroit parfaitement sécurisé, ne jamais être transféré à travers un réseau, etc. Ici cela n'a pas d'importance puisque la clé est une clé de test.]
+Exécuter footnote:[Enregistrer une clé privée dans un fichier non chiffré est une mauvaise pratique. D'autre part le fichier doit être enregistré dans un endroit parfaitement sécurisé, ne jamais être transféré à travers un réseau, etc. Ici cela n'a pas d'importance puisque la clé est une clé de test.]
 
  $ openssl ecparam -name prime256v1 -genkey -out k.pem
 
@@ -1103,7 +1133,7 @@ image::img-key-redim.png["ECC key"]
 
 Par défaut, _openssl_ enregistre les clés publiques sous forme non compressée, ce que l'on peut voir au _04_ qui démarre la suite d'octets en-dessous de "pub:".
 
-À l'aide de la commande _openssl_ ci-dessus (ou bien avec _pkfile_, ou encore _dder_), copier/coller les valeurs de la clé privée et publique dans _k.b_, sous les noms _k_ et _q[]_, respectivement.
+À l'aide de la commande _openssl_ ci-dessus (ou bien avec _pkfile_, ou encore _dder_), copier-coller les valeurs de la clé privée et publique dans _k.b_, sous les noms _k_ et _q[]_, respectivement.
 
 .k.b
 [source, bc]
@@ -1153,9 +1183,9 @@ Le message à signer est noté _m_ et son hash est noté _H(m)_.
 
 . Choisir un entier k entre _0_ et _n_, différent de _0_ et de _n_
 
-. Calculer image:img-sig-formula-1.png["ECDSA Formule 1"] Si _r_ est égal à _0_, recommencer à l'étape _1_.
+. Calculer image:img-sig-formula-1.png["ECDSA Formule 1"] Si _r_ est égal à _0_, recommencer à l'étape _1_
 
-. Calculer image:img-sig-formula-2.png["ECDSA Formule 2"] Si _s_ est égal à zéro, recommencer à l'étape _1_.
+. Calculer image:img-sig-formula-2.png["ECDSA Formule 2"] Si _s_ est égal à zéro, recommencer à l'étape _1_
 
 [NOTE]
 La division par _k_ est une multiplication par _k^-1^{nbsp}mod{nbsp}n_.
@@ -1251,9 +1281,106 @@ include::sign.b[]
 
 Ne reste plus qu'à faire les calculs{nbsp}:
 
+[caption="Fig. 42", title=" "]
 image::img-sig-verif-1-redim.png["Vérification signature  1"]
 
 On voit que l'abscisse du résultat est bien égale à _r_ ce qui valide la signature.
+
+=== Les Certificats Électroniques Visibles
+
+==== Présentation
+
+Le CEV ou _Certificat Électronique Visible_ est un certificat au format 2D-Doc, mis en place par l'ANTS (_Agence Nationale des Titres Sécurisés_).
+Il est décrit à cette URL{nbsp}<<26>>.
+
+Le lien <<26>> permet de télécharger le document _ANTS_2D-Doc_CABSpec_v2.0.1_erratum.pdf_, qui en donne tous les détails techniques ainsi que quelques exemples. Par la suite nous le désignerons simplement comme "le document 2D-Doc".
+
+==== Vérification manuelle d'une signature 2D-Doc
+
+Nous allons vérifier la signature du code donné en page 59 du document 2D-Doc{nbsp}:
+
+[caption="Fig. 43", title=" "]
+image::img-2ddoc-expg58-redim.png["Exemple certificat 2D-Doc page 58"]
+
+Nous utiliserons le fichier _2Ddoc-values.b_ pour stocker les nombres correspondants.
+
+. En page 58 du document 2D-Doc se trouve le certificat de l'autorité de certification de test (l'_émetteur_). Copier-coller le certificat dans un éditeur de texte et l'enregistrer dans le fichier _0001.pem_.
+
+. Extraire de ce fichier les valeurs de la clé publique à l'aide d'_openssl_. Le document indique que la clé est de type _NIST{nbsp}P-256_, ce qui correspond à la courbe _prime256v1_ que nous avons étudiée précédemment et pour laquelle nous disposons déjà des paramètres (fichier _secp256r1.b_).
++
+Nous n'utiliserons pas la clé privée qui sert à tester le mécanisme de signature - nous allons uniquement vérifier une signature existante.
+
+. Copier-coller la partie signée du document ("Données signées") dans le fichier _msg2ddoc-signed.bin_.
+
+. Extraire les variables _r_ et _s_ de la signature ("Signature (binaire)").
+
+[IMPORTANT]
+Dans le document signé (enregistré dans _msg2ddoc-signed.bin_), les séquences _<GS>_ doivent être remplacées par le code ASCII _29_, et il faut savoir qu'il y a un espace (et un seul) entre _DES_ et _SPECIMENS_ (l'affichage n'est pas clair sur ce point).
+
+Au final le fichier _2Ddoc-values.b_ contient ceci{nbsp}:
+
+.2Ddoc-values.b
+[source, bc]
+----
+include::2Ddoc-values.b[]
+----
+
+Comme précédemment, il ne nous reste plus qu'à faire les calculs.
+
+[caption="Fig. 44", title=" "]
+image::img-2ddoc-verif-manual-redim.png["Vérification 2D-Doc manuelle"]
+
+_t[0]_ est l'abscisse de _u~1~G{nbsp}+{nbsp}u~2~Q_ et comme attendu il est ben égal à _r_, ce qui valide la signature.
+
+Pour être rigoureux il aurait fallu comparer _r_ avec _t[0]{nbsp}%{nbsp}n_, comme ici _t[0]{nbsp}<{nbsp}n_ nous avons omis ce calcul.
+
+==== Vérification d'une signature 2D-Doc avec _openssl_
+
+La signature (partie "Signature (binaire)") n'est pas exploitable telle quelle, elle doit être "emballée" pour être conforme à la structure `ECDSA-Sig-Value` présentée précédemment.
+
+Ce qui suit est élaboré d'après le standard X.690.
+
+. En hexadécimal, ajouter _02{nbsp}21{nbsp}00_ avant _r_, et _02{nbsp}20_ avant _s_. Ensuite ajouter _30{nbsp}45_ au tout début du fichier.
+** Pourquoi ajouter un zéro devant _r_{nbsp}? L'entier _r_ commence par _CE_ (base 16). Le type `INTEGER` en ASN.1 est signé.
+Tel quel, _r_ serait lu comme négatif du fait du bit de poids fort égal à 1.
+_s_ commence par _3A_ (base 16) et n'a donc pas besoin d'être préfixé avec un octet nul.
++
+Sans cet ajout d'un octet nul devant _r_, _openssl_ lit un entier négatif égal à _r{nbsp}-{nbsp}2^256^_{nbsp}:
+_-3170DA8166986B0A01740C6A093800CB61984A4B39F7B1994015051EDD355451_ (base 16)
+. Enregistrer le fichier (hexadécimal) comme _2ddoc-signature-wrapped.hex_.
++
+.2ddoc-signature-wrapped.hex
+----
+include::2ddoc-signature-wrapped.hex[]
+----
+
+. Convertir le contenu hexadécimal en binaire et l'enregistrer comme _2ddoc-signature-wrapped.bin_. C'est cette signature qui sera examinée par _openssl_. Vous pouvez vérifier le résultat avec la commande
++
+ $ openssl asn1parse -inform der -in 2ddoc-signature-wrapped.bin
++
+[caption="Fig. 45", title=" "]
+image::img-2ddoc-asn1parse-redim.png["2D-Doc parse asn1"]
++
+. Le certificat (fichier _0001.pem_) ne peut pas être exploité tel quel par _openssl{nbsp}dgst_, il faut en extraire la clé publique. Exécuter la commande suivante{nbsp}:
++
+ openssl x509 -in 0001.pem -noout -pubkey > 0001-pubkey.pem
++
+Le fichier _0001-pubkey.pem_ contient la clé publique de "0001", et rien d'autre.
+
+Il ne nous reste plus qu'à demander à _openssl_ de vérifier tout cela. Exécuter la commande{nbsp}:
+
+ openssl dgst -sha256 -verify 0001-pubkey.pem -signature 2ddoc-signature-wrapped.bin msg2ddoc-signed.bin
+
+Résultat{nbsp}:
+[caption="Fig. 46", title=" "]
+image::img-2ddoc-verif-with-openssl-redim.png["Vérification 2D-Doc avec openssl"]
+
+_openssl_ nous dit `Verified OK`.
+
+Voilà qui clôt ces manipulations autour de la cryptographie à courbes elliptiques dans les cadres x509 et 2D-Doc.
+
+N'oubliez pas que la validation d'un certificat nécessite d'autres étapes que la seule vérification d'une signature ECDSA.
+Si vous devez valider un certificat dans un environnement de production, seul un logiciel adapté pourra le faire de manière fiable.
 
 *FIN*
 
@@ -1272,7 +1399,7 @@ On voit que l'abscisse du résultat est bien égale à _r_ ce qui valide la sign
 _bc_ a besoin du fichier _readline5.dll_ pour s'exécuter. Vous pouvez le trouver à cette URL{nbsp}: http://gnuwin32.sourceforge.net/packages/readline.htm
 +
 [IMPORTANT]
-Le fichier exécutable _bc.exe_ semble mal gérer le clavier français, à cause de _readline_. Cela oblige à jongler pour saisir des caractèrs tels que '^', '{' et '[', et il faut parfois passer en mode "clavier anglais" pour s'en sortir. Une alternative est de compiler _bc_ sans _readline_. L'auteur de ce document l'a fait pour vous et vous pouvez le récupérer ici{nbsp}: http://seb-o-fourneaux.fr/?p=116
+Le fichier exécutable _bc.exe_ semble mal gérer le clavier français, à cause de _readline_. Cela oblige à jongler pour saisir des caractèrs tels que '^', '{' et '[', et il faut parfois passer en mode "clavier anglais" pour s'en sortir. Une alternative est de compiler _bc_ sans _readline_. L'auteur de ce document a compilé _bc_ sans _readline_ et l'a publié ici{nbsp}: http://seb-o-fourneaux.fr/?p=116
 
 * *[[[8]]]* Le site de notepad++ {nbsp}: https://notepad-plus-plus.org/fr
 * *[[[9]]]* Article Wikipédia sur l'algorithme d'exponentiation rapide{nbsp}: https://fr.wikipedia.org/wiki/Exponentiation_rapide
@@ -1292,4 +1419,5 @@ Le fichier exécutable _bc.exe_ semble mal gérer le clavier français, à cause
 * *[[[23]]]* Conception d'algorithmes et applications (LI325) COURS 10 (format PDF){nbsp}: http://www.di.ens.fr/~busic/cours/LI325/coursCAAC10.pdf
 * *[[[24]]]* Elliptic curve digital signature algorithm{nbsp}: https://fr.wikipedia.org/wiki/Elliptic_curve_digital_signature_algorithm
 * *[[[25]]]* ECC Tutorial (en anglais){nbsp}: http://www.johannes-bauer.com/compsci/ecc
+* *[[[26]]]* Le 2D-Doc de l'ANTS{nbsp}: https://ants.gouv.fr/Les-solutions/2D-Doc
 
