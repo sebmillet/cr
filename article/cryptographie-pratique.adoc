@@ -24,7 +24,7 @@ Même à supposer que l'on décide d'utiliser une calculatrice de bureau (la cho
 
 Cet article décrit les calculs à faire pour vérifier des signatures RSA et ECDSA, dans le cadre x509 et 2D-Doc.
 
-RSA ECDSA::
+RSA, ECDSA::
 _RSA_ et _ECDSA_ permettent de signer footnote:[_RSA_ permet également de chiffrer.]
 avec une paire de clés privée et publique.
 La clé privée est utilisée pour signer. La clé publique permet de vérifier la signature.
