@@ -5,19 +5,21 @@ use warnings;
 
 use Getopt::Long qw(:config no_ignore_case bundling);
 
-my $PKG = "conv.pl";
+my $PROG = "conv.pl";
+my $PKG = "conv";
 
 my $OPT_VERBOSE = 0;
 my $OPT_DEBUG = 0;
 
 my $OPT_DBG_BITS = 0;
 my $OPT_DBG_BITS_ATTR = 1;
+my $OPT_DBG_BITS_DOCB = 2;
 sub dbg { return (($OPT_DBG_BITS & $_[0]) != 0); }
 
 sub usage {
 	print(STDERR <<EOF
 Usage:
-  $PKG [OPTIONS]... INPUTFILE OUTPUTFILE
+  $PROG [OPTIONS]... INPUTFILE OUTPUTFILE
 Convert an asciidoctor text file into markdown file
   -h, --help        Print this message
   -v, --verbose     Verbose display
@@ -39,15 +41,20 @@ my $INP = $ARGV[0];
 my $OUTP = $ARGV[1];
 
 my $infoh = \*STDERR;
-my $debugh = \*STDERR;
+
+my $debugh;
+if ($OPT_DEBUG or $OPT_DBG_BITS) {
+	my $f = "$PKG-dbg.txt";
+	open $debugh, ">", $f or die "Unable to opeb '$f': ";
+}
 
 open my $inh, '<', $INP or die "Unable to open '$INP' (ro): $!";
 open my $outh, '>', $OUTP or die "Unable to open '$OUTP' (rw): $!";
 
-my ($ST_OUTER, $ST_SIDEBAR, $ST_SAMPLE, $ST_QUOTE, $ST_PASSTHROUGH, $ST_ANONYM, $ST_SOURCE, $ST_TABLE) = (0..8);
+my ($ST_OUTER, $ST_SIDEBAR, $ST_SAMPLE, $ST_QUOTE, $ST_PASSTHROUGH, $ST_ANONYM, $ST_SOURCE, $ST_TABLE, $ST_ADMONITION) = (0..8);
 my $ST_BLOCKLEVEL_STATUS_LIMIT = 50;
 my ($ST_ATTRIBUTES, $ST_TITLE) = ($ST_BLOCKLEVEL_STATUS_LIMIT..$ST_BLOCKLEVEL_STATUS_LIMIT+1);
-my %StatusNames = (
+our %StatusNames = (
 	$ST_OUTER => 'OUTER',
 	$ST_SIDEBAR => 'SIDEBAR',
 	$ST_SAMPLE => 'SAMPLE',
@@ -56,6 +63,8 @@ my %StatusNames = (
 	$ST_ANONYM => 'ANONYM',
 	$ST_SOURCE => 'SOURCE',
 	$ST_TABLE => 'TABLE',
+	$ST_ADMONITION => 'ADMONITION',
+	$ST_ATTRIBUTES => 'ATTRIBUTES',
 	$ST_TITLE => 'TITLE'
 );
 my $UNIQUEWORDATTR = "~~~~";
@@ -75,19 +84,27 @@ my %Structs = (
 # Special: attributes modify lines that follow
 
 	7 => ['^\[.*\]$', $ST_ATTRIBUTES],
-	8 => ['^\.\S', $ST_TITLE],
+	8 => ['^\.[^. 	]', $ST_TITLE],
 );
 
 my @ststack = ($ST_OUTER);
 
+my $docb = DOCB::md->new(outh => \*STDOUT, infoh => $infoh, debug => $OPT_DEBUG, debugh => $debugh);
+
 my $liner = 0;
 my %Attributes;
+
+	# Block end = explicit bloc markers (ex. "====" or "***" etc.)
+	# or an empty line.
+my $pop_status_at_next_block_marker = 0;
+
 while (my $l = <$inh>) {
 	$liner++;
 	chomp $l;
 
 	my $status = $ststack[$#ststack];
 
+	my $processed_line = 0;
 	for my $i (sort { $a <=> $b} keys %Structs) {
 		my $pat = $Structs{$i}->[0];
 		my $sta = $Structs{$i}->[1];
@@ -95,8 +112,22 @@ while (my $l = <$inh>) {
 
 		my %newattr;
 		if ($sta < $ST_BLOCKLEVEL_STATUS_LIMIT) {
-			pop @ststack if $sta == $status;
-			push @ststack, $sta unless $sta == $status;
+			if ($pop_status_at_next_block_marker) {
+				$docb->proc($l, 'BLOCK_LEAVE', $status);
+				pop @ststack;
+				$pop_status_at_next_block_marker = 0;
+				$status = $ststack[$#ststack];
+			}
+			if ($sta != $status) {
+
+				my $proc_sta = &get_admonition_attribute(\%Attributes, $sta);
+
+				$docb->proc($l, 'BLOCK_ENTER', $proc_sta);
+				push @ststack, $sta;
+			} else {
+				$docb->proc($l, 'BLOCK_LEAVE', $status);
+				pop @ststack;
+			}
 		} elsif ($sta == $ST_ATTRIBUTES) {
 			my ($inside_square_brackets) = $l =~ m/^\[(.*)\]$/;
 			die "Inconsistent data, check \$Structs{\$ST_ATTRIBUTES} against line above" unless defined($inside_square_brackets);
@@ -112,22 +143,61 @@ while (my $l = <$inh>) {
 		&debug_print_attributes($l, \%newattr) if %newattr;
 		%Attributes = (%Attributes, %newattr) if %newattr;
 
+		$processed_line = 1;
 		last;
+	}
+
+	if (!$processed_line and $l ne '') {
+		if (&get_admonition_attribute(\%Attributes, $ST_OUTER) != $ST_OUTER) {
+			$docb->proc('', 'BLOCK_ENTER', $ST_ADMONITION);
+			push @ststack, $ST_ADMONITION;
+			$pop_status_at_next_block_marker = 1;
+		}
+	}
+
+	if ($l eq '') {
+		if (%Attributes) {
+			print($infoh "$PKG: warning: line $liner: useless attribute, ignored.\n");
+		}
+		%Attributes = ();
+
+		if ($pop_status_at_next_block_marker) {
+			$docb->proc($l, 'BLOCK_LEAVE', $status);
+			pop @ststack;
+			$pop_status_at_next_block_marker = 0;
+		}
 	}
 
 	$status = $ststack[$#ststack];
 	my $level = @ststack;
 
-	%Attributes = () if $l eq '';
-
 	if ($OPT_DEBUG) {
-		printf($debugh "L%5i  %2i  %-15s  ", $liner, $level, $StatusNames{$status});
-		printf($debugh "%-20s  ", join(':', @ststack));
+		printf($debugh "L%05i %i %-8s ", $liner, $level, $StatusNames{$status});
+		printf($debugh "%-10s ", join(':', @ststack));
 		my $nb_attributes = keys %Attributes;
-		printf($debugh "#ATTR=%2i  ", $nb_attributes);
-		print($debugh join(', ', sort keys %Attributes));
+		printf($debugh "#$nb_attributes ");
+		print($debugh join(':', sort keys %Attributes));
 		print($debugh "\n");
 	}
+}
+
+sub get_admonition_attribute {
+	my ($attr, $return_value_if_no_admonition_detected) = @_;
+
+	my $detected;
+	my @the_keys = keys %{$attr};
+	for my $k (@the_keys) {
+		if ($k =~ m/^[[:upper:]]+$/) {
+			if ($attr->{$k} eq $UNIQUEWORDATTR) {
+				print($infoh "$PKG: warning: line $liner: conflicting admonition attributes.\n") if defined($detected);
+				$detected = $ST_ADMONITION;
+				delete $attr->{$k};
+			}
+		}
+	}
+
+	return $detected if defined($detected);
+	return $return_value_if_no_admonition_detected;
 }
 
 	#
@@ -141,11 +211,11 @@ while (my $l = <$inh>) {
 	# Returns a hash of key-value pairs
 	#
 	# CONVENTION:
-	#   A key without a value is prefixed with "!!" and value is empty string
+	#   A key without a value gets the value of $UNIQUEWORDATTR.
 	# Thus an attribute like
 	#   [NOTE]
 	# will be returned as the following hash:
-	#   ('!!NOTE' => '')
+	#   ('NOTE' => $UNIQUEWORDATTR)
 	#
 sub parse_attributes {
 	my ($l, $attr) = @_;
@@ -173,7 +243,7 @@ sub parse_attributes {
 			last;
 		}
 	}
-	print($infoh "Line $l: syntax error\n") if $attr ne '';
+	print($infoh "$PKG: line $l: syntax error\n") if $attr ne '';
 
 	return %Attributes;
 }
@@ -189,7 +259,83 @@ sub debug_print_attributes {
 	print($debugh "    $_ => '$h{$_}'\n") foreach keys %h;
 }
 
+close $debugh if $OPT_DEBUG or $OPT_DBG_BITS;
+
 exit 0;
+
+package DOCB::md;
+
+sub ddbg { return &main::dbg($OPT_DBG_BITS_DOCB); }
+
+sub new {
+	my $class = shift;
+	my $self = {@_};
+
+	$self->{pkg} = "md";
+	$self->{outh} = \*STDOUT unless exists $self->{outh};
+	$self->{infoh} = \*STDERR unless exists $self->{infoh};
+	$self->{debugh} = \*STDERR unless exists $self->{debugh};
+	$self->{debug} = 0 unless exists $self->{debug};
+
+	$self->{status} = $ST_OUTER;
+
+	bless($self, $class);
+	return $self;
+}
+
+sub proc {
+	my $self = shift;
+	my $line = shift;
+	my $action = shift;
+
+	my $pkg = $self->{pkg};
+
+	my $debug = $self->{debug};
+	my $debugh = $self->{debugh};
+	print($debugh "$pkg: line '$line': action '$action'") if &ddbg();
+
+	if ($action eq 'BLOCK_ENTER') {
+		my $status = shift;
+		print($debugh ": status '" . $StatusNames{$status} . "'") if &ddbg();
+	} elsif ($action eq 'BLOCK_LEAVE') {
+		my $status = shift;
+		print($debugh ": status '" . $StatusNames{$status} . "'") if &ddbg();
+	} elsif ($action eq 'TEXT') {
+	}
+
+	print($debugh "\n") if &ddbg();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+package main;
+
+use strict;
+use warnings;
 
 my %Vars;
 
