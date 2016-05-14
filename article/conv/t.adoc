@@ -1,0 +1,187 @@
+// Test
+
+= Test Document
+:author: Sébastien Millet
+:imagesdir: .img
+
+== Intro
+
+=== Titre 3e niveau
+
+Bla.
+
+.Titre de sample
+====
+Yes
+
+No
+====
+
+====
+Sans titre
+Yes (2)
+
+No (2)
+====
+
+Un terme::
+Ça veut dire ça
+
+Un deuxième terme::
+
+  Dedans, un 3e:::
+    Eh oui, 3e !
+
+  Dedans, un 4e:::
+    Eh oui, 4e !
+
+Un paragraphe.
+
+.Un titre de section
+
+Oh.
+
+.Un deuxième titre de section
+
+Eh.
+
+.Et un troisième
+.Et un quatrième
+
+[WARNING]
+
+eh oh!
+
+ola
+
+[WARNING]
+
+====
+My Warning
+====
+
+[WARNING]
+
+.My Warning title
+====
+My Warning (2)
+====
+
+[WARNING]
+.My Warning title
+
+====
+My Warning (3)
+====
+
+[WARNING]
+
+.My Warning title
+
+====
+My Warning (4)
+====
+
+* Liste pas numérotée (ici : 1)
+
+
+** LN (a)
+
+* Liste pas numérotée (ici : 2)
+
+Youpi.
+
+* Liste pas numérotée encore (ici : 1)
+
+[start=11]
+* Liste pas numérotée encore et encore (ici : 11)
+
+Bon on passe à autre chose.
+
+. Liste numérotée (ici : 1)
+
+
+.. LN (a)
+
+. Liste numérotée (ici : 2)
+
+Youpi.
+
+. Liste numérotée encore (ici : 1)
+
+[start=11]
+. Liste numérotée encore et encore (ici : 11)
+
+[NOTE]
+Bla
+
+Ola
+
+[NOTE]
+====
+Bla bla
+
+Car
+====
+
+[NOTE]
+.Titre de ma note
+Bla encore.
+
+Ola 2 !
+
+[NOTE]
+.Titre de ma note (2)
+====
+Yes
+====
+
+.Rec
+****
+Youpi
+
+Tralala
+****
+
+.Rec (2)
+****
+[IMPORTANT]
+Oh
+
+Ole 3 !
+****
+.Rec (3)
+****
+[IMPORTANT]
+Oh
+Ole 4 !
+
+Ole 5 !
+****
+
+.Rec (4)
+****
+[IMPORTANT]
+====
+Oh
+Ole 4 !
+
+Ole 5 !
+====
+****
+
+. Un
++
+Ici.
+
+. Deux
++
+|===
+|ok|coral|
+|ya|allo|
+|===
+
+. Trois
+
+Bla
+

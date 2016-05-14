@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+use Class::Struct;
+
 use Getopt::Long qw(:config no_ignore_case bundling);
 
 my $PROG = "conv.pl";
@@ -12,8 +14,9 @@ my $OPT_VERBOSE = 0;
 my $OPT_DEBUG = 0;
 
 my $OPT_DBG_BITS = 0;
-my $OPT_DBG_BITS_ATTR = 1;
-my $OPT_DBG_BITS_DOCB = 2;
+my $DBG_ATTR = 1;
+my $DBG_DOCB = 2;
+my $DBG_FLOW = 4;
 sub dbg { return (($OPT_DBG_BITS & $_[0]) != 0); }
 
 sub usage {
@@ -51,9 +54,16 @@ if ($OPT_DEBUG or $OPT_DBG_BITS) {
 open my $inh, '<', $INP or die "Unable to open '$INP' (ro): $!";
 open my $outh, '>', $OUTP or die "Unable to open '$OUTP' (rw): $!";
 
-my ($ST_OUTER, $ST_SIDEBAR, $ST_SAMPLE, $ST_QUOTE, $ST_PASSTHROUGH, $ST_ANONYM, $ST_SOURCE, $ST_TABLE, $ST_ADMONITION) = (0..8);
-my $ST_BLOCKLEVEL_STATUS_LIMIT = 50;
-my ($ST_ATTRIBUTES, $ST_TITLE) = ($ST_BLOCKLEVEL_STATUS_LIMIT..$ST_BLOCKLEVEL_STATUS_LIMIT+1);
+struct OneLevel => {
+	status => '$',
+	proc_status => '$',
+	autopop => '$',
+	list_nb_dots => '$',
+	list_value => '$'
+};
+
+my ($ST_OUTER, $ST_SIDEBAR, $ST_SAMPLE, $ST_QUOTE, $ST_PASSTHROUGH, $ST_ANONYM, $ST_SOURCE, $ST_TABLE,
+	$ST_ADMONITION, $ST_NUMBERED_LIST, $ST_UNORDERED_LIST, $ST_ATTRIBUTES, $ST_TITLE, $ST_NON_EMPTY) = (0..100);
 our %StatusNames = (
 	$ST_OUTER => 'OUTER',
 	$ST_SIDEBAR => 'SIDEBAR',
@@ -64,125 +74,150 @@ our %StatusNames = (
 	$ST_SOURCE => 'SOURCE',
 	$ST_TABLE => 'TABLE',
 	$ST_ADMONITION => 'ADMONITION',
+	$ST_NUMBERED_LIST => 'NUMBEREDLIST',
+	$ST_UNORDERED_LIST => 'UNORDEREDLIST',
 	$ST_ATTRIBUTES => 'ATTRIBUTES',
 	$ST_TITLE => 'TITLE'
 );
 my $UNIQUEWORDATTR = "~~~~";
 
-my %Structs = (
-
-# Bloc-level delimiters
-
-	0 => ['^\*\*\*\*+$', $ST_SIDEBAR],
-	1 => ['^====+$', $ST_SAMPLE],
-	2 => ['^____+$', $ST_QUOTE],
-	3 => ['^\+\+\+\++$', $ST_PASSTHROUGH],
-	4 => ['^--$', $ST_ANONYM],
-	5 => ['^----+$', $ST_SOURCE],
-	6 => ['^\|===+$', $ST_TABLE],
-
-# Special: attributes modify lines that follow
-
-	7 => ['^\[.*\]$', $ST_ATTRIBUTES],
-	8 => ['^\.[^. 	]', $ST_TITLE],
+my %Automat = (
+	0 =>  ['^\*\*\*\*+$',     $ST_SIDEBAR,        'PUSH'],
+	1 =>  ['^====+$',         $ST_SAMPLE,         'PUSH'],
+	2 =>  ['^____+$',         $ST_QUOTE,          'PUSH'],
+	3 =>  ['^\+\+\+\++$',     $ST_PASSTHROUGH,    'PUSH'],
+	4 =>  ['^--$',            $ST_ANONYM,         'PUSH'],
+	5 =>  ['^----+$',         $ST_SOURCE,         'PUSH'],
+	6 =>  ['^\|===+$',        $ST_TABLE,          'PUSH'],
+	7 =>  ['^\[.*\]$',        $ST_ATTRIBUTES,     ''],
+	8 =>  ['^\.[^. 	]',       $ST_TITLE,          ''],
+	9 =>  ['^\s*\.+\s+\S',    $ST_NUMBERED_LIST,  'NESTEDPUSH'],
+	10 => ['^\s*\*+\s+\S',    $ST_UNORDERED_LIST, 'NESTEDPUSH'],
+	11 => ['\S',              $ST_NON_EMPTY,      '']
+#    11 => ['',                $ST_EMPY,           '']
 );
 
-my @ststack = ($ST_OUTER);
+my @StackLevels = (OneLevel->new(status => $ST_OUTER, proc_status => $ST_OUTER, autopop => 0));
 
 my $docb = DOCB::md->new(outh => \*STDOUT, infoh => $infoh, debug => $OPT_DEBUG, debugh => $debugh);
 
 my $liner = 0;
 my %Attributes;
 
-	# Block end = explicit bloc markers (ex. "====" or "***" etc.)
-	# or an empty line.
-my $pop_status_at_next_block_marker = 0;
-
+my $prev_l = '';
 while (my $l = <$inh>) {
 	$liner++;
 	chomp $l;
 
-	my $status = $ststack[$#ststack];
+	print($debugh "--- loop start\n") if &dbg($DBG_FLOW);
+
+	my $Level = $StackLevels[$#StackLevels];
 
 	my $processed_line = 0;
-	for my $i (sort { $a <=> $b} keys %Structs) {
-		my $pat = $Structs{$i}->[0];
-		my $sta = $Structs{$i}->[1];
+	for my $i (sort { $a <=> $b} keys %Automat) {
+		my $pat = $Automat{$i}->[0];
 		next unless $l =~ m/$pat/;
 
+		my $realm = $Automat{$i}->[1];
+		my $pushop = $Automat{$i}->[2];
+
 		my %newattr;
-		if ($sta < $ST_BLOCKLEVEL_STATUS_LIMIT) {
-			if ($pop_status_at_next_block_marker) {
-				$docb->proc($l, 'BLOCK_LEAVE', $status);
-				pop @ststack;
-				$pop_status_at_next_block_marker = 0;
-				$status = $ststack[$#ststack];
+		if ($pushop eq 'PUSH') {
+			while ($Level->autopop) {
+				$docb->proc('BLOCK_LEAVE', { }, $Level->status);
+				pop @StackLevels;
+				$Level = $StackLevels[$#StackLevels];
 			}
-			if ($sta != $status) {
+			if ($realm != $Level->status) {
 
-				my $proc_sta = &get_admonition_attribute(\%Attributes, $sta);
+				my $admo = &get_admonition_attribute(\%Attributes);
+				my $proc_status = $realm;
+				$proc_status = $ST_ADMONITION if $admo ne '';
 
-				$docb->proc($l, 'BLOCK_ENTER', $proc_sta);
-				push @ststack, $sta;
+				$docb->proc('BLOCK_ENTER', \%Attributes, $proc_status, $admo);
+				push @StackLevels, OneLevel->new(status => $realm, proc_status => $proc_status, autopop => 0);
 			} else {
-				$docb->proc($l, 'BLOCK_LEAVE', $status);
-				pop @ststack;
+				$docb->proc('BLOCK_LEAVE', { }, $Level->proc_status);
+				pop @StackLevels;
 			}
-		} elsif ($sta == $ST_ATTRIBUTES) {
+		} elsif ($pushop eq 'NESTEDPUSH') {
+			my $char = ($realm == $ST_NUMBERED_LIST ? '\.' : '\*');
+			my ($tmp) = $l =~ m/^\s*($char+)/;
+			my $n = length($tmp);
+			while ($Level->status == $realm and $n < $Level->list_nb_dots) {
+				$docb->proc('BLOCK_LEAVE', { }, $Level->status);
+				pop @StackLevels;
+				$Level = $StackLevels[$#StackLevels];
+			}
+			if ($Level->status == $realm and $n == $Level->list_nb_dots) {
+				$Level->list_value($Level->list_value + 1);
+			} else {
+				$docb->proc('BLOCK_ENTER', \%Attributes, $realm);
+				push @StackLevels, OneLevel->new(status => $realm, proc_status => $realm, autopop => 1,
+					list_nb_dots => $n, list_value => 1);
+				$Level = $StackLevels[$#StackLevels];
+			}
+		} elsif ($realm == $ST_ATTRIBUTES) {
 			my ($inside_square_brackets) = $l =~ m/^\[(.*)\]$/;
 			die "Inconsistent data, check \$Structs{\$ST_ATTRIBUTES} against line above" unless defined($inside_square_brackets);
 			%newattr = &parse_attributes($liner, $inside_square_brackets);
-		} elsif ($sta == $ST_TITLE) {
+		} elsif ($realm == $ST_TITLE) {
 			my ($title) = $l =~ m/^\.(.*)$/;
 			die "Inconsistent data, check \$Structs{\$ST_TITLE} against line above" unless defined($title);
 			%newattr = ('.' => $title);
+		} elsif ($realm == $ST_NON_EMPTY) {
+			my $admo = &get_admonition_attribute(\%Attributes);
+			if ($admo ne '') {
+				$docb->proc('BLOCK_ENTER', \%Attributes, $ST_ADMONITION, $admo);
+				push @StackLevels, OneLevel->new(status => $ST_ADMONITION, proc_status => $ST_ADMONITION, autopop => 1);
+				$processed_line = 1;
+			} elsif ($prev_l eq '') {
+				while ($Level->autopop) {
+					$docb->proc('BLOCK_LEAVE', { }, $Level->proc_status);
+					pop @StackLevels;
+					$Level = $StackLevels[$#StackLevels];
+				}
+
+				%Attributes = ();
+			}
 		} else {
-			die "So what now? \$sta (value: $sta) contains an unknown value!";
+			die "So what now? \$sta (value: $realm) contains an unknown value!";
 		}
 
-		&debug_print_attributes($l, \%newattr) if %newattr;
 		%Attributes = (%Attributes, %newattr) if %newattr;
+		&debug_print_attributes($l, \%Attributes);
 
 		$processed_line = 1;
 		last;
 	}
 
-	if (!$processed_line and $l ne '') {
-		if (&get_admonition_attribute(\%Attributes, $ST_OUTER) != $ST_OUTER) {
-			$docb->proc('', 'BLOCK_ENTER', $ST_ADMONITION);
-			push @ststack, $ST_ADMONITION;
-			$pop_status_at_next_block_marker = 1;
-		}
-	}
+	&debug_print_status();
 
-	if ($l eq '') {
-		if (%Attributes) {
-			print($infoh "$PKG: warning: line $liner: useless attribute, ignored.\n");
-		}
-		%Attributes = ();
+	$prev_l = $l;
+}
 
-		if ($pop_status_at_next_block_marker) {
-			$docb->proc($l, 'BLOCK_LEAVE', $status);
-			pop @ststack;
-			$pop_status_at_next_block_marker = 0;
-		}
-	}
+sub debug_print_status {
+	return unless $OPT_DEBUG;
 
-	$status = $ststack[$#ststack];
-	my $level = @ststack;
+	my $Level = $StackLevels[$#StackLevels];
+	my $stack_height = @StackLevels;
 
-	if ($OPT_DEBUG) {
-		printf($debugh "L%05i %i %-8s ", $liner, $level, $StatusNames{$status});
-		printf($debugh "%-10s ", join(':', @ststack));
-		my $nb_attributes = keys %Attributes;
-		printf($debugh "#$nb_attributes ");
-		print($debugh join(':', sort keys %Attributes));
-		print($debugh "\n");
-	}
+	printf($debugh "L%04i %i %-12s ", $liner, $stack_height, $StatusNames{$Level->status});
+
+	my @c;
+	push @c, $_->status . '(' . $_->autopop . ')' for @StackLevels;
+
+	printf($debugh "%-20s ", join(':', @c));
+	my $nb_attributes = keys %Attributes;
+	printf($debugh "#$nb_attributes ");
+	print($debugh join(':', sort keys %Attributes));
+	print($debugh "\n");
 }
 
 sub get_admonition_attribute {
-	my ($attr, $return_value_if_no_admonition_detected) = @_;
+	my $attr = shift;
+
+	&debug_print_attributes(undef, $attr) if &dbg($DBG_ATTR);
 
 	my $detected;
 	my @the_keys = keys %{$attr};
@@ -190,14 +225,19 @@ sub get_admonition_attribute {
 		if ($k =~ m/^[[:upper:]]+$/) {
 			if ($attr->{$k} eq $UNIQUEWORDATTR) {
 				print($infoh "$PKG: warning: line $liner: conflicting admonition attributes.\n") if defined($detected);
-				$detected = $ST_ADMONITION;
+				$detected = $k;
 				delete $attr->{$k};
 			}
 		}
 	}
 
-	return $detected if defined($detected);
-	return $return_value_if_no_admonition_detected;
+	if (defined($detected)) {
+		print($debugh "get_admonition_attribute(): admonition detected: '$detected'\n") if &dbg($DBG_ATTR);
+		return $detected;
+	} else {
+		print($debugh "get_admonition_attribute(): no admonition detected\n") if &dbg($DBG_ATTR);
+		return '';
+	}
 }
 
 	#
@@ -251,12 +291,14 @@ sub parse_attributes {
 sub debug_print_attributes {
 	my ($attr, $hash) = @_;
 
-	return unless &dbg($OPT_DBG_BITS_ATTR);
+	return unless &dbg($DBG_ATTR);
 
 	my %h = %{$hash};
 
-	print($debugh "    >>> attr = '$attr'\n");
-	print($debugh "    $_ => '$h{$_}'\n") foreach keys %h;
+	print($debugh "BEGIN ATTR:\n");
+	print($debugh "* attr = '$attr'\n") if defined($attr);
+	print($debugh "  $_ => '$h{$_}'\n") foreach keys %h;
+	print($debugh "END ATTR:\n");
 }
 
 close $debugh if $OPT_DEBUG or $OPT_DBG_BITS;
@@ -265,7 +307,7 @@ exit 0;
 
 package DOCB::md;
 
-sub ddbg { return &main::dbg($OPT_DBG_BITS_DOCB); }
+sub ddbg { return &main::dbg($DBG_DOCB); }
 
 sub new {
 	my $class = shift;
@@ -285,25 +327,39 @@ sub new {
 
 sub proc {
 	my $self = shift;
-	my $line = shift;
 	my $action = shift;
+	my $attr = shift;
 
 	my $pkg = $self->{pkg};
 
 	my $debug = $self->{debug};
 	my $debugh = $self->{debugh};
-	print($debugh "$pkg: line '$line': action '$action'") if &ddbg();
+	print($debugh "$pkg: $action") if &ddbg();
+
+	my $title = '';
+	$title = $attr->{'.'} if exists $attr->{'.'};
+	my $dbg_title = ($title ne '' ? ": title '$title'" : '');
 
 	if ($action eq 'BLOCK_ENTER') {
 		my $status = shift;
-		print($debugh ": status '" . $StatusNames{$status} . "'") if &ddbg();
+
+		my $admo = shift if $status == $ST_ADMONITION;
+		my $dbg_admo = (defined($admo) ? ":($admo)" : '');
+
+		print($debugh ": status '" . $StatusNames{$status} . "'$dbg_admo") if &ddbg();
+
+		delete $attr->{'.'} if exists $attr->{'.'};
+
 	} elsif ($action eq 'BLOCK_LEAVE') {
 		my $status = shift;
 		print($debugh ": status '" . $StatusNames{$status} . "'") if &ddbg();
+
+		delete $attr->{'.'} if exists $attr->{'.'};
+
 	} elsif ($action eq 'TEXT') {
 	}
 
-	print($debugh "\n") if &ddbg();
+	print($debugh "$dbg_title\n") if &ddbg();
 }
 
 
@@ -341,7 +397,7 @@ my %Vars;
 
 my $linew = 0;
 my $status_prev = '';
-my $status_data = -1; 
+my $status_data = -1;
 while (my $l = <$inh>) {
 	$liner++;
 	chomp $l;
