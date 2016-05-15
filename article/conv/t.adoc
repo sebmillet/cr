@@ -37,11 +37,16 @@ Un deuxième terme::
 
 Un paragraphe.
 
+.Un titre collé
+A la suite
+
 .Un titre de section
 
 Oh.
 
 .Un deuxième titre de section
+
+.My title au-dessous !?
 
 Eh.
 
@@ -115,7 +120,59 @@ Youpi.
 [NOTE]
 Bla
 
-Ola
+. Ola
+
+DefA::
+Abc
+. eh oh
+
+  bla2:::
++
+|===
+|a|b
+|c|d
+|===
+
+bla3::
+
+zzzz
+. Olo
+
+bla4::
+zzzz
+. Olo
+
+Olé
+
+[IMPORTANT]
+
+abc
+[WARNING]
+
+====
+def
+====
+
+[IMPORTANT]
+
+abc-abc
+
+[WARNING]
+
+====
+def-def
+====
+
+[IMPORTANT]
+
+
+ok
+
+[WARNING]
+
+====
+def-def2
+====
 
 [NOTE]
 ====
@@ -177,11 +234,13 @@ Ici.
 . Deux
 +
 |===
-|ok|coral|
-|ya|allo|
+|ok|coral
+|ya
+|allo
 |===
 
 . Trois
 
 Bla
+
 

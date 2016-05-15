@@ -1,3 +1,3 @@
 all:
-	./conv.pl t.adoc t.md -d -D 7
+	./conv.pl t.adoc t.md -D 2
 

@@ -63,7 +63,8 @@ struct OneLevel => {
 };
 
 my ($ST_OUTER, $ST_SIDEBAR, $ST_SAMPLE, $ST_QUOTE, $ST_PASSTHROUGH, $ST_ANONYM, $ST_SOURCE, $ST_TABLE,
-	$ST_ADMONITION, $ST_NUMBERED_LIST, $ST_UNORDERED_LIST, $ST_ATTRIBUTES, $ST_TITLE, $ST_NON_EMPTY) = (0..100);
+	$ST_ADMONITION, $ST_ATTRIBUTES, $ST_TITLE, $ST_NUMBERED_LIST, $ST_UNORDERED_LIST,
+	$ST_DEFINITION, $ST_NON_EMPTY, $ST_BLANK) = (0..100);
 our %StatusNames = (
 	$ST_OUTER => 'OUTER',
 	$ST_SIDEBAR => 'SIDEBAR',
@@ -77,33 +78,59 @@ our %StatusNames = (
 	$ST_NUMBERED_LIST => 'NUMBEREDLIST',
 	$ST_UNORDERED_LIST => 'UNORDEREDLIST',
 	$ST_ATTRIBUTES => 'ATTRIBUTES',
-	$ST_TITLE => 'TITLE'
+	$ST_TITLE => 'TITLE',
+	$ST_DEFINITION => 'DEFINITION',
+	$ST_NON_EMPTY => 'NON EMPTY',
+	$ST_BLANK => 'BLANK'
 );
 my $UNIQUEWORDATTR = "~~~~";
 
 my %Automat = (
-	0 =>  ['^\*\*\*\*+$',     $ST_SIDEBAR,        'PUSH'],
-	1 =>  ['^====+$',         $ST_SAMPLE,         'PUSH'],
-	2 =>  ['^____+$',         $ST_QUOTE,          'PUSH'],
-	3 =>  ['^\+\+\+\++$',     $ST_PASSTHROUGH,    'PUSH'],
-	4 =>  ['^--$',            $ST_ANONYM,         'PUSH'],
-	5 =>  ['^----+$',         $ST_SOURCE,         'PUSH'],
-	6 =>  ['^\|===+$',        $ST_TABLE,          'PUSH'],
-	7 =>  ['^\[.*\]$',        $ST_ATTRIBUTES,     ''],
-	8 =>  ['^\.[^. 	]',       $ST_TITLE,          ''],
-	9 =>  ['^\s*\.+\s+\S',    $ST_NUMBERED_LIST,  'NESTEDPUSH'],
-	10 => ['^\s*\*+\s+\S',    $ST_UNORDERED_LIST, 'NESTEDPUSH'],
-	11 => ['\S',              $ST_NON_EMPTY,      '']
-#    11 => ['',                $ST_EMPY,           '']
+	# Ord    Regex pattern      Realm (= next status) Family
+	  0 =>  ['^\*\*\*\*+$',     $ST_SIDEBAR,          'BLOCK'],
+	  1 =>  ['^====+$',         $ST_SAMPLE,           'BLOCK'],
+	  2 =>  ['^____+$',         $ST_QUOTE,            'BLOCK'],
+	  3 =>  ['^\+\+\+\++$',     $ST_PASSTHROUGH,      'BLOCK'],
+	  4 =>  ['^--$',            $ST_ANONYM,           'BLOCK'],
+	  5 =>  ['^----+$',         $ST_SOURCE,           'BLOCK'],
+	  6 =>  ['^\|===+$',        $ST_TABLE,            'BLOCK'],
+	  7 =>  ['^\[.*\]$',        $ST_ATTRIBUTES,       ''],
+	  8 =>  ['^\.[^. 	]',     $ST_TITLE,            ''],
+	  9 =>  ['^\s*\.+\s+\S',    $ST_NUMBERED_LIST,    'LIST'],
+	  10 => ['^\s*\*+\s+\S',    $ST_UNORDERED_LIST,   'LIST'],
+	  11 => ['\S\s*::+\s*$',    $ST_DEFINITION,       ''],
+	  12 => ['\S',              $ST_NON_EMPTY,        ''],
+	  13 => ['^\s*$',           $ST_BLANK,            ''],
+	  14 => [undef,             undef,                undef]
 );
 
-my @StackLevels = (OneLevel->new(status => $ST_OUTER, proc_status => $ST_OUTER, autopop => 0));
+my $docb = DOCB::md->new(outh => $outh, infoh => $infoh, debug => $OPT_DEBUG, debugh => $debugh);
 
-my $docb = DOCB::md->new(outh => \*STDOUT, infoh => $infoh, debug => $OPT_DEBUG, debugh => $debugh);
+my %Attributes;
+my @StackLevels;
+
+sub push_one_level {
+	my $Level = shift;
+
+	push @StackLevels, $Level;
+	%Attributes = ();
+}
+
+sub pop_one_level {
+	my ($docb, $Level) = @_;
+
+	pop @StackLevels;
+	my $new_Level = $StackLevels[$#StackLevels];
+	$docb->proc('BLOCK_LEAVE', { }, $Level->proc_status, $new_Level->proc_status);
+
+	%Attributes = ();
+
+	return $new_Level;
+}
+
+&push_one_level(OneLevel->new(status => $ST_OUTER, proc_status => $ST_OUTER, autopop => 0));
 
 my $liner = 0;
-my %Attributes;
-
 my $prev_l = '';
 while (my $l = <$inh>) {
 	$liner++;
@@ -113,20 +140,28 @@ while (my $l = <$inh>) {
 
 	my $Level = $StackLevels[$#StackLevels];
 
-	my $processed_line = 0;
+	my $proc_l;
+
 	for my $i (sort { $a <=> $b} keys %Automat) {
-		my $pat = $Automat{$i}->[0];
-		next unless $l =~ m/$pat/;
+		my $regex_pattern = $Automat{$i}->[0];
+		die "Check %Automat content, the element #$i should never be reached!" unless defined($regex_pattern);
+
+		next unless $l =~ m/$regex_pattern/;
 
 		my $realm = $Automat{$i}->[1];
-		my $pushop = $Automat{$i}->[2];
+		my $family = $Automat{$i}->[2];
+
+		if ($family ne 'LIST' and $prev_l eq '' and $l ne '') {
+			while ($Level->autopop and ($Level->status == $ST_NUMBERED_LIST or $Level->status == $ST_UNORDERED_LIST)) {
+				$Level = &pop_one_level($docb, $Level);
+			}
+		}
 
 		my %newattr;
-		if ($pushop eq 'PUSH') {
-			while ($Level->autopop) {
-				$docb->proc('BLOCK_LEAVE', { }, $Level->status);
-				pop @StackLevels;
-				$Level = $StackLevels[$#StackLevels];
+
+		if ($family eq 'BLOCK') {
+			while ($Level->autopop == 2) {
+				$Level = &pop_one_level($docb, $Level);
 			}
 			if ($realm != $Level->status) {
 
@@ -134,64 +169,87 @@ while (my $l = <$inh>) {
 				my $proc_status = $realm;
 				$proc_status = $ST_ADMONITION if $admo ne '';
 
-				$docb->proc('BLOCK_ENTER', \%Attributes, $proc_status, $admo);
-				push @StackLevels, OneLevel->new(status => $realm, proc_status => $proc_status, autopop => 0);
+				$docb->proc('BLOCK_ENTER', \%Attributes, $Level->proc_status, $proc_status, $admo);
+				&push_one_level(OneLevel->new(status => $realm, proc_status => $proc_status, autopop => 0));
 			} else {
-				$docb->proc('BLOCK_LEAVE', { }, $Level->proc_status);
-				pop @StackLevels;
+				$Level = &pop_one_level($docb, $Level);
 			}
-		} elsif ($pushop eq 'NESTEDPUSH') {
+
+		} elsif ($family eq 'LIST') {
 			my $char = ($realm == $ST_NUMBERED_LIST ? '\.' : '\*');
 			my ($tmp) = $l =~ m/^\s*($char+)/;
 			my $n = length($tmp);
-			while ($Level->status == $realm and $n < $Level->list_nb_dots) {
-				$docb->proc('BLOCK_LEAVE', { }, $Level->status);
-				pop @StackLevels;
-				$Level = $StackLevels[$#StackLevels];
+			unless (($proc_l) = $l =~ m/^\s*$char+\s+(.*)$/) {
+				die "Inconsistent result, check \%Automat hash table ($realm:$StatusNames{$realm} realm) against regex line above!";
 			}
+
+			while ($Level->status == $realm and $n < $Level->list_nb_dots) {
+				$Level = &pop_one_level($docb, $Level);
+			}
+
 			if ($Level->status == $realm and $n == $Level->list_nb_dots) {
 				$Level->list_value($Level->list_value + 1);
 			} else {
-				$docb->proc('BLOCK_ENTER', \%Attributes, $realm);
-				push @StackLevels, OneLevel->new(status => $realm, proc_status => $realm, autopop => 1,
-					list_nb_dots => $n, list_value => 1);
-				$Level = $StackLevels[$#StackLevels];
+				$docb->proc('BLOCK_ENTER', \%Attributes, $Level->proc_status, $realm);
+				&push_one_level(OneLevel->new(status => $realm, proc_status => $realm, autopop => 1,
+					list_nb_dots => $n, list_value => 1));
 			}
+
+		} elsif ($realm == $ST_DEFINITION) {
+			unless (($proc_l) = $l =~ m/^(.*[^:])::+\s*$/) {
+				die "Inconsistent result, check \%Automat hash table ($realm:$StatusNames{$realm} realm) against regex line above!";
+			}
+			$docb->proc('BLOCK_ENTER', \%Attributes, $Level->proc_status, $realm);
+			&push_one_level(OneLevel->new(status => $realm, proc_status => $realm, autopop => 2));
+
 		} elsif ($realm == $ST_ATTRIBUTES) {
 			my ($inside_square_brackets) = $l =~ m/^\[(.*)\]$/;
 			die "Inconsistent data, check \$Structs{\$ST_ATTRIBUTES} against line above" unless defined($inside_square_brackets);
 			%newattr = &parse_attributes($liner, $inside_square_brackets);
+
 		} elsif ($realm == $ST_TITLE) {
 			my ($title) = $l =~ m/^\.(.*)$/;
 			die "Inconsistent data, check \$Structs{\$ST_TITLE} against line above" unless defined($title);
 			%newattr = ('.' => $title);
+
 		} elsif ($realm == $ST_NON_EMPTY) {
 			my $admo = &get_admonition_attribute(\%Attributes);
 			if ($admo ne '') {
-				$docb->proc('BLOCK_ENTER', \%Attributes, $ST_ADMONITION, $admo);
-				push @StackLevels, OneLevel->new(status => $ST_ADMONITION, proc_status => $ST_ADMONITION, autopop => 1);
-				$processed_line = 1;
+				$docb->proc('BLOCK_ENTER', \%Attributes, $Level->proc_status, $ST_ADMONITION, $admo);
+				&push_one_level(OneLevel->new(status => $ST_ADMONITION, proc_status => $ST_ADMONITION, autopop => 2));
 			} elsif ($prev_l eq '') {
 				while ($Level->autopop) {
-					$docb->proc('BLOCK_LEAVE', { }, $Level->proc_status);
-					pop @StackLevels;
-					$Level = $StackLevels[$#StackLevels];
+					$Level = &pop_one_level($docb, $Level);
 				}
-
-				%Attributes = ();
 			}
+			$proc_l = $l;
+
+		} elsif ($realm == $ST_BLANK) {
+			while ($Level->autopop == 2) {
+				$Level = &pop_one_level($docb, $Level);
+			}
+			$proc_l = $l;
+
 		} else {
-			die "So what now? \$sta (value: $realm) contains an unknown value!";
+			die "FATAL: \$realm (value: $realm) contains an unknown value!";
 		}
 
 		%Attributes = (%Attributes, %newattr) if %newattr;
 		&debug_print_attributes($l, \%Attributes);
 
-		$processed_line = 1;
 		last;
 	}
 
 	&debug_print_status();
+
+	if (defined($proc_l)) {
+#        if ($proc_l eq '') {
+#        } else {
+		$proc_l = '' if $proc_l eq '+';
+		$docb->proc('LINE_TEXT', \%Attributes, $proc_l);
+	} else {
+		$docb->proc('LINE_INCREMENT', \%Attributes);
+	}
 
 	$prev_l = $l;
 }
@@ -307,7 +365,22 @@ exit 0;
 
 package DOCB::md;
 
+use strict;
+use warnings;
+
+use Carp;
+
 sub ddbg { return &main::dbg($DBG_DOCB); }
+
+sub shape {
+	my ($format, $t) = @_;
+
+	$t =~ s/^.*$/_$&_/            , return $t if $format eq 'TITLE';
+	$t =~ s/^.*$/| $& |/          , return $t if $format eq 'TABLE_ROW';
+	$t = '| --- |'                , return $t if $format eq 'TABLE_HORIZONTAL_LINE';
+
+	die "Unknown format '$format'";
+}
 
 sub new {
 	my $class = shift;
@@ -320,9 +393,31 @@ sub new {
 	$self->{debug} = 0 unless exists $self->{debug};
 
 	$self->{status} = $ST_OUTER;
+	$self->{stack} = [];
+
+	$self->{line} = 0;
 
 	bless($self, $class);
 	return $self;
+}
+
+sub print_line {
+	my $self = shift;
+	my $line = shift;
+
+	my $outh = $self->{outh};
+
+	print($outh $line . "\n");
+}
+
+sub consume_and_print_section_title_if_present {
+	my $self = shift;
+	my $attr = shift;
+
+	return unless exists $attr->{'.'};
+
+	$self->print_line(&shape('TITLE', $attr->{'.'}));
+	delete $attr->{'.'};
 }
 
 sub proc {
@@ -331,35 +426,62 @@ sub proc {
 	my $attr = shift;
 
 	my $pkg = $self->{pkg};
-
+	my $outh = $self->{outh};
 	my $debug = $self->{debug};
 	my $debugh = $self->{debugh};
-	print($debugh "$pkg: $action") if &ddbg();
 
 	my $title = '';
 	$title = $attr->{'.'} if exists $attr->{'.'};
-	my $dbg_title = ($title ne '' ? ": title '$title'" : '');
 
 	if ($action eq 'BLOCK_ENTER') {
-		my $status = shift;
+		my $old_status = shift;
+		my $new_status = shift;
 
-		my $admo = shift if $status == $ST_ADMONITION;
-		my $dbg_admo = (defined($admo) ? ":($admo)" : '');
+		my $admo;
+		if ($new_status == $ST_ADMONITION) {
+			$admo = shift;
+			$self->print_line(&shape('TABLE_ROW', $admo));
+			$self->print_line(&shape('TABLE_HORIZONTAL_LINE', ''));
+			$self->print_line(&shape('TABLE_ROW', &shape('TITLE', $title))) if $title ne '';
+		}
 
-		print($debugh ": status '" . $StatusNames{$status} . "'$dbg_admo") if &ddbg();
+		$self->{status} = $new_status;
 
-		delete $attr->{'.'} if exists $attr->{'.'};
+		if (&ddbg()) {
+			my $str_admo = (defined($admo) ? "($admo)" : '');
+			my $stack_elem = $StatusNames{$new_status} . $str_admo . ($title eq '' ? '' : "<" . substr($title, 0, 3) . "*>");
+			push @{$self->{stack}}, $stack_elem;
+		}
 
 	} elsif ($action eq 'BLOCK_LEAVE') {
-		my $status = shift;
-		print($debugh ": status '" . $StatusNames{$status} . "'") if &ddbg();
+		my $old_status = shift;
+		my $new_status = shift;
 
-		delete $attr->{'.'} if exists $attr->{'.'};
+		$self->{status} = $new_status;
 
-	} elsif ($action eq 'TEXT') {
+		if (&ddbg()) {
+			pop @{$self->{stack}};
+		}
+
+	} elsif ($action eq 'LINE_TEXT' or $action eq 'LINE_INCREMENT') {
+		$self->{line}++;
+		my $status = $self->{status};
+		my $l;
+		if ($action eq 'LINE_TEXT') {
+			$l = shift;
+			croak "check proc call!" unless defined($l);
+		}
+		printf($debugh "L%04d %s %02d  %-40s  '%s'\n", $self->{line}, ($title eq '' ? ' ' : 'T'),
+			$self->{status}, join(':', @{$self->{stack}}), ($action eq 'LINE_TEXT' ? $l : '<NULL>')) if &ddbg();
+		return if $action eq 'LINE_INCREMENT';
+
+		$self->consume_and_print_section_title_if_present($attr) if $l ne '';
+
+		$l = &shape('TABLE_ROW', $l) if $status == $ST_ADMONITION;
+		$self->print_line($l);
+	} else {
+		croak "$pkg: FATAL: unknown action '$action'";
 	}
-
-	print($debugh "$dbg_title\n") if &ddbg();
 }
 
 
